@@ -4,7 +4,8 @@ import {
   Gamepad2, Puzzle, Type, Smile, 
   Gift, ImageIcon, Search, MoreHorizontal,
   Plus, Minus as MinusIcon, X, Reply,
-  Calendar, Info, Globe, MessageSquare, Mail, Clock
+  Calendar, Info, Globe, MessageSquare, Mail, Clock,
+  Newspaper, ExternalLink, TrendingUp
 } from 'lucide-react';
 import { motion, useAnimation, AnimatePresence } from 'motion/react';
 import { Message, UserData } from '../../types';
@@ -38,6 +39,8 @@ export const ChatPage: React.FC<ChatPageProps> = ({ user }) => {
   const [showProfileDialog, setShowProfileDialog] = useState(false);
   const [showThemeDialog, setShowThemeDialog] = useState(false);
   const [showUserProfileDialog, setShowUserProfileDialog] = useState(false);
+  const [showNewsDialog, setShowNewsDialog] = useState(false);
+  const [selectedNews, setSelectedNews] = useState<any>(null);
   const [selectedUser, setSelectedUser] = useState<any>(null);
   const [replyingTo, setReplyingTo] = useState<Message | null>(null);
   const [userSearchQuery, setUserSearchQuery] = useState('');
@@ -129,7 +132,16 @@ export const ChatPage: React.FC<ChatPageProps> = ({ user }) => {
     setMessages(prev => prev.map(msg => {
       if (msg.id === messageId) {
         const reactions = { ...(msg.reactions || {}) };
-        reactions[reaction] = (reactions[reaction] || 0) + 1;
+        
+        // If the same reaction is already there, remove it (toggle)
+        if (reactions[reaction]) {
+          delete reactions[reaction];
+        } else {
+          // Clear all other reactions and set the new one (only one allowed)
+          Object.keys(reactions).forEach(key => delete reactions[key]);
+          reactions[reaction] = 1;
+        }
+        
         return { ...msg, reactions };
       }
       return msg;
@@ -208,6 +220,12 @@ export const ChatPage: React.FC<ChatPageProps> = ({ user }) => {
             user={selectedUser}
             lastMessageObj={messages.filter(m => m.sender === 'them').slice(-1)[0]}
             onClose={() => setShowUserProfileDialog(false)}
+          />
+        )}
+        {showNewsDialog && selectedNews && (
+          <NewsDialog 
+            news={selectedNews}
+            onClose={() => setShowNewsDialog(false)}
           />
         )}
       </AnimatePresence>
@@ -556,25 +574,65 @@ export const ChatPage: React.FC<ChatPageProps> = ({ user }) => {
             </div>
           </div>
 
-          {/* Right Column (Avatars) */}
-          <div className="w-40 flex flex-col gap-6 shrink-0">
-            {/* Top Display Picture */}
-            <div className="relative group">
-              <div className="w-full aspect-square bg-white border-2 border-[#ACA899] rounded-xl p-1.5 shadow-lg overflow-hidden transition-transform hover:scale-105">
-                <div className="w-full h-full bg-[#F0F0F0] rounded-lg flex items-center justify-center overflow-hidden border border-black/5">
-                  <img src="https://picsum.photos/seed/poops/300/300" className="w-full h-full object-cover" alt="Poops" />
-                </div>
+          {/* Right Column (Avatars & News) */}
+          <div className="w-40 flex flex-col gap-4 shrink-0 overflow-hidden">
+            {/* Breaking News Section */}
+            <div className="flex-1 flex flex-col bg-white border-2 border-[#ACA899] rounded-xl shadow-lg overflow-hidden">
+              <div className="bg-gradient-to-b from-[#FF6600] to-[#CC5200] px-2 py-1 flex items-center gap-2 border-b border-[#ACA899]">
+                <Newspaper size={12} className="text-white" />
+                <span className="text-[10px] font-bold text-white uppercase tracking-wider">Breaking News</span>
               </div>
-              <div className="absolute -right-2 top-1/2 -translate-y-1/2 w-4 h-10 bg-[#D6D3C4] border border-[#ACA899] rounded-l-md flex items-center justify-center cursor-pointer hover:bg-[#ECE9D8] transition-colors shadow-sm">
-                <div className="w-1.5 h-5 border-l border-r border-[#ACA899]"></div>
-                <div className="absolute right-0 bottom-0 w-3 h-3 border-l border-t border-[#ACA899] flex items-center justify-center">
-                   <div className="w-0 h-0 border-l-[3px] border-l-transparent border-r-[3px] border-r-transparent border-t-[3px] border-t-gray-600"></div>
+              <div className="flex-1 p-2 flex flex-col gap-3 overflow-y-auto scrollbar-thin bg-[#FFFBF0]">
+                {[
+                  { 
+                    title: "MSN hits 100M users!", 
+                    icon: <TrendingUp size={10} />,
+                    content: "MSN Messenger has officially surpassed 100 million active users worldwide! The service continues to grow as the premier destination for instant messaging and digital connection."
+                  },
+                  { 
+                    title: "New 3D Emoticons!", 
+                    icon: <Smile size={10} />,
+                    content: "Express yourself like never before with our brand new pack of 3D animated emoticons. From dancing robots to spinning hearts, your conversations just got a lot more lively!"
+                  },
+                  { 
+                    title: "Vista Beta 2 out now", 
+                    icon: <Globe size={10} />,
+                    content: "Microsoft has released Windows Vista Beta 2 to the public. Experience the new Aero interface and enhanced security features of the next generation of Windows."
+                  },
+                  { 
+                    title: "Top 10 Pop Hits", 
+                    icon: <ExternalLink size={10} />,
+                    content: "Check out this week's top 10 pop hits on MSN Music. From the latest chart-toppers to rising stars, we've got the soundtrack for your summer."
+                  },
+                  { 
+                    title: "Nudge etiquette 101", 
+                    icon: <Info size={10} />,
+                    content: "Are you nudging too much? Learn the do's and don'ts of the Nudge feature in our latest guide. Remember: one nudge is a greeting, ten nudges is a problem!"
+                  }
+                ].map((news, i) => (
+                  <div 
+                    key={i} 
+                    onClick={() => {
+                      setSelectedNews(news);
+                      setShowNewsDialog(true);
+                    }}
+                    className="flex flex-col gap-1 group cursor-pointer"
+                  >
+                    <div className="flex items-center gap-1.5 text-[#3169C6] group-hover:underline">
+                      <span className="shrink-0">{news.icon}</span>
+                      <span className="text-[10px] font-bold leading-tight">{news.title}</span>
+                    </div>
+                    <div className="h-[1px] bg-gray-200 w-full"></div>
+                  </div>
+                ))}
+                <div className="mt-auto pt-2 text-center">
+                  <span className="text-[9px] text-[#FF6600] font-bold hover:underline cursor-pointer italic">More on MSN.com →</span>
                 </div>
               </div>
             </div>
 
-            {/* Bottom Display Picture */}
-            <div className="relative group mt-auto">
+            {/* Bottom Display Picture (My Profile) */}
+            <div className="relative group mt-auto shrink-0">
               <div className="w-full aspect-square bg-white border-2 border-[#ACA899] rounded-xl p-1.5 shadow-lg overflow-hidden transition-transform hover:scale-105">
                 <div className="w-full h-full bg-[#F0F0F0] rounded-lg flex items-center justify-center overflow-hidden border border-black/5">
                   <img src={currentUser.avatar} className="w-full h-full object-cover" alt="Me" />
@@ -674,6 +732,45 @@ function GiftDialog({ onClose, onSend }: { onClose: () => void, onSend: (msg: st
               Cancel
             </button>
           </div>
+        </div>
+      </motion.div>
+    </div>
+  );
+}
+
+function NewsDialog({ news, onClose }: { news: any, onClose: () => void }) {
+  return (
+    <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-[120] p-4">
+      <motion.div 
+        initial={{ scale: 0.9, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        exit={{ scale: 0.9, opacity: 0 }}
+        className="w-[400px] bg-white border border-[#ACA899] rounded-lg shadow-2xl overflow-hidden flex flex-col"
+      >
+        <TitleBar title="MSN Today - News Detail" />
+        <div className="p-6 flex flex-col gap-4">
+          <div className="flex items-center gap-3 text-[#FF6600]">
+            <Newspaper size={24} />
+            <h2 className="text-xl font-bold">{news.title}</h2>
+          </div>
+          
+          <div className="bg-[#FFFBF0] border border-[#FF6600]/20 rounded-lg p-4 shadow-inner">
+            <p className="text-sm text-gray-700 leading-relaxed italic">
+              {news.content}
+            </p>
+          </div>
+
+          <div className="flex items-center gap-2 text-[11px] text-gray-400 mt-2">
+            <Clock size={12} />
+            <span>Published: {new Date().toLocaleDateString()}</span>
+          </div>
+
+          <button 
+            onClick={onClose}
+            className="w-full h-10 bg-gradient-to-b from-[#F8F8F8] to-[#E0E0E0] border border-[#ACA899] rounded-lg text-sm font-bold text-gray-700 shadow-sm hover:brightness-105 transition-all mt-2"
+          >
+            Back to MSN Today
+          </button>
         </div>
       </motion.div>
     </div>
