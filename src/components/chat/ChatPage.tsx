@@ -25,6 +25,8 @@ const DEFAULT_THEME = {
 
 export const ChatPage: React.FC<ChatPageProps> = ({ user }) => {
   const [currentUser, setCurrentUser] = useState<UserData>(user);
+  const [personalMessage, setPersonalMessage] = useState('Listening to: Linkin Park - In The End');
+  const [status, setStatus] = useState<'Online' | 'Busy' | 'Away' | 'Offline'>('Online');
   const [messages, setMessages] = useState<Message[]>([
     { id: '1', sender: 'them', text: 'you got any plans?', type: 'text', timestamp: new Date() },
     { id: '2', sender: 'them', text: 'I miss you ☹️', type: 'text', timestamp: new Date() },
