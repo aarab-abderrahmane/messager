@@ -9,7 +9,7 @@ import {
 } from 'lucide-react';
 import { motion, useAnimation, AnimatePresence } from 'motion/react';
 import { Message, UserData } from '../../types';
-import { MSN_LOGO_URL, ALL_EMOJIS, ONLINE_USERS, AVATARS } from '../../constants';
+import { MSN_LOGO_URL, ALL_EMOJIS, ONLINE_USERS, AVATARS, STICKERS, GIFS } from '../../constants';
 import { TitleBar } from '../common/TitleBar';
 
 interface ChatPageProps {
@@ -40,6 +40,7 @@ export const ChatPage: React.FC<ChatPageProps> = ({ user }) => {
   const [showThemeDialog, setShowThemeDialog] = useState(false);
   const [showUserProfileDialog, setShowUserProfileDialog] = useState(false);
   const [showNewsDialog, setShowNewsDialog] = useState(false);
+  const [showStickerDialog, setShowStickerDialog] = useState(false);
   const [selectedNews, setSelectedNews] = useState<any>(null);
   const [selectedUser, setSelectedUser] = useState<any>(null);
   const [replyingTo, setReplyingTo] = useState<Message | null>(null);
@@ -126,6 +127,11 @@ export const ChatPage: React.FC<ChatPageProps> = ({ user }) => {
     setMessages(prev => prev.map(msg => 
       msg.id === id ? { ...msg, isOpened: true } : msg
     ));
+  };
+
+  const handleSendSticker = (url: string, type: 'sticker' | 'gif') => {
+    addMessage({ imageUrl: url, type: type });
+    setShowStickerDialog(false);
   };
 
   const handleReaction = (messageId: string, reaction: string) => {
@@ -226,6 +232,12 @@ export const ChatPage: React.FC<ChatPageProps> = ({ user }) => {
           <NewsDialog 
             news={selectedNews}
             onClose={() => setShowNewsDialog(false)}
+          />
+        )}
+        {showStickerDialog && (
+          <StickerDialog 
+            onSelect={handleSendSticker}
+            onClose={() => setShowStickerDialog(false)}
           />
         )}
       </AnimatePresence>
@@ -384,6 +396,14 @@ export const ChatPage: React.FC<ChatPageProps> = ({ user }) => {
                         {msg.sender === 'me' ? 'You sent a photo:' : 'Poops sent a photo:'}
                       </span>
                       <img src={msg.imageUrl} className="max-w-[200px] rounded-md border border-gray-200 shadow-sm ml-3" alt="Sent photo" />
+                    </div>
+                  )}
+                  {(msg.type === 'sticker' || msg.type === 'gif') && (
+                    <div className="flex flex-col gap-1">
+                      <span className={`font-bold text-[13px] ${msg.sender === 'me' ? 'text-[#3169C6]' : 'text-black'}`}>
+                        {msg.sender === 'me' ? `You sent a ${msg.type}:` : `Poops sent a ${msg.type}:`}
+                      </span>
+                      <img src={msg.imageUrl} className="max-w-[150px] ml-3" alt={msg.type} />
                     </div>
                   )}
                   {msg.type === 'voice' && (
@@ -564,10 +584,10 @@ export const ChatPage: React.FC<ChatPageProps> = ({ user }) => {
                   <motion.button 
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
-                    onClick={handleNudge}
+                    onClick={() => setShowStickerDialog(true)}
                     className="h-10 bg-gradient-to-b from-[#F8F8F8] to-[#D6D3C4] border border-[#ACA899] rounded-lg text-[12px] font-bold text-gray-700 shadow-sm hover:brightness-105 active:shadow-inner transition-all flex items-center justify-center gap-2"
                   >
-                    <Search size={14} /> Search
+                    <Smile size={14} /> Stickers
                   </motion.button>
                 </div>
               </div>
@@ -771,6 +791,60 @@ function NewsDialog({ news, onClose }: { news: any, onClose: () => void }) {
           >
             Back to MSN Today
           </button>
+        </div>
+      </motion.div>
+    </div>
+  );
+}
+
+function StickerDialog({ onSelect, onClose }: { onSelect: (url: string, type: 'sticker' | 'gif') => void, onClose: () => void }) {
+  const [tab, setTab] = useState<'stickers' | 'gifs'>('stickers');
+
+  return (
+    <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-[130] p-4">
+      <motion.div 
+        initial={{ scale: 0.9, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        exit={{ scale: 0.9, opacity: 0 }}
+        className="w-[450px] bg-white border border-[#ACA899] rounded-lg shadow-2xl overflow-hidden flex flex-col"
+      >
+        <TitleBar title="Select Sticker or GIF" />
+        <div className="p-4 flex flex-col gap-4">
+          <div className="flex border-b border-[#ACA899]">
+            <button 
+              onClick={() => setTab('stickers')}
+              className={`px-4 py-2 text-sm font-bold transition-all ${tab === 'stickers' ? 'text-[#3169C6] border-b-2 border-[#3169C6] bg-blue-50' : 'text-gray-500 hover:bg-gray-50'}`}
+            >
+              Stickers
+            </button>
+            <button 
+              onClick={() => setTab('gifs')}
+              className={`px-4 py-2 text-sm font-bold transition-all ${tab === 'gifs' ? 'text-[#3169C6] border-b-2 border-[#3169C6] bg-blue-50' : 'text-gray-500 hover:bg-gray-50'}`}
+            >
+              GIFs
+            </button>
+          </div>
+
+          <div className="h-[300px] overflow-y-auto p-2 grid grid-cols-2 gap-3 bg-gray-50 rounded border border-[#ACA899]/30">
+            {(tab === 'stickers' ? STICKERS : GIFS).map((url, i) => (
+              <div 
+                key={i}
+                onClick={() => onSelect(url, tab === 'stickers' ? 'sticker' : 'gif')}
+                className="bg-white border border-[#ACA899]/20 rounded p-2 cursor-pointer hover:border-[#3169C6] hover:shadow-md transition-all flex items-center justify-center group"
+              >
+                <img src={url} className="max-w-full max-h-full group-hover:scale-110 transition-transform" alt="Sticker/GIF" />
+              </div>
+            ))}
+          </div>
+
+          <div className="flex gap-2">
+            <button 
+              onClick={onClose}
+              className="flex-1 h-10 bg-gradient-to-b from-[#F8F8F8] to-[#E0E0E0] border border-[#ACA899] rounded-lg text-sm font-bold text-gray-700 shadow-sm hover:brightness-105 transition-all"
+            >
+              Cancel
+            </button>
+          </div>
         </div>
       </motion.div>
     </div>
