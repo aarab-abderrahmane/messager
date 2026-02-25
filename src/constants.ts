@@ -19,9 +19,9 @@ export const MSN_LOGO_URL = 'https://upload.wikimedia.org/wikipedia/en/thumb/3/3
 export const ALL_EMOJIS = ['😊', '😂', '❤️', '🥺', '🫶', '☹️', '😎', '🤔', '🔥', '👍', '🙌', '✨', '🎉', '🍕', '🍦', '🎮', '💻', '📱'];
 
 export const ONLINE_USERS = [
-  { name: 'Poops', status: 'Online', avatar: 'https://picsum.photos/seed/poops/100/100' },
-  { name: 'CoolCat', status: 'Busy', avatar: 'https://picsum.photos/seed/cat/100/100' },
-  { name: 'SkaterBoy', status: 'Online', avatar: 'https://picsum.photos/seed/skate/100/100' },
-  { name: 'GamerGirl', status: 'Away', avatar: 'https://picsum.photos/seed/game/100/100' },
-  { name: 'RetroFan', status: 'Online', avatar: 'https://picsum.photos/seed/retro/100/100' },
+  { name: 'Poops', status: 'Online', avatar: 'https://picsum.photos/seed/poops/100/100', creationDate: '2004-05-12', ipAddress: '192.168.1.45', email: 'poops@hotmail.com' },
+  { name: 'CoolCat', status: 'Busy', avatar: 'https://picsum.photos/seed/cat/100/100', creationDate: '2005-01-20', ipAddress: '172.16.254.1', email: 'coolcat99@msn.com' },
+  { name: 'SkaterBoy', status: 'Online', avatar: 'https://picsum.photos/seed/skate/100/100', creationDate: '2004-11-05', ipAddress: '10.0.0.12', email: 'sk8er_boy@live.com' },
+  { name: 'GamerGirl', status: 'Away', avatar: 'https://picsum.photos/seed/game/100/100', creationDate: '2006-03-15', ipAddress: '192.168.0.101', email: 'gamer_girl_x@hotmail.com' },
+  { name: 'RetroFan', status: 'Online', avatar: 'https://picsum.photos/seed/retro/100/100', creationDate: '2003-08-22', ipAddress: '127.0.0.1', email: 'retro_fan@msn.com' },
 ];

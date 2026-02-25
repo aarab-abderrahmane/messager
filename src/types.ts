@@ -11,6 +11,14 @@ export interface Message {
   type: 'text' | 'system' | 'nudge' | 'image' | 'voice' | 'gift';
   timestamp: Date;
   isOpened?: boolean;
+  replyTo?: {
+    id: string;
+    text: string;
+    sender: 'me' | 'them';
+  };
+  reactions?: {
+    [key: string]: number; // reaction type -> count
+  };
 }
 
 export interface UserData {
