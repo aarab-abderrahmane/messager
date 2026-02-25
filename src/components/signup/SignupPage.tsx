@@ -17,36 +17,40 @@ export const SignupPage: React.FC<SignupPageProps> = ({ onSignup }) => {
   const [selectedAvatar, setSelectedAvatar] = useState(AVATARS[0]);
   const [showAvatarList, setShowAvatarList] = useState(false);
   const [toast, setToast] = useState<{ message: string, type: 'success' | 'error' } | null>(null);
+  const [isSignIn, setIsSignIn] = useState(false);
 
-  const handleSignup = (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
-    if (EXISTING_USERS.includes(email)) {
-      setToast({ message: 'Email already exists!', type: 'error' });
-      return;
-    }
-
-    if (password !== confirmPassword) {
-      setToast({ message: 'Passwords do not match!', type: 'error' });
-      return;
-    }
 
     if (!email || !password) {
       setToast({ message: 'Please fill in all fields!', type: 'error' });
       return;
     }
 
-    onSignup({ email, avatar: selectedAvatar });
+    if (isSignIn) {
+      // In a real app we'd verify credentials here.
+      onSignup({ email, avatar: selectedAvatar });
+    } else {
+      if (EXISTING_USERS.includes(email)) {
+        setToast({ message: 'Email already exists!', type: 'error' });
+        return;
+      }
+      if (password !== confirmPassword) {
+        setToast({ message: 'Passwords do not match!', type: 'error' });
+        return;
+      }
+      onSignup({ email, avatar: selectedAvatar });
+    }
   };
 
   return (
     <div className="h-screen w-full bg-gradient-to-b from-[#C9E0F7] via-[#FFFFFF] to-[#C9E0F7] flex items-center justify-center p-4 font-sans">
       <AnimatePresence>
         {toast && (
-          <Toast 
-            message={toast.message} 
-            type={toast.type} 
-            onClose={() => setToast(null)} 
+          <Toast
+            message={toast.message}
+            type={toast.type}
+            onClose={() => setToast(null)}
           />
         )}
       </AnimatePresence>
@@ -56,7 +60,7 @@ export const SignupPage: React.FC<SignupPageProps> = ({ onSignup }) => {
 
         <div className="p-10 flex flex-col gap-8">
           <div className="flex flex-col gap-1">
-            <h1 className="text-3xl text-[#003399] font-light tracking-tight">Sign up to</h1>
+            <h1 className="text-3xl text-[#003399] font-light tracking-tight">{isSignIn ? 'Sign in to' : 'Sign up to'}</h1>
             <h2 className="text-4xl text-[#003399] font-medium tracking-tight">Windows Live <span className="font-bold">Messenger</span></h2>
           </div>
 
@@ -64,8 +68,8 @@ export const SignupPage: React.FC<SignupPageProps> = ({ onSignup }) => {
             {/* Avatar Section */}
             <div className="flex flex-col items-center gap-4">
               <div className="relative">
-                <div 
-                  className="w-36 h-36 bg-white border-4 border-[#88C057] rounded-2xl p-1 shadow-lg overflow-hidden flex items-center justify-center group cursor-pointer transition-transform hover:scale-105" 
+                <div
+                  className="w-36 h-36 bg-white border-4 border-[#88C057] rounded-2xl p-1 shadow-lg overflow-hidden flex items-center justify-center group cursor-pointer transition-transform hover:scale-105"
                   onClick={() => setShowAvatarList(!showAvatarList)}
                 >
                   <img src={selectedAvatar} className="w-full h-full object-cover rounded-xl" alt="Selected Avatar" />
@@ -73,24 +77,23 @@ export const SignupPage: React.FC<SignupPageProps> = ({ onSignup }) => {
                     <span className="text-white text-sm font-bold drop-shadow-md">Change Picture</span>
                   </div>
                 </div>
-                
+
                 <AnimatePresence>
                   {showAvatarList && (
-                    <motion.div 
+                    <motion.div
                       initial={{ opacity: 0, scale: 0.9, y: 10 }}
                       animate={{ opacity: 1, scale: 1, y: 0 }}
                       exit={{ opacity: 0, scale: 0.9, y: 10 }}
                       className="absolute top-full mt-4 left-0 bg-white border border-[#A0A0A0] rounded-xl shadow-2xl p-3 grid grid-cols-3 gap-3 z-20 w-56"
                     >
                       {AVATARS.map((url, idx) => (
-                        <motion.img 
-                          key={idx} 
+                        <motion.img
+                          key={idx}
                           whileHover={{ scale: 1.1 }}
                           whileTap={{ scale: 0.95 }}
-                          src={url} 
-                          className={`w-14 h-14 rounded-lg cursor-pointer border-2 transition-all ${
-                            selectedAvatar === url ? 'border-[#88C057] shadow-md' : 'border-transparent hover:border-gray-300'
-                          }`}
+                          src={url}
+                          className={`w-14 h-14 rounded-lg cursor-pointer border-2 transition-all ${selectedAvatar === url ? 'border-[#88C057] shadow-md' : 'border-transparent hover:border-gray-300'
+                            }`}
                           onClick={() => {
                             setSelectedAvatar(url);
                             setShowAvatarList(false);
@@ -109,11 +112,11 @@ export const SignupPage: React.FC<SignupPageProps> = ({ onSignup }) => {
             </div>
 
             {/* Form Section */}
-            <form onSubmit={handleSignup} className="flex-1 flex flex-col gap-5">
+            <form onSubmit={handleSubmit} className="flex-1 flex flex-col justify-center gap-4">
               <div className="space-y-1">
                 <label className="text-[11px] font-bold text-gray-600 ml-1">Email address</label>
-                <input 
-                  type="email" 
+                <input
+                  type="email"
                   placeholder="example555@hotmail.com"
                   className="w-full h-10 px-3 border border-[#A0A0A0] rounded-md text-sm focus:outline-none focus:border-[#003399] focus:ring-2 focus:ring-[#003399]/20 transition-all shadow-inner"
                   value={email}
@@ -121,25 +124,27 @@ export const SignupPage: React.FC<SignupPageProps> = ({ onSignup }) => {
                 />
               </div>
               <div className="space-y-1">
-                <label className="text-[11px] font-bold text-gray-600 ml-1">Create password</label>
-                <input 
-                  type="password" 
+                <label className="text-[11px] font-bold text-gray-600 ml-1">{isSignIn ? 'Password' : 'Create password'}</label>
+                <input
+                  type="password"
                   placeholder="Password"
                   className="w-full h-10 px-3 border border-[#A0A0A0] rounded-md text-sm focus:outline-none focus:border-[#003399] focus:ring-2 focus:ring-[#003399]/20 transition-all shadow-inner"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                 />
               </div>
-              <div className="space-y-1">
-                <label className="text-[11px] font-bold text-gray-600 ml-1">Confirm password</label>
-                <input 
-                  type="password" 
-                  placeholder="Confirm Password"
-                  className="w-full h-10 px-3 border border-[#A0A0A0] rounded-md text-sm focus:outline-none focus:border-[#003399] focus:ring-2 focus:ring-[#003399]/20 transition-all shadow-inner"
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                />
-              </div>
+              {!isSignIn && (
+                <div className="space-y-1">
+                  <label className="text-[11px] font-bold text-gray-600 ml-1">Confirm password</label>
+                  <input
+                    type="password"
+                    placeholder="Confirm Password"
+                    className="w-full h-10 px-3 border border-[#A0A0A0] rounded-md text-sm focus:outline-none focus:border-[#003399] focus:ring-2 focus:ring-[#003399]/20 transition-all shadow-inner"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                  />
+                </div>
+              )}
 
               <div className="flex flex-col gap-3 mt-2">
                 <div className="flex items-center gap-3 group cursor-pointer">
@@ -153,16 +158,16 @@ export const SignupPage: React.FC<SignupPageProps> = ({ onSignup }) => {
                 </div>
               </div>
 
-              <div className="flex gap-4 mt-6">
-                <motion.button 
+              <div className="flex gap-4 mt-4">
+                <motion.button
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
                   type="submit"
                   className="flex-1 h-10 bg-gradient-to-b from-[#F8F8F8] to-[#E0E0E0] border border-[#A0A0A0] rounded-lg text-sm font-bold text-gray-700 shadow-sm hover:brightness-105 active:shadow-inner transition-all"
                 >
-                  Sign up
+                  {isSignIn ? 'Sign in' : 'Sign up'}
                 </motion.button>
-                <motion.button 
+                <motion.button
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
                   type="button"
@@ -175,7 +180,11 @@ export const SignupPage: React.FC<SignupPageProps> = ({ onSignup }) => {
           </div>
 
           <div className="text-xs text-center text-gray-500 mt-6">
-            Already have a Windows Live ID? <span className="text-[#003399] font-bold cursor-pointer hover:underline">Sign in</span>
+            {isSignIn ? (
+              <>Don't have a Windows Live ID? <span onClick={() => setIsSignIn(false)} className="text-[#003399] font-bold cursor-pointer hover:underline">Sign up</span></>
+            ) : (
+              <>Already have a Windows Live ID? <span onClick={() => setIsSignIn(true)} className="text-[#003399] font-bold cursor-pointer hover:underline">Sign in</span></>
+            )}
           </div>
         </div>
 
