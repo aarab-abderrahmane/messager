@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { 
-  User, Paperclip, Video, Mic, 
-  Gamepad2, Puzzle, Type, Smile, 
+import {
+  User, Paperclip, Video, Mic,
+  Gamepad2, Puzzle, Type, Smile,
   Gift, ImageIcon, Search, MoreHorizontal,
   Plus, Minus as MinusIcon, X, Reply,
   Calendar, Info, Globe, MessageSquare, Mail, Clock,
@@ -48,9 +48,9 @@ export const ChatPage: React.FC<ChatPageProps> = ({ user }) => {
   const [replyingTo, setReplyingTo] = useState<Message | null>(null);
   const [userSearchQuery, setUserSearchQuery] = useState('');
   const [reactionMenuId, setReactionMenuId] = useState<string | null>(null);
-  
+
   const [theme, setTheme] = useState(DEFAULT_THEME);
-  
+
   const chatEndRef = useRef<HTMLDivElement>(null);
   const windowControls = useAnimation();
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -117,7 +117,8 @@ export const ChatPage: React.FC<ChatPageProps> = ({ user }) => {
   const handleVoiceUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      addMessage({ text: `Voice Clip: ${file.name} (0:12)`, type: 'voice' });
+      const url = URL.createObjectURL(file);
+      addMessage({ text: `Voice Clip: ${file.name}`, audioUrl: url, type: 'voice' });
     }
   };
 
@@ -126,7 +127,7 @@ export const ChatPage: React.FC<ChatPageProps> = ({ user }) => {
   };
 
   const handleOpenGift = (id: string) => {
-    setMessages(prev => prev.map(msg => 
+    setMessages(prev => prev.map(msg =>
       msg.id === id ? { ...msg, isOpened: true } : msg
     ));
   };
@@ -140,7 +141,7 @@ export const ChatPage: React.FC<ChatPageProps> = ({ user }) => {
     setMessages(prev => prev.map(msg => {
       if (msg.id === messageId) {
         const reactions = { ...(msg.reactions || {}) };
-        
+
         // If the same reaction is already there, remove it (toggle)
         if (reactions[reaction]) {
           delete reactions[reaction];
@@ -149,7 +150,7 @@ export const ChatPage: React.FC<ChatPageProps> = ({ user }) => {
           Object.keys(reactions).forEach(key => delete reactions[key]);
           reactions[reaction] = 1;
         }
-        
+
         return { ...msg, reactions };
       }
       return msg;
@@ -165,46 +166,46 @@ export const ChatPage: React.FC<ChatPageProps> = ({ user }) => {
   };
 
   return (
-    <div 
+    <div
       className="h-screen w-full selection:bg-[#3169C6] selection:text-white flex flex-col overflow-hidden relative"
-      style={{ 
-        backgroundColor: theme.bgColor, 
+      style={{
+        backgroundColor: theme.bgColor,
         color: theme.textColor,
         fontFamily: theme.fontFamily,
         fontSize: `${theme.appFontSize}px`
       }}
     >
-      <input 
-        type="file" 
-        ref={fileInputRef} 
-        className="hidden" 
-        accept="image/*" 
-        onChange={handlePhotoUpload} 
+      <input
+        type="file"
+        ref={fileInputRef}
+        className="hidden"
+        accept="image/*"
+        onChange={handlePhotoUpload}
       />
-      <input 
-        type="file" 
-        ref={voiceInputRef} 
-        className="hidden" 
-        accept="audio/*" 
-        onChange={handleVoiceUpload} 
+      <input
+        type="file"
+        ref={voiceInputRef}
+        className="hidden"
+        accept="audio/*"
+        onChange={handleVoiceUpload}
       />
 
       <AnimatePresence>
         {showGiftDialog && (
-          <GiftDialog 
-            onClose={() => setShowGiftDialog(false)} 
+          <GiftDialog
+            onClose={() => setShowGiftDialog(false)}
             onSend={(msg, count) => {
-              addMessage({ 
-                text: msg, 
-                type: 'gift', 
-                isOpened: false 
+              addMessage({
+                text: msg,
+                type: 'gift',
+                isOpened: false
               });
               setShowGiftDialog(false);
-            }} 
+            }}
           />
         )}
         {showProfileDialog && (
-          <ProfileDialog 
+          <ProfileDialog
             user={currentUser}
             onClose={() => setShowProfileDialog(false)}
             onSave={(updatedUser) => {
@@ -214,7 +215,7 @@ export const ChatPage: React.FC<ChatPageProps> = ({ user }) => {
           />
         )}
         {showThemeDialog && (
-          <ThemeDialog 
+          <ThemeDialog
             currentTheme={theme}
             onClose={() => setShowThemeDialog(false)}
             onSave={(newTheme) => {
@@ -224,27 +225,27 @@ export const ChatPage: React.FC<ChatPageProps> = ({ user }) => {
           />
         )}
         {showUserProfileDialog && selectedUser && (
-          <UserProfileDialog 
+          <UserProfileDialog
             user={selectedUser}
             lastMessageObj={messages.filter(m => m.sender === 'them').slice(-1)[0]}
             onClose={() => setShowUserProfileDialog(false)}
           />
         )}
         {showNewsDialog && selectedNews && (
-          <NewsDialog 
+          <NewsDialog
             news={selectedNews}
             onClose={() => setShowNewsDialog(false)}
           />
         )}
         {showStickerDialog && (
-          <StickerDialog 
+          <StickerDialog
             onSelect={handleSendSticker}
             onClose={() => setShowStickerDialog(false)}
           />
         )}
       </AnimatePresence>
 
-      <motion.div 
+      <motion.div
         animate={windowControls}
         className="flex-1 flex flex-col overflow-hidden"
       >
@@ -253,8 +254,8 @@ export const ChatPage: React.FC<ChatPageProps> = ({ user }) => {
         {/* Menu Bar */}
         <div className="h-7 border-b border-[#ACA899] flex items-center px-2 gap-5 text-[11px] select-none shrink-0" style={{ backgroundColor: theme.bgColor }}>
           {['File', 'Edit', 'Actions', 'Tools', 'Help'].map(item => (
-            <div 
-              key={item} 
+            <div
+              key={item}
               onClick={() => item === 'Edit' && setShowThemeDialog(true)}
               className="px-2 py-1 hover:bg-[#316AC5] hover:text-white cursor-default rounded-sm transition-colors"
             >
@@ -265,7 +266,7 @@ export const ChatPage: React.FC<ChatPageProps> = ({ user }) => {
 
         {/* Main Content Area */}
         <div className="flex-1 flex p-4 gap-4 overflow-hidden">
-          
+
           {/* Left Column (Online Users) */}
           <div className="w-48 flex flex-col gap-4 shrink-0 overflow-hidden">
             {/* Online Users List */}
@@ -274,11 +275,11 @@ export const ChatPage: React.FC<ChatPageProps> = ({ user }) => {
                 <User size={12} className="text-[#3169C6]" />
                 <span className="text-[11px] font-bold text-gray-700">People Online</span>
               </div>
-              
+
               {/* Search Input */}
               <div className="p-2 border-b border-[#ACA899]/30 bg-white/30">
                 <div className="relative">
-                  <input 
+                  <input
                     type="text"
                     placeholder="Search people..."
                     value={userSearchQuery}
@@ -291,8 +292,8 @@ export const ChatPage: React.FC<ChatPageProps> = ({ user }) => {
 
               <div className="flex-1 overflow-y-auto p-2 flex flex-col gap-2 scrollbar-thin">
                 {ONLINE_USERS.filter(u => u.name.toLowerCase().includes(userSearchQuery.toLowerCase())).map((onlineUser) => (
-                  <div 
-                    key={onlineUser.name} 
+                  <div
+                    key={onlineUser.name}
                     onClick={() => {
                       setSelectedUser(onlineUser);
                       setShowUserProfileDialog(true);
@@ -301,10 +302,9 @@ export const ChatPage: React.FC<ChatPageProps> = ({ user }) => {
                   >
                     <div className="relative">
                       <img src={onlineUser.avatar} className="w-8 h-8 rounded border border-[#ACA899]" alt={onlineUser.name} />
-                      <div className={`absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full border border-white shadow-sm ${
-                        onlineUser.status === 'Online' ? 'bg-green-500' : 
-                        onlineUser.status === 'Busy' ? 'bg-red-500' : 'bg-yellow-500'
-                      }`}></div>
+                      <div className={`absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full border border-white shadow-sm ${onlineUser.status === 'Online' ? 'bg-green-500' :
+                          onlineUser.status === 'Busy' ? 'bg-red-500' : 'bg-yellow-500'
+                        }`}></div>
                     </div>
                     <div className="flex flex-col overflow-hidden">
                       <span className="text-[11px] font-bold truncate group-hover:text-[#3169C6]">{onlineUser.name}</span>
@@ -326,13 +326,13 @@ export const ChatPage: React.FC<ChatPageProps> = ({ user }) => {
               <div className="text-[12px] font-bold border-b border-[#F1F1F1] pb-2 mb-2 flex items-center gap-2">
                 <span className="text-[#3169C6]">To:</span> Poops
               </div>
-              
+
               {messages.map((msg) => (
                 <div key={msg.id} className={`text-sm group relative ${msg.type === 'nudge' ? 'text-center my-3' : ''}`}>
                   {msg.type !== 'nudge' && (
                     <div className="absolute -right-2 top-0 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity z-10">
                       <div className="relative">
-                        <button 
+                        <button
                           onClick={() => setReactionMenuId(reactionMenuId === msg.id ? null : msg.id)}
                           className="p-1 hover:bg-gray-100 rounded-full text-gray-400 hover:text-[#3169C6]"
                           title="React"
@@ -341,7 +341,7 @@ export const ChatPage: React.FC<ChatPageProps> = ({ user }) => {
                         </button>
                         <AnimatePresence>
                           {reactionMenuId === msg.id && (
-                            <motion.div 
+                            <motion.div
                               initial={{ opacity: 0, scale: 0.8, y: 5 }}
                               animate={{ opacity: 1, scale: 1, y: 0 }}
                               exit={{ opacity: 0, scale: 0.8, y: 5 }}
@@ -353,7 +353,7 @@ export const ChatPage: React.FC<ChatPageProps> = ({ user }) => {
                                 { emoji: '👎', type: 'dislike' },
                                 { emoji: '😂', type: 'fun' }
                               ].map(r => (
-                                <button 
+                                <button
                                   key={r.type}
                                   onClick={() => handleReaction(msg.id, r.emoji)}
                                   className="hover:scale-125 transition-transform p-1"
@@ -365,7 +365,7 @@ export const ChatPage: React.FC<ChatPageProps> = ({ user }) => {
                           )}
                         </AnimatePresence>
                       </div>
-                      <button 
+                      <button
                         onClick={() => setReplyingTo(msg)}
                         className="p-1 hover:bg-gray-100 rounded-full text-gray-400 hover:text-[#3169C6]"
                         title="Reply"
@@ -374,7 +374,7 @@ export const ChatPage: React.FC<ChatPageProps> = ({ user }) => {
                       </button>
                     </div>
                   )}
-                  
+
                   {msg.replyTo && (
                     <div className="ml-3 mb-1 p-2 bg-gray-50 border-l-4 border-[#3169C6]/30 rounded-r-md text-[11px] text-gray-500 italic max-w-[80%] truncate">
                       <span className="font-bold not-italic mr-1">
@@ -413,9 +413,14 @@ export const ChatPage: React.FC<ChatPageProps> = ({ user }) => {
                       <span className={`font-bold text-[13px] ${msg.sender === 'me' ? 'text-[#3169C6]' : 'text-black'}`}>
                         {msg.sender === 'me' ? 'You sent:' : 'Poops sent:'}
                       </span>
-                      <div className="ml-3 py-2 px-4 bg-[#F0F7FF] border border-[#3169C6]/20 rounded-md flex items-center gap-2 text-[#3169C6] font-medium">
-                        <Mic size={16} />
-                        {msg.text}
+                      <div className="ml-3 py-2 px-4 bg-[#F0F7FF] border border-[#3169C6]/20 rounded-md flex flex-col gap-2 text-[#3169C6] font-medium">
+                        <div className="flex items-center gap-2">
+                          <Mic size={16} />
+                          {msg.text}
+                        </div>
+                        {msg.audioUrl && (
+                          <audio controls src={msg.audioUrl} className="h-8 max-w-[200px] mt-1" />
+                        )}
                       </div>
                     </div>
                   )}
@@ -434,7 +439,7 @@ export const ChatPage: React.FC<ChatPageProps> = ({ user }) => {
                             "{msg.text}"
                           </div>
                         ) : (
-                          <button 
+                          <button
                             onClick={() => handleOpenGift(msg.id)}
                             className="text-[11px] font-bold text-white bg-[#E96E4C] px-3 py-1 rounded hover:brightness-110 transition-all self-start shadow-sm"
                           >
@@ -453,8 +458,8 @@ export const ChatPage: React.FC<ChatPageProps> = ({ user }) => {
                   {msg.reactions && Object.keys(msg.reactions).length > 0 && (
                     <div className="flex flex-wrap gap-1 mt-1 ml-3">
                       {Object.entries(msg.reactions).map(([emoji, count]) => (
-                        <div 
-                          key={emoji} 
+                        <div
+                          key={emoji}
                           className="flex items-center gap-1 bg-gray-100 border border-gray-200 rounded-full px-1.5 py-0.5 text-[10px] shadow-sm animate-in zoom-in duration-200"
                         >
                           <span>{emoji}</span>
@@ -471,25 +476,25 @@ export const ChatPage: React.FC<ChatPageProps> = ({ user }) => {
             {/* Formatting Toolbar */}
             <div className="h-10 flex items-center px-2 gap-2 select-none shrink-0 rounded-md relative" style={{ backgroundColor: 'rgba(244, 242, 232, 0.3)' }}>
               <div className="relative">
-                <FormatButton 
-                  icon={<Type size={16} />} 
-                  onClick={() => setActiveDropdown(activeDropdown === 'font' ? null : 'font')} 
+                <FormatButton
+                  icon={<Type size={16} />}
+                  onClick={() => setActiveDropdown(activeDropdown === 'font' ? null : 'font')}
                 />
                 <AnimatePresence>
                   {activeDropdown === 'font' && (
-                    <motion.div 
+                    <motion.div
                       initial={{ opacity: 0, y: -10 }}
                       animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0, y: -10 }}
                       className="absolute bottom-full mb-2 left-0 bg-white border border-[#ACA899] rounded-md shadow-xl p-1 flex flex-col gap-1 z-30 w-24"
                     >
-                      <button 
+                      <button
                         onClick={() => { setFontSize(prev => Math.min(prev + 2, 24)); setActiveDropdown(null); }}
                         className="flex items-center gap-2 px-3 py-1.5 hover:bg-[#316AC5] hover:text-white text-[11px] font-bold transition-colors rounded-sm"
                       >
                         <Plus size={12} /> +inc
                       </button>
-                      <button 
+                      <button
                         onClick={() => { setFontSize(prev => Math.max(prev - 2, 10)); setActiveDropdown(null); }}
                         className="flex items-center gap-2 px-3 py-1.5 hover:bg-[#316AC5] hover:text-white text-[11px] font-bold transition-colors rounded-sm"
                       >
@@ -501,13 +506,13 @@ export const ChatPage: React.FC<ChatPageProps> = ({ user }) => {
               </div>
 
               <div className="relative">
-                <FormatButton 
-                  icon={<Smile size={16} />} 
-                  onClick={() => setActiveDropdown(activeDropdown === 'emoji' ? null : 'emoji')} 
+                <FormatButton
+                  icon={<Smile size={16} />}
+                  onClick={() => setActiveDropdown(activeDropdown === 'emoji' ? null : 'emoji')}
                 />
                 <AnimatePresence>
                   {activeDropdown === 'emoji' && (
-                    <motion.div 
+                    <motion.div
                       initial={{ opacity: 0, y: -10 }}
                       animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0, y: -10 }}
@@ -516,7 +521,7 @@ export const ChatPage: React.FC<ChatPageProps> = ({ user }) => {
                       <div className="text-[10px] font-bold text-gray-500 mb-2 border-b pb-1">Show all emojis</div>
                       <div className="grid grid-cols-6 gap-1">
                         {ALL_EMOJIS.map(emoji => (
-                          <button 
+                          <button
                             key={emoji}
                             onClick={() => handleEmoji(emoji)}
                             className="text-lg hover:bg-gray-100 rounded p-1 transition-colors"
@@ -540,7 +545,7 @@ export const ChatPage: React.FC<ChatPageProps> = ({ user }) => {
             <div className="flex flex-col shrink-0">
               <AnimatePresence>
                 {replyingTo && (
-                  <motion.div 
+                  <motion.div
                     initial={{ height: 0, opacity: 0 }}
                     animate={{ height: 'auto', opacity: 1 }}
                     exit={{ height: 0, opacity: 0 }}
@@ -552,7 +557,7 @@ export const ChatPage: React.FC<ChatPageProps> = ({ user }) => {
                         {replyingTo.text || (replyingTo.type === 'image' ? 'Photo' : replyingTo.type === 'voice' ? 'Voice Clip' : 'Gift')}
                       </span>
                     </div>
-                    <button 
+                    <button
                       onClick={() => setReplyingTo(null)}
                       className="p-1 hover:bg-white/50 rounded-full text-gray-400 hover:text-red-500 transition-colors"
                     >
@@ -562,7 +567,7 @@ export const ChatPage: React.FC<ChatPageProps> = ({ user }) => {
                 )}
               </AnimatePresence>
               <div className={`h-28 flex gap-3 ${replyingTo ? 'border-t-0 rounded-t-none' : ''}`}>
-                <textarea 
+                <textarea
                   className={`flex-1 bg-white border-2 border-[#ACA899] p-3 focus:outline-none focus:border-[#0055E5] focus:ring-2 focus:ring-[#0055E5]/10 resize-none shadow-inner transition-all text-black ${replyingTo ? 'rounded-b-md border-t-0' : 'rounded-md'}`}
                   style={{ fontSize: `${fontSize}px` }}
                   value={inputText}
@@ -575,7 +580,7 @@ export const ChatPage: React.FC<ChatPageProps> = ({ user }) => {
                   placeholder="Type a message..."
                 />
                 <div className="w-28 flex flex-col gap-2">
-                  <motion.button 
+                  <motion.button
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
                     onClick={handleSend}
@@ -583,7 +588,7 @@ export const ChatPage: React.FC<ChatPageProps> = ({ user }) => {
                   >
                     Send
                   </motion.button>
-                  <motion.button 
+                  <motion.button
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
                     onClick={() => setShowStickerDialog(true)}
@@ -606,34 +611,34 @@ export const ChatPage: React.FC<ChatPageProps> = ({ user }) => {
               </div>
               <div className="flex-1 p-2 flex flex-col gap-3 overflow-y-auto scrollbar-thin bg-[#FFFBF0]">
                 {[
-                  { 
-                    title: "MSN hits 100M users!", 
+                  {
+                    title: "MSN hits 100M users!",
                     icon: <TrendingUp size={10} />,
                     content: "MSN Messenger has officially surpassed 100 million active users worldwide! The service continues to grow as the premier destination for instant messaging and digital connection."
                   },
-                  { 
-                    title: "New 3D Emoticons!", 
+                  {
+                    title: "New 3D Emoticons!",
                     icon: <Smile size={10} />,
                     content: "Express yourself like never before with our brand new pack of 3D animated emoticons. From dancing robots to spinning hearts, your conversations just got a lot more lively!"
                   },
-                  { 
-                    title: "Vista Beta 2 out now", 
+                  {
+                    title: "Vista Beta 2 out now",
                     icon: <Globe size={10} />,
                     content: "Microsoft has released Windows Vista Beta 2 to the public. Experience the new Aero interface and enhanced security features of the next generation of Windows."
                   },
-                  { 
-                    title: "Top 10 Pop Hits", 
+                  {
+                    title: "Top 10 Pop Hits",
                     icon: <ExternalLink size={10} />,
                     content: "Check out this week's top 10 pop hits on MSN Music. From the latest chart-toppers to rising stars, we've got the soundtrack for your summer."
                   },
-                  { 
-                    title: "Nudge etiquette 101", 
+                  {
+                    title: "Nudge etiquette 101",
                     icon: <Info size={10} />,
                     content: "Are you nudging too much? Learn the do's and don'ts of the Nudge feature in our latest guide. Remember: one nudge is a greeting, ten nudges is a problem!"
                   }
                 ].map((news, i) => (
-                  <div 
-                    key={i} 
+                  <div
+                    key={i}
                     onClick={() => {
                       setSelectedNews(news);
                       setShowNewsDialog(true);
@@ -660,13 +665,13 @@ export const ChatPage: React.FC<ChatPageProps> = ({ user }) => {
                   <img src={currentUser.avatar} className="w-full h-full object-cover" alt="Me" />
                 </div>
               </div>
-              <div 
+              <div
                 onClick={() => setShowProfileDialog(true)}
                 className="absolute -right-2 top-1/2 -translate-y-1/2 w-4 h-10 bg-[#D6D3C4] border border-[#ACA899] rounded-l-md flex items-center justify-center cursor-pointer hover:bg-[#ECE9D8] transition-colors shadow-sm"
               >
                 <div className="w-1.5 h-5 border-l border-r border-[#ACA899]"></div>
                 <div className="absolute right-0 bottom-0 w-3 h-3 border-l border-t border-[#ACA899] flex items-center justify-center">
-                   <div className="w-0 h-0 border-l-[3px] border-l-transparent border-r-[3px] border-r-transparent border-t-[3px] border-t-gray-600"></div>
+                  <div className="w-0 h-0 border-l-[3px] border-l-transparent border-r-[3px] border-r-transparent border-t-[3px] border-t-gray-600"></div>
                 </div>
               </div>
             </div>
@@ -674,12 +679,12 @@ export const ChatPage: React.FC<ChatPageProps> = ({ user }) => {
         </div>
 
         {/* Footer Bar */}
-        <div className="h-8 border-t border-[#ACA899] px-4 flex items-center justify-between text-[11px] select-none shrink-0" style={{ backgroundColor: theme.bgColor }}>
+        {/*<div className="h-8 border-t border-[#ACA899] px-4 flex items-center justify-between text-[11px] select-none shrink-0" style={{ backgroundColor: theme.bgColor }}>
           <div className="flex items-center gap-3">
             <span className="font-bold text-[#0055E5] cursor-pointer hover:underline transition-all">Click for new Emoticons and Theme Packs from Blue Mountain</span>
           </div>
           {isTyping && (
-            <motion.div 
+            <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               className="italic font-medium opacity-60"
@@ -691,7 +696,7 @@ export const ChatPage: React.FC<ChatPageProps> = ({ user }) => {
             <div className="w-4 h-4 bg-[#0055E5] rounded-sm shadow-sm"></div>
             <div className="w-4 h-4 bg-[#ACA899] rounded-sm shadow-sm"></div>
           </div>
-        </div>
+        </div> */}
       </motion.div>
     </div>
   );
@@ -703,7 +708,7 @@ function GiftDialog({ onClose, onSend }: { onClose: () => void, onSend: (msg: st
 
   return (
     <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-[100] p-4">
-      <motion.div 
+      <motion.div
         initial={{ scale: 0.9, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
         exit={{ scale: 0.9, opacity: 0 }}
@@ -718,8 +723,8 @@ function GiftDialog({ onClose, onSend }: { onClose: () => void, onSend: (msg: st
         <div className="p-6 flex flex-col gap-4">
           <div className="space-y-1">
             <label className="text-[11px] font-bold text-gray-600">Gift Message</label>
-            <input 
-              type="text" 
+            <input
+              type="text"
               className="w-full h-10 px-3 border border-[#ACA899] rounded-md text-sm focus:outline-none focus:border-[#003399]"
               placeholder="Enter your message..."
               value={msg}
@@ -728,7 +733,7 @@ function GiftDialog({ onClose, onSend }: { onClose: () => void, onSend: (msg: st
           </div>
           <div className="space-y-1">
             <label className="text-[11px] font-bold text-gray-600">Number of people who can open it (Max 5)</label>
-            <select 
+            <select
               className="w-full h-10 px-3 border border-[#ACA899] rounded-md text-sm focus:outline-none focus:border-[#003399]"
               value={count}
               onChange={(e) => setCount(parseInt(e.target.value))}
@@ -741,13 +746,13 @@ function GiftDialog({ onClose, onSend }: { onClose: () => void, onSend: (msg: st
             {count >= 5 && <p className="text-[10px] text-red-500 font-bold mt-1">Maximum limit reached (5). Deactivated automatically.</p>}
           </div>
           <div className="flex gap-3 mt-4">
-            <button 
+            <button
               onClick={() => onSend(msg, count)}
               className="flex-1 h-10 bg-gradient-to-b from-[#F8F8F8] to-[#D6D3C4] border border-[#ACA899] rounded-lg text-sm font-bold text-gray-700 shadow-sm hover:brightness-105 active:shadow-inner transition-all"
             >
               Send Gift
             </button>
-            <button 
+            <button
               onClick={onClose}
               className="flex-1 h-10 bg-gradient-to-b from-[#F8F8F8] to-[#D6D3C4] border border-[#ACA899] rounded-lg text-sm font-bold text-gray-700 shadow-sm hover:brightness-105 active:shadow-inner transition-all"
             >
@@ -763,7 +768,7 @@ function GiftDialog({ onClose, onSend }: { onClose: () => void, onSend: (msg: st
 function NewsDialog({ news, onClose }: { news: any, onClose: () => void }) {
   return (
     <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-[120] p-4">
-      <motion.div 
+      <motion.div
         initial={{ scale: 0.9, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
         exit={{ scale: 0.9, opacity: 0 }}
@@ -775,7 +780,7 @@ function NewsDialog({ news, onClose }: { news: any, onClose: () => void }) {
             <Newspaper size={24} />
             <h2 className="text-xl font-bold">{news.title}</h2>
           </div>
-          
+
           <div className="bg-[#FFFBF0] border border-[#FF6600]/20 rounded-lg p-4 shadow-inner">
             <p className="text-sm text-gray-700 leading-relaxed italic">
               {news.content}
@@ -787,7 +792,7 @@ function NewsDialog({ news, onClose }: { news: any, onClose: () => void }) {
             <span>Published: {new Date().toLocaleDateString()}</span>
           </div>
 
-          <button 
+          <button
             onClick={onClose}
             className="w-full h-10 bg-gradient-to-b from-[#F8F8F8] to-[#E0E0E0] border border-[#ACA899] rounded-lg text-sm font-bold text-gray-700 shadow-sm hover:brightness-105 transition-all mt-2"
           >
@@ -804,7 +809,7 @@ function StickerDialog({ onSelect, onClose }: { onSelect: (url: string, type: 's
 
   return (
     <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-[130] p-4">
-      <motion.div 
+      <motion.div
         initial={{ scale: 0.9, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
         exit={{ scale: 0.9, opacity: 0 }}
@@ -813,13 +818,13 @@ function StickerDialog({ onSelect, onClose }: { onSelect: (url: string, type: 's
         <TitleBar title="Select Sticker or GIF" />
         <div className="p-4 flex flex-col gap-4">
           <div className="flex border-b border-[#ACA899]">
-            <button 
+            <button
               onClick={() => setTab('stickers')}
               className={`px-4 py-2 text-sm font-bold transition-all ${tab === 'stickers' ? 'text-[#3169C6] border-b-2 border-[#3169C6] bg-blue-50' : 'text-gray-500 hover:bg-gray-50'}`}
             >
               Stickers
             </button>
-            <button 
+            <button
               onClick={() => setTab('gifs')}
               className={`px-4 py-2 text-sm font-bold transition-all ${tab === 'gifs' ? 'text-[#3169C6] border-b-2 border-[#3169C6] bg-blue-50' : 'text-gray-500 hover:bg-gray-50'}`}
             >
@@ -829,7 +834,7 @@ function StickerDialog({ onSelect, onClose }: { onSelect: (url: string, type: 's
 
           <div className="h-[300px] overflow-y-auto p-2 grid grid-cols-2 gap-3 bg-gray-50 rounded border border-[#ACA899]/30">
             {(tab === 'stickers' ? STICKERS : GIFS).map((url, i) => (
-              <div 
+              <div
                 key={i}
                 onClick={() => onSelect(url, tab === 'stickers' ? 'sticker' : 'gif')}
                 className="bg-white border border-[#ACA899]/20 rounded p-2 cursor-pointer hover:border-[#3169C6] hover:shadow-md transition-all flex items-center justify-center group"
@@ -840,7 +845,7 @@ function StickerDialog({ onSelect, onClose }: { onSelect: (url: string, type: 's
           </div>
 
           <div className="flex gap-2">
-            <button 
+            <button
               onClick={onClose}
               className="flex-1 h-10 bg-gradient-to-b from-[#F8F8F8] to-[#E0E0E0] border border-[#ACA899] rounded-lg text-sm font-bold text-gray-700 shadow-sm hover:brightness-105 transition-all"
             >
@@ -865,7 +870,7 @@ function UserProfileDialog({ user, lastMessageObj, onClose }: { user: any, lastM
 
   return (
     <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-[110] p-4">
-      <motion.div 
+      <motion.div
         initial={{ scale: 0.9, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
         exit={{ scale: 0.9, opacity: 0 }}
@@ -880,10 +885,9 @@ function UserProfileDialog({ user, lastMessageObj, onClose }: { user: any, lastM
             <div className="flex flex-col gap-1 overflow-hidden">
               <h2 className="text-2xl font-bold text-[#3169C6] truncate">{user.name}</h2>
               <div className="flex items-center gap-2">
-                <div className={`w-3 h-3 rounded-full ${
-                  user.status === 'Online' ? 'bg-green-500' : 
-                  user.status === 'Busy' ? 'bg-red-500' : 'bg-yellow-500'
-                }`}></div>
+                <div className={`w-3 h-3 rounded-full ${user.status === 'Online' ? 'bg-green-500' :
+                    user.status === 'Busy' ? 'bg-red-500' : 'bg-yellow-500'
+                  }`}></div>
                 <span className="text-sm font-medium text-gray-600">{user.status}</span>
               </div>
               <div className="flex items-center gap-1.5 text-[11px] text-gray-500 mt-1">
@@ -931,7 +935,7 @@ function UserProfileDialog({ user, lastMessageObj, onClose }: { user: any, lastM
             </div>
           </div>
 
-          <button 
+          <button
             onClick={onClose}
             className="w-full h-10 bg-gradient-to-b from-[#F8F8F8] to-[#E0E0E0] border border-[#ACA899] rounded-lg text-sm font-bold text-gray-700 shadow-sm hover:brightness-105 transition-all"
           >
@@ -948,7 +952,7 @@ function ThemeDialog({ currentTheme, onClose, onSave }: { currentTheme: any, onC
 
   return (
     <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-[100] p-4">
-      <motion.div 
+      <motion.div
         initial={{ scale: 0.9, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
         exit={{ scale: 0.9, opacity: 0 }}
@@ -959,8 +963,8 @@ function ThemeDialog({ currentTheme, onClose, onSave }: { currentTheme: any, onC
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-1">
               <label className="text-[11px] font-bold text-gray-600">Background Color</label>
-              <input 
-                type="color" 
+              <input
+                type="color"
                 className="w-full h-10 border border-[#ACA899] rounded-md cursor-pointer"
                 value={theme.bgColor}
                 onChange={(e) => setTheme({ ...theme, bgColor: e.target.value })}
@@ -968,18 +972,18 @@ function ThemeDialog({ currentTheme, onClose, onSave }: { currentTheme: any, onC
             </div>
             <div className="space-y-1">
               <label className="text-[11px] font-bold text-gray-600">Text Color</label>
-              <input 
-                type="color" 
+              <input
+                type="color"
                 className="w-full h-10 border border-[#ACA899] rounded-md cursor-pointer"
                 value={theme.textColor}
                 onChange={(e) => setTheme({ ...theme, textColor: e.target.value })}
               />
             </div>
           </div>
-          
+
           <div className="space-y-1">
             <label className="text-[11px] font-bold text-gray-600">Font Family</label>
-            <select 
+            <select
               className="w-full h-10 px-3 border border-[#ACA899] rounded-md text-sm focus:outline-none focus:border-[#003399] text-black"
               value={theme.fontFamily}
               onChange={(e) => setTheme({ ...theme, fontFamily: e.target.value })}
@@ -993,10 +997,10 @@ function ThemeDialog({ currentTheme, onClose, onSave }: { currentTheme: any, onC
 
           <div className="space-y-1">
             <label className="text-[11px] font-bold text-gray-600">App Font Size ({theme.appFontSize}px)</label>
-            <input 
-              type="range" 
-              min="10" 
-              max="24" 
+            <input
+              type="range"
+              min="10"
+              max="24"
               step="1"
               className="w-full h-10"
               value={theme.appFontSize}
@@ -1006,20 +1010,20 @@ function ThemeDialog({ currentTheme, onClose, onSave }: { currentTheme: any, onC
 
           <div className="flex flex-col gap-2 mt-4">
             <div className="flex gap-3">
-              <button 
+              <button
                 onClick={() => onSave(theme)}
                 className="flex-1 h-10 bg-gradient-to-b from-[#F8F8F8] to-[#E0E0E0] border border-[#ACA899] rounded-lg text-sm font-bold text-gray-700 shadow-sm hover:brightness-105 transition-all"
               >
                 Apply Theme
               </button>
-              <button 
+              <button
                 onClick={onClose}
                 className="flex-1 h-10 bg-gradient-to-b from-[#F8F8F8] to-[#E0E0E0] border border-[#ACA899] rounded-lg text-sm font-bold text-gray-700 shadow-sm hover:brightness-105 transition-all"
               >
                 Cancel
               </button>
             </div>
-            <button 
+            <button
               onClick={() => setTheme(DEFAULT_THEME)}
               className="w-full h-10 bg-gradient-to-b from-[#F8F8F8] to-[#E0E0E0] border border-[#ACA899] rounded-lg text-sm font-bold text-[#3169C6] shadow-sm hover:brightness-105 transition-all"
             >
@@ -1039,7 +1043,7 @@ function ProfileDialog({ user, onClose, onSave }: { user: UserData, onClose: () 
 
   return (
     <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-[100] p-4">
-      <motion.div 
+      <motion.div
         initial={{ scale: 0.9, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
         exit={{ scale: 0.9, opacity: 0 }}
@@ -1059,16 +1063,16 @@ function ProfileDialog({ user, onClose, onSave }: { user: UserData, onClose: () 
               </div>
               <AnimatePresence>
                 {showAvatars && (
-                  <motion.div 
+                  <motion.div
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: 10 }}
                     className="absolute mt-28 bg-white border border-[#ACA899] rounded-lg shadow-xl p-2 grid grid-cols-3 gap-2 z-50 w-40"
                   >
                     {AVATARS.map((url, idx) => (
-                      <img 
-                        key={idx} 
-                        src={url} 
+                      <img
+                        key={idx}
+                        src={url}
                         className="w-10 h-10 rounded cursor-pointer hover:border-2 hover:border-[#88C057]"
                         onClick={() => { setAvatar(url); setShowAvatars(false); }}
                         alt="Avatar"
@@ -1081,8 +1085,8 @@ function ProfileDialog({ user, onClose, onSave }: { user: UserData, onClose: () 
             <div className="flex-1 flex flex-col gap-4">
               <div className="space-y-1">
                 <label className="text-[11px] font-bold text-gray-600">Display Name / Email</label>
-                <input 
-                  type="text" 
+                <input
+                  type="text"
                   className="w-full h-10 px-3 border border-[#ACA899] rounded-md text-sm focus:outline-none focus:border-[#003399]"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
@@ -1092,13 +1096,13 @@ function ProfileDialog({ user, onClose, onSave }: { user: UserData, onClose: () 
             </div>
           </div>
           <div className="flex gap-3 mt-4">
-            <button 
+            <button
               onClick={() => onSave({ email, avatar })}
               className="flex-1 h-10 bg-gradient-to-b from-[#F8F8F8] to-[#E0E0E0] border border-[#ACA899] rounded-lg text-sm font-bold text-gray-700 shadow-sm hover:brightness-105 transition-all"
             >
               Save Changes
             </button>
-            <button 
+            <button
               onClick={onClose}
               className="flex-1 h-10 bg-gradient-to-b from-[#F8F8F8] to-[#E0E0E0] border border-[#ACA899] rounded-lg text-sm font-bold text-gray-700 shadow-sm hover:brightness-105 transition-all"
             >
@@ -1113,7 +1117,7 @@ function ProfileDialog({ user, onClose, onSave }: { user: UserData, onClose: () 
 
 function ToolbarButton({ icon, label }: { icon: React.ReactNode, label: string }) {
   return (
-    <motion.div 
+    <motion.div
       whileHover={{ y: -2 }}
       whileTap={{ y: 0 }}
       className="flex flex-col items-center gap-1.5 cursor-pointer group"
@@ -1129,7 +1133,7 @@ function ToolbarButton({ icon, label }: { icon: React.ReactNode, label: string }
 
 function FormatButton({ icon, label, onClick }: { icon: React.ReactNode, label?: string, onClick?: () => void }) {
   return (
-    <div 
+    <div
       onClick={onClick}
       className={`h-7 px-2 flex items-center gap-2 border border-transparent hover:border-[#ACA899] hover:bg-white/60 rounded-md cursor-pointer transition-all ${label ? 'pr-3' : ''}`}
     >

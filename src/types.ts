@@ -8,6 +8,7 @@ export interface Message {
   sender: 'me' | 'them';
   text?: string;
   imageUrl?: string;
+  audioUrl?: string;
   type: 'text' | 'system' | 'nudge' | 'image' | 'voice' | 'gift' | 'sticker' | 'gif';
   timestamp: Date;
   isOpened?: boolean;
