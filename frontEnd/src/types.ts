@@ -5,6 +5,7 @@
 
 export interface Message {
   id: string;
+  username : string ; 
   sender: 'me' | 'them';
   text?: string;
   imageUrl?: string;

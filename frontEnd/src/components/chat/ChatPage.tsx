@@ -28,11 +28,18 @@ export const ChatPage: React.FC<ChatPageProps> = ({ user }) => {
   const [personalMessage, setPersonalMessage] = useState('Listening to: Linkin Park - In The End');
   const [status, setStatus] = useState<'Online' | 'Busy' | 'Away' | 'Offline'>('Online');
   const [messages, setMessages] = useState<Message[]>([
-    { id: '1', sender: 'them', text: 'you got any plans?', type: 'text', timestamp: new Date() },
-    { id: '2', sender: 'them', text: 'I miss you ☹️', type: 'text', timestamp: new Date() },
-    { id: '3', sender: 'me', text: 'You have just sent a Nudge!', type: 'nudge', timestamp: new Date() },
-    { id: '4', sender: 'them', text: 'Poops says: 🥺🫶', type: 'text', timestamp: new Date() },
+    { id: '2', sender: 'them',username: "data.username" , text: "data.message", type: 'text', timestamp: new Date() }
+
   ]);
+  const ws = useRef(null);
+
+
+    //       { id: '1', sender: 'them', text: 'you got any plans?', type: 'text', timestamp: new Date() },
+    // { id: '2', sender: 'them', text: 'I miss you ☹️', type: 'text', timestamp: new Date() },
+    // { id: '3', sender: 'me', text: 'You have just sent a Nudge!', type: 'nudge', timestamp: new Date() },
+    // { id: '4', sender: 'them', text: 'Poops says: 🥺🫶', type: 'text', timestamp: new Date() }
+
+
   const [inputText, setInputText] = useState('');
   const [isTyping, setIsTyping] = useState(false);
   const [fontSize, setFontSize] = useState(14);
@@ -48,6 +55,8 @@ export const ChatPage: React.FC<ChatPageProps> = ({ user }) => {
   const [replyingTo, setReplyingTo] = useState<Message | null>(null);
   const [userSearchQuery, setUserSearchQuery] = useState('');
   const [reactionMenuId, setReactionMenuId] = useState<string | null>(null);
+  const [previewImageUrl, setPreviewImageUrl] = useState<string | null>(null);
+  const [pendingPhotoUrl, setPendingPhotoUrl] = useState<string | null>(null);
 
   const [theme, setTheme] = useState(DEFAULT_THEME);
 
@@ -55,6 +64,19 @@ export const ChatPage: React.FC<ChatPageProps> = ({ user }) => {
   const windowControls = useAnimation();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const voiceInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    ws.current = new WebSocket("ws://localhost:5000"); // backend address
+    ws.current.onmessage = (event) => {
+      const data = JSON.parse(event.data);
+      if (data.type === "text") {
+        setMessages((prev) => [...prev,
+          { id: '2', sender: 'them',username: data.username , text: data.text, type: 'text', timestamp: new Date() }
+        ]);
+      }
+    };
+    return () => ws.current.close();
+  }, []);
 
   const scrollToBottom = () => {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -77,7 +99,7 @@ export const ChatPage: React.FC<ChatPageProps> = ({ user }) => {
 
   const handleSend = () => {
     if (!inputText.trim()) return;
-    const msgData: Partial<Message> = { text: inputText, type: 'text' };
+    const msgData: Partial<Message> = { text: inputText, type: 'text' ,username: currentUser.email || "abde"  };
     if (replyingTo) {
       msgData.replyTo = {
         id: replyingTo.id,
@@ -85,10 +107,18 @@ export const ChatPage: React.FC<ChatPageProps> = ({ user }) => {
         sender: replyingTo.sender
       };
     }
-    addMessage(msgData);
+
+    ws.current.send(JSON.stringify(msgData));
+    // addMessage(msgData);
     setInputText('');
     setReplyingTo(null);
   };
+
+  // const sendMessage = (msg) => {
+  //   if (!msg) return;
+  //   ws.current.send(JSON.stringify({ type: "CHAT", username: "Tester", message: msg }));
+  // };
+
 
   const handleNudge = () => {
     addMessage({ text: 'You have just sent a Nudge!', type: 'nudge' });
@@ -108,10 +138,11 @@ export const ChatPage: React.FC<ChatPageProps> = ({ user }) => {
     if (file) {
       const reader = new FileReader();
       reader.onload = (event) => {
-        addMessage({ imageUrl: event.target?.result as string, type: 'image' });
+        setPendingPhotoUrl(event.target?.result as string);
       };
       reader.readAsDataURL(file);
     }
+    if (e.target) e.target.value = '';
   };
 
   const handleVoiceUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -243,6 +274,22 @@ export const ChatPage: React.FC<ChatPageProps> = ({ user }) => {
             onClose={() => setShowStickerDialog(false)}
           />
         )}
+        {previewImageUrl && (
+          <PhotoPreviewDialog
+            imageUrl={previewImageUrl}
+            onClose={() => setPreviewImageUrl(null)}
+          />
+        )}
+        {pendingPhotoUrl && (
+          <PendingPhotoDialog
+            imageUrl={pendingPhotoUrl}
+            onClose={() => setPendingPhotoUrl(null)}
+            onSend={(url) => {
+              addMessage({ imageUrl: url, type: 'image' });
+              setPendingPhotoUrl(null);
+            }}
+          />
+        )}
       </AnimatePresence>
 
       <motion.div
@@ -303,7 +350,7 @@ export const ChatPage: React.FC<ChatPageProps> = ({ user }) => {
                     <div className="relative">
                       <img src={onlineUser.avatar} className="w-8 h-8 rounded border border-[#ACA899]" alt={onlineUser.name} />
                       <div className={`absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full border border-white shadow-sm ${onlineUser.status === 'Online' ? 'bg-green-500' :
-                          onlineUser.status === 'Busy' ? 'bg-red-500' : 'bg-yellow-500'
+                        onlineUser.status === 'Busy' ? 'bg-red-500' : 'bg-yellow-500'
                         }`}></div>
                     </div>
                     <div className="flex flex-col overflow-hidden">
@@ -387,7 +434,8 @@ export const ChatPage: React.FC<ChatPageProps> = ({ user }) => {
                   {msg.type === 'text' && (
                     <div className="flex flex-col gap-0.5">
                       <span className={`font-bold text-[13px] ${msg.sender === 'me' ? 'text-[#3169C6]' : 'text-black'}`}>
-                        {msg.sender === 'me' ? 'You say:' : 'Poops says:'}
+                        {/* {msg.sender === 'me' ? 'You say:' : 'Poops says:'} */}
+                        {msg.username}
                       </span>
                       <span className="text-[14px] ml-3 leading-relaxed">{msg.text}</span>
                     </div>
@@ -397,7 +445,12 @@ export const ChatPage: React.FC<ChatPageProps> = ({ user }) => {
                       <span className={`font-bold text-[13px] ${msg.sender === 'me' ? 'text-[#3169C6]' : 'text-black'}`}>
                         {msg.sender === 'me' ? 'You sent a photo:' : 'Poops sent a photo:'}
                       </span>
-                      <img src={msg.imageUrl} className="max-w-[200px] rounded-md border border-gray-200 shadow-sm ml-3" alt="Sent photo" />
+                      <img
+                        src={msg.imageUrl}
+                        className="max-w-[200px] rounded-md border border-gray-200 shadow-sm ml-3 cursor-pointer hover:opacity-90 transition-opacity"
+                        alt="Sent photo"
+                        onClick={() => setPreviewImageUrl(msg.imageUrl || null)}
+                      />
                     </div>
                   )}
                   {(msg.type === 'sticker' || msg.type === 'gif') && (
@@ -702,6 +755,109 @@ export const ChatPage: React.FC<ChatPageProps> = ({ user }) => {
   );
 };
 
+function PendingPhotoDialog({ imageUrl, onClose, onSend }: { imageUrl: string, onClose: () => void, onSend: (url: string) => void }) {
+  return (
+    <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-[200] p-4 backdrop-blur-sm">
+      <motion.div
+        initial={{ scale: 0.9, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        exit={{ scale: 0.9, opacity: 0 }}
+        className="w-[400px] bg-white border border-[#ACA899] rounded-lg shadow-2xl overflow-hidden flex flex-col"
+      >
+        <div className="h-8 bg-gradient-to-b from-[#0058E6] via-[#3C96FF] to-[#0058E6] flex items-center justify-between px-2">
+          <span className="text-white font-bold text-xs">Preview Photo before Sending</span>
+          <button onClick={onClose} className="text-white hover:bg-red-500 p-1 rounded transition-colors">
+            <X size={14} />
+          </button>
+        </div>
+        <div className="p-4 flex flex-col items-center gap-4">
+          <img
+            src={imageUrl}
+            className="max-w-full max-h-[300px] object-contain rounded-md border border-gray-200 shadow-sm"
+            alt="Pending Photo"
+          />
+          <div className="text-sm text-gray-700 font-bold mb-2">Send this photo to Poops?</div>
+          <div className="flex gap-3 w-full">
+            <button
+              onClick={() => onSend(imageUrl)}
+              className="flex-1 h-10 bg-gradient-to-b from-[#316AC5] to-[#2B5CAE] text-white rounded-lg text-sm font-bold shadow-sm hover:brightness-110 active:shadow-inner transition-all border border-[#1A3D7A]"
+            >
+              Send
+            </button>
+            <button
+              onClick={onClose}
+              className="flex-1 h-10 bg-gradient-to-b from-[#F8F8F8] to-[#D6D3C4] border border-[#ACA899] rounded-lg text-sm font-bold text-gray-700 shadow-sm hover:brightness-105 active:shadow-inner transition-all"
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      </motion.div>
+    </div>
+  );
+}
+
+function PhotoPreviewDialog({ imageUrl, onClose }: { imageUrl: string, onClose: () => void }) {
+  const [scale, setScale] = useState(1);
+
+  const zoomIn = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setScale(prev => Math.min(prev + 0.25, 3));
+  };
+
+  const zoomOut = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setScale(prev => Math.max(prev - 0.25, 0.5));
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-[200] p-4 backdrop-blur-sm" onClick={onClose}>
+      <motion.div
+        initial={{ scale: 0.9, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        exit={{ scale: 0.9, opacity: 0 }}
+        className="relative max-w-[90vw] max-h-[90vh] flex flex-col items-center justify-center"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="absolute -top-12 right-0 flex items-center gap-2 z-10">
+          <button
+            onClick={zoomOut}
+            className="p-2 text-white hover:text-gray-300 transition-colors bg-black/50 hover:bg-black/80 rounded-full"
+            title="Zoom Out"
+          >
+            <MinusIcon size={20} />
+          </button>
+          <span className="text-white text-sm font-bold bg-black/50 px-2 rounded-full hidden sm:block">
+            {Math.round(scale * 100)}%
+          </span>
+          <button
+            onClick={zoomIn}
+            className="p-2 text-white hover:text-gray-300 transition-colors bg-black/50 hover:bg-black/80 rounded-full"
+            title="Zoom In"
+          >
+            <Plus size={20} />
+          </button>
+          <button
+            onClick={onClose}
+            className="p-2 text-white hover:text-gray-300 transition-colors bg-black/50 hover:bg-black/80 rounded-full ml-4"
+            title="Close Preview"
+          >
+            <X size={24} />
+          </button>
+        </div>
+        <div className="overflow-auto max-h-[90vh] max-w-[90vw] rounded-lg custom-scrollbar">
+          <img
+            src={imageUrl}
+            style={{ transform: `scale(${scale})`, transformOrigin: 'center' }}
+            className="max-w-full max-h-[90vh] object-contain shadow-2xl border border-white/20 transition-transform duration-200"
+            alt="Preview"
+          />
+        </div>
+      </motion.div>
+    </div>
+  );
+}
+
 function GiftDialog({ onClose, onSend }: { onClose: () => void, onSend: (msg: string, count: number) => void }) {
   const [msg, setMsg] = useState('');
   const [count, setCount] = useState(1);
@@ -886,7 +1042,7 @@ function UserProfileDialog({ user, lastMessageObj, onClose }: { user: any, lastM
               <h2 className="text-2xl font-bold text-[#3169C6] truncate">{user.name}</h2>
               <div className="flex items-center gap-2">
                 <div className={`w-3 h-3 rounded-full ${user.status === 'Online' ? 'bg-green-500' :
-                    user.status === 'Busy' ? 'bg-red-500' : 'bg-yellow-500'
+                  user.status === 'Busy' ? 'bg-red-500' : 'bg-yellow-500'
                   }`}></div>
                 <span className="text-sm font-medium text-gray-600">{user.status}</span>
               </div>
