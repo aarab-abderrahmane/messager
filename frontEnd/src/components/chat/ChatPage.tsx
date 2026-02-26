@@ -5,7 +5,7 @@ import {
   Gift, ImageIcon, Search, MoreHorizontal,
   Plus, Minus as MinusIcon, X, Reply,
   Calendar, Info, Globe, MessageSquare, Mail, Clock,
-  Newspaper, ExternalLink, TrendingUp, Eye, EyeOff
+  Newspaper, ExternalLink, TrendingUp, Eye, EyeOff, FileText
 } from 'lucide-react';
 import { motion, useAnimation, AnimatePresence } from 'motion/react';
 import { Message, UserData } from '../../types';
@@ -64,6 +64,7 @@ export const ChatPage: React.FC<ChatPageProps> = ({ user }) => {
   const windowControls = useAnimation();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const voiceInputRef = useRef<HTMLInputElement>(null);
+  const pdfInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     ws.current = new WebSocket("ws://localhost:5000"); // backend address
@@ -151,6 +152,15 @@ export const ChatPage: React.FC<ChatPageProps> = ({ user }) => {
       const url = URL.createObjectURL(file);
       addMessage({ text: `Voice Clip: ${file.name}`, audioUrl: url, type: 'voice' });
     }
+  };
+
+  const handlePdfUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const url = URL.createObjectURL(file);
+      addMessage({ text: `File: ${file.name}`, pdfUrl: url, fileName: file.name, type: 'pdf' });
+    }
+    if (e.target) e.target.value = '';
   };
 
   const handleGift = () => {
@@ -590,6 +600,7 @@ export const ChatPage: React.FC<ChatPageProps> = ({ user }) => {
 
               <div className="h-5 w-[1px] bg-[#ACA899] mx-1"></div>
               <FormatButton icon={<Mic size={16} />} label="Voice Clip" onClick={() => voiceInputRef.current?.click()} />
+              <FormatButton icon={<FileText size={16} />} label="PDF" onClick={() => pdfInputRef.current?.click()} />
               <FormatButton icon={<ImageIcon size={16} />} onClick={() => fileInputRef.current?.click()} />
               <FormatButton icon={<Gift size={16} />} onClick={() => setShowGiftDialog(true)} />
             </div>
@@ -751,6 +762,13 @@ export const ChatPage: React.FC<ChatPageProps> = ({ user }) => {
           </div>
         </div> */}
       </motion.div>
+      <input
+        type="file"
+        ref={pdfInputRef}
+        onChange={handlePdfUpload}
+        accept=".pdf"
+        className="hidden"
+      />
     </div>
   );
 };

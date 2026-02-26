@@ -10,7 +10,9 @@ export interface Message {
   text?: string;
   imageUrl?: string;
   audioUrl?: string;
-  type: 'text' | 'system' | 'nudge' | 'image' | 'voice' | 'gift' | 'sticker' | 'gif';
+  pdfUrl?: string;
+  fileName?: string;
+  type: 'text' | 'system' | 'nudge' | 'image' | 'voice' | 'gift' | 'sticker' | 'gif' | 'pdf';
   timestamp: Date;
   isOpened?: boolean;
   replyTo?: {
