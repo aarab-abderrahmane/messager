@@ -962,6 +962,13 @@ function NewsDialog({ news, onClose }: { news: any, onClose: () => void }) {
 
 function StickerDialog({ onSelect, onClose }: { onSelect: (url: string, type: 'sticker' | 'gif') => void, onClose: () => void }) {
   const [tab, setTab] = useState<'stickers' | 'gifs'>('stickers');
+  const [searchQuery, setSearchQuery] = useState('');
+
+  const filteredItems = (tab === 'stickers' ? STICKERS : GIFS).filter(url => {
+    // Since we don't have tags, we search within the URL string
+    // This is a basic search based on the URL filename/path
+    return url.toLowerCase().includes(searchQuery.toLowerCase());
+  });
 
   return (
     <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-[130] p-4">
@@ -988,16 +995,34 @@ function StickerDialog({ onSelect, onClose }: { onSelect: (url: string, type: 's
             </button>
           </div>
 
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
+            <input
+              type="text"
+              placeholder={`Search ${tab}...`}
+              className="w-full h-10 pl-10 pr-4 bg-gray-50 border border-[#ACA899] rounded-md text-sm focus:outline-none focus:border-[#3169C6] focus:ring-1 focus:ring-[#3169C6]/20 transition-all"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+          </div>
+
           <div className="h-[300px] overflow-y-auto p-2 grid grid-cols-2 gap-3 bg-gray-50 rounded border border-[#ACA899]/30">
-            {(tab === 'stickers' ? STICKERS : GIFS).map((url, i) => (
-              <div
-                key={i}
-                onClick={() => onSelect(url, tab === 'stickers' ? 'sticker' : 'gif')}
-                className="bg-white border border-[#ACA899]/20 rounded p-2 cursor-pointer hover:border-[#3169C6] hover:shadow-md transition-all flex items-center justify-center group"
-              >
-                <img src={url} className="max-w-full max-h-full group-hover:scale-110 transition-transform" alt="Sticker/GIF" />
+            {filteredItems.length > 0 ? (
+              filteredItems.map((url, i) => (
+                <div
+                  key={i}
+                  onClick={() => onSelect(url, tab === 'stickers' ? 'sticker' : 'gif')}
+                  className="bg-white border border-[#ACA899]/20 rounded p-2 cursor-pointer hover:border-[#3169C6] hover:shadow-md transition-all flex items-center justify-center group"
+                >
+                  <img src={url} className="max-w-full max-h-full group-hover:scale-110 transition-transform" alt="Sticker/GIF" />
+                </div>
+              ))
+            ) : (
+              <div className="col-span-2 h-full flex flex-col items-center justify-center text-gray-400 gap-2">
+                <Search size={32} className="opacity-20" />
+                <span className="text-sm font-medium">No results found for "{searchQuery}"</span>
               </div>
-            ))}
+            )}
           </div>
 
           <div className="flex gap-2">
