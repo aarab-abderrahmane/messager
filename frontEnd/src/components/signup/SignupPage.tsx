@@ -66,7 +66,9 @@ export const SignupPage: React.FC<SignupPageProps> = ({ onSignup }) => {
 
           <div className="flex gap-10">
             {/* Avatar Section */}
-            <div className="flex flex-col items-center gap-4">
+            {
+              !isSignIn && (
+                <div className="flex flex-col items-center gap-4">
               <div className="relative">
                 <div
                   className="w-36 h-36 bg-white border-4 border-[#88C057] rounded-2xl p-1 shadow-lg overflow-hidden flex items-center justify-center group cursor-pointer transition-transform hover:scale-105"
@@ -110,9 +112,11 @@ export const SignupPage: React.FC<SignupPageProps> = ({ onSignup }) => {
                 <span className="text-xs font-medium">Need help?</span>
               </div>
             </div>
+              )
+            }
 
             {/* Form Section */}
-            <form onSubmit={handleSubmit} className="flex-1 flex flex-col justify-center gap-4">
+            <form onSubmit={handleSubmit} className="flex-1 flex flex-col justify-center gap-4 max-w-[60%] mx-auto">
               <div className="space-y-1">
                 <label className="text-[11px] font-bold text-gray-600 ml-1">Email address</label>
                 <input

@@ -315,12 +315,12 @@ export const ChatPage: React.FC<ChatPageProps> = ({ user }) => {
         <div className="flex-1 flex p-4 gap-4 overflow-hidden">
 
           {/* Left Column (Online Users) */}
-          <div className="w-48 flex flex-col gap-4 shrink-0 overflow-hidden">
+          <div className="w-48 xl:w-80 flex flex-col gap-4 shrink-0 overflow-hidden">
             {/* Online Users List */}
             <div className="flex-1 flex flex-col bg-white/50 border border-[#ACA899] rounded-md shadow-inner overflow-hidden">
               <div className="border-b border-[#ACA899] px-2 py-1 flex items-center gap-2" style={{ background: 'linear-gradient(to bottom, #F4F2E8, #D6D3C4)' }}>
-                <User size={12} className="text-[#3169C6]" />
-                <span className="text-[11px] font-bold text-gray-700">People Online</span>
+                <User size={14} className="text-[#3169C6]" />
+                <span className="text-[11px] xl:text-[13px] font-bold text-gray-700">People Online</span>
               </div>
 
               {/* Search Input */}
@@ -331,9 +331,9 @@ export const ChatPage: React.FC<ChatPageProps> = ({ user }) => {
                     placeholder="Search people..."
                     value={userSearchQuery}
                     onChange={(e) => setUserSearchQuery(e.target.value)}
-                    className="w-full pl-7 pr-2 py-1 bg-white border border-[#ACA899] rounded text-[11px] focus:outline-none focus:border-[#3169C6] transition-all placeholder:italic"
+                    className="w-full pl-7 pr-2 py-1 xl:py-3 bg-white border border-[#ACA899] rounded text-[11px] xl:text-[12px] focus:outline-none focus:border-[#3169C6] transition-all placeholder:italic"
                   />
-                  <Search size={10} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400" />
+                  <Search size={12} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400" />
                 </div>
               </div>
 
@@ -348,14 +348,14 @@ export const ChatPage: React.FC<ChatPageProps> = ({ user }) => {
                     className="flex items-center gap-2 p-1 hover:bg-[#316AC5]/10 rounded cursor-pointer group transition-colors"
                   >
                     <div className="relative">
-                      <img src={onlineUser.avatar} className="w-8 h-8 rounded border border-[#ACA899]" alt={onlineUser.name} />
-                      <div className={`absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full border border-white shadow-sm ${onlineUser.status === 'Online' ? 'bg-green-500' :
+                      <img src={onlineUser.avatar} className="w-8 h-8 xl:w-12 xl:h-12 rounded border border-[#ACA899]" alt={onlineUser.name} />
+                      <div className={`absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 xl:w-3 xl:h-3 rounded-full border border-white shadow-sm ${onlineUser.status === 'Online' ? 'bg-green-500' :
                         onlineUser.status === 'Busy' ? 'bg-red-500' : 'bg-yellow-500'
                         }`}></div>
                     </div>
                     <div className="flex flex-col overflow-hidden">
-                      <span className="text-[11px] font-bold truncate group-hover:text-[#3169C6]">{onlineUser.name}</span>
-                      <span className="text-[9px] opacity-60 leading-none">{onlineUser.status}</span>
+                      <span className="text-[11px] xl:text-[13px] font-bold truncate group-hover:text-[#3169C6]">{onlineUser.name}</span>
+                      <span className="text-[9px] xl:text-[11px] opacity-60 leading-none">{onlineUser.status}</span>
                     </div>
                   </div>
                 ))}
@@ -655,12 +655,12 @@ export const ChatPage: React.FC<ChatPageProps> = ({ user }) => {
           </div>
 
           {/* Right Column (Avatars & News) */}
-          <div className="w-40 flex flex-col gap-4 shrink-0 overflow-hidden">
+          <div className="w-48 xl:w-72 flex flex-col gap-4 shrink-0 overflow-hidden">
             {/* Breaking News Section */}
             <div className="flex-1 flex flex-col bg-white border-2 border-[#ACA899] rounded-xl shadow-lg overflow-hidden">
               <div className="bg-gradient-to-b from-[#FF6600] to-[#CC5200] px-2 py-1 flex items-center gap-2 border-b border-[#ACA899]">
                 <Newspaper size={12} className="text-white" />
-                <span className="text-[10px] font-bold text-white uppercase tracking-wider">Breaking News</span>
+                <span className="text-[10px] xl:text-[14px] font-bold text-white uppercase tracking-wider">Breaking News</span>
               </div>
               <div className="flex-1 p-2 flex flex-col gap-3 overflow-y-auto scrollbar-thin bg-[#FFFBF0]">
                 {[
@@ -700,7 +700,7 @@ export const ChatPage: React.FC<ChatPageProps> = ({ user }) => {
                   >
                     <div className="flex items-center gap-1.5 text-[#3169C6] group-hover:underline">
                       <span className="shrink-0">{news.icon}</span>
-                      <span className="text-[10px] font-bold leading-tight">{news.title}</span>
+                      <span className="text-[10px] xl:text-[12px] font-bold leading-tight">{news.title}</span>
                     </div>
                     <div className="h-[1px] bg-gray-200 w-full"></div>
                   </div>
@@ -712,7 +712,7 @@ export const ChatPage: React.FC<ChatPageProps> = ({ user }) => {
             </div>
 
             {/* Bottom Display Picture (My Profile) */}
-            <div className="relative group mt-auto shrink-0">
+            <div className="relative group mt-auto xl:w-[200px] mx-auto shrink-0">
               <div className="w-full aspect-square bg-white border-2 border-[#ACA899] rounded-xl p-1.5 shadow-lg overflow-hidden transition-transform hover:scale-105">
                 <div className="w-full h-full bg-[#F0F0F0] rounded-lg flex items-center justify-center overflow-hidden border border-black/5">
                   <img src={currentUser.avatar} className="w-full h-full object-cover" alt="Me" />
@@ -720,12 +720,12 @@ export const ChatPage: React.FC<ChatPageProps> = ({ user }) => {
               </div>
               <div
                 onClick={() => setShowProfileDialog(true)}
-                className="absolute -right-2 top-1/2 -translate-y-1/2 w-4 h-10 bg-[#D6D3C4] border border-[#ACA899] rounded-l-md flex items-center justify-center cursor-pointer hover:bg-[#ECE9D8] transition-colors shadow-sm"
+                className="absolute -right-0 top-1/2 -translate-y-1/2 w-4 h-10 xl:w-6 xl:h-12 bg-[#D6D3C4] border border-[#ACA899] rounded-l-md flex items-center justify-center cursor-pointer hover:bg-[#ECE9D8] transition-colors shadow-sm"
               >
-                <div className="w-1.5 h-5 border-l border-r border-[#ACA899]"></div>
-                <div className="absolute right-0 bottom-0 w-3 h-3 border-l border-t border-[#ACA899] flex items-center justify-center">
+                <div className="w-1.5 h-5 xl:w-2 border-l border-r border-[#ACA899]"></div>
+                {/* <div className="absolute right-0 bottom-0 w-3 h-3 border-l border-t border-[#ACA899] flex items-center justify-center">
                   <div className="w-0 h-0 border-l-[3px] border-l-transparent border-r-[3px] border-r-transparent border-t-[3px] border-t-gray-600"></div>
-                </div>
+                </div> */}
               </div>
             </div>
           </div>
