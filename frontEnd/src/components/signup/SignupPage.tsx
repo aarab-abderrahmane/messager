@@ -12,6 +12,7 @@ interface SignupPageProps {
 
 export const SignupPage: React.FC<SignupPageProps> = ({ onSignup }) => {
   const [email, setEmail] = useState('');
+  const [name, setName] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [selectedAvatar, setSelectedAvatar] = useState(AVATARS[0]);
@@ -31,6 +32,10 @@ export const SignupPage: React.FC<SignupPageProps> = ({ onSignup }) => {
       // In a real app we'd verify credentials here.
       onSignup({ email, avatar: selectedAvatar });
     } else {
+      if (!name) {
+        setToast({ message: 'Please enter your name!', type: 'error' });
+        return;
+      }
       if (EXISTING_USERS.includes(email)) {
         setToast({ message: 'Email already exists!', type: 'error' });
         return;
@@ -39,7 +44,7 @@ export const SignupPage: React.FC<SignupPageProps> = ({ onSignup }) => {
         setToast({ message: 'Passwords do not match!', type: 'error' });
         return;
       }
-      onSignup({ email, avatar: selectedAvatar });
+      onSignup({ email, name, avatar: selectedAvatar, password });
     }
   };
 
@@ -127,6 +132,18 @@ export const SignupPage: React.FC<SignupPageProps> = ({ onSignup }) => {
                   onChange={(e) => setEmail(e.target.value)}
                 />
               </div>
+              {!isSignIn && (
+                <div className="space-y-1">
+                  <label className="text-[11px] font-bold text-gray-600 ml-1">Full Name</label>
+                  <input
+                    type="text"
+                    placeholder="Your Name"
+                    className="w-full h-10 px-3 border border-[#A0A0A0] rounded-md text-sm focus:outline-none focus:border-[#003399] focus:ring-2 focus:ring-[#003399]/20 transition-all shadow-inner"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                  />
+                </div>
+              )}
               <div className="space-y-1">
                 <label className="text-[11px] font-bold text-gray-600 ml-1">{isSignIn ? 'Password' : 'Create password'}</label>
                 <input

@@ -5,7 +5,7 @@ import {
   Gift, ImageIcon, Search, MoreHorizontal,
   Plus, Minus as MinusIcon, X, Reply,
   Calendar, Info, Globe, MessageSquare, Mail, Clock,
-  Newspaper, ExternalLink, TrendingUp
+  Newspaper, ExternalLink, TrendingUp, Eye, EyeOff
 } from 'lucide-react';
 import { motion, useAnimation, AnimatePresence } from 'motion/react';
 import { Message, UserData } from '../../types';
@@ -1220,6 +1220,10 @@ function ThemeDialog({ currentTheme, onClose, onSave }: { currentTheme: any, onC
 function ProfileDialog({ user, onClose, onSave }: { user: UserData, onClose: () => void, onSave: (user: UserData) => void }) {
   const [email, setEmail] = useState(user.email);
   const [avatar, setAvatar] = useState(user.avatar);
+  const [currentPassword, setCurrentPassword] = useState(user.password || '');
+  const [newPassword, setNewPassword] = useState('');
+  const [showCurrentPassword, setShowCurrentPassword] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
   const [showAvatars, setShowAvatars] = useState(false);
 
   return (
@@ -1273,12 +1277,50 @@ function ProfileDialog({ user, onClose, onSave }: { user: UserData, onClose: () 
                   onChange={(e) => setEmail(e.target.value)}
                 />
               </div>
+              <div className="space-y-1">
+                <label className="text-[11px] font-bold text-gray-600">Current Password</label>
+                <div className="relative">
+                  <input
+                    type={showCurrentPassword ? 'text' : 'password'}
+                    className="w-full h-10 px-3 pr-10 border border-[#ACA899] rounded-md text-sm focus:outline-none focus:border-[#003399]"
+                    value={currentPassword}
+                    readOnly
+                    placeholder="None set"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowCurrentPassword(!showCurrentPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+                  >
+                    {showCurrentPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                  </button>
+                </div>
+              </div>
+              <div className="space-y-1">
+                <label className="text-[11px] font-bold text-gray-600">New Password</label>
+                <div className="relative">
+                  <input
+                    type={showNewPassword ? 'text' : 'password'}
+                    className="w-full h-10 px-3 pr-10 border border-[#ACA899] rounded-md text-sm focus:outline-none focus:border-[#003399]"
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    placeholder="Enter new password"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowNewPassword(!showNewPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+                  >
+                    {showNewPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                  </button>
+                </div>
+              </div>
               <p className="text-[10px] text-gray-500 italic">This is how you appear to your contacts.</p>
             </div>
           </div>
           <div className="flex gap-3 mt-4">
             <button
-              onClick={() => onSave({ email, avatar })}
+              onClick={() => onSave({ email, avatar, password: newPassword || currentPassword })}
               className="flex-1 h-10 bg-gradient-to-b from-[#F8F8F8] to-[#E0E0E0] border border-[#ACA899] rounded-lg text-sm font-bold text-gray-700 shadow-sm hover:brightness-105 transition-all"
             >
               Save Changes

@@ -5,7 +5,7 @@
 
 export interface Message {
   id: string;
-  username : string ; 
+  username: string;
   sender: 'me' | 'them';
   text?: string;
   imageUrl?: string;
@@ -26,4 +26,6 @@ export interface Message {
 export interface UserData {
   email: string;
   avatar: string;
+  name?: string;
+  password?: string;
 }
