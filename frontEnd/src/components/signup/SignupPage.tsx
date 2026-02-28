@@ -12,7 +12,7 @@ interface SignupPageProps {
 
 export const SignupPage: React.FC<SignupPageProps> = ({ onSignup }) => {
   const [email, setEmail] = useState('');
-  const [name, setName] = useState('');
+  const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [selectedAvatar, setSelectedAvatar] = useState(AVATARS[0]);
@@ -20,7 +20,10 @@ export const SignupPage: React.FC<SignupPageProps> = ({ onSignup }) => {
   const [toast, setToast] = useState<{ message: string, type: 'success' | 'error' } | null>(null);
   const [isSignIn, setIsSignIn] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+
+  console.log(selectedAvatar)
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!email || !password) {
@@ -32,19 +35,43 @@ export const SignupPage: React.FC<SignupPageProps> = ({ onSignup }) => {
       // In a real app we'd verify credentials here.
       onSignup({ email, avatar: selectedAvatar });
     } else {
-      if (!name) {
+      if (!username) {
         setToast({ message: 'Please enter your name!', type: 'error' });
         return;
       }
-      if (EXISTING_USERS.includes(email)) {
-        setToast({ message: 'Email already exists!', type: 'error' });
-        return;
-      }
+      // if (EXISTING_USERS.includes(email)) {
+      //   setToast({ message: 'Email already exists!', type: 'error' });
+      //   return;
+      // }
       if (password !== confirmPassword) {
         setToast({ message: 'Passwords do not match!', type: 'error' });
         return;
       }
-      onSignup({ email, name, avatar: selectedAvatar, password });
+
+      console.log(selectedAvatar)
+
+      const res = await fetch("http://localhost:5000/signup", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ email ,avatar :  selectedAvatar , password , username })
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        setToast({ message: data.error, type: 'error' });
+        return;
+      }
+
+      localStorage.setItem("chat_token", data.token);
+      localStorage.setItem("chat_email", data.email);
+      localStorage.setItem("chat_username", data.username); 
+      localStorage.setItem("chat_avatar", data.avatar);
+
+      onSignup(data);
+
     }
   };
 
@@ -139,8 +166,8 @@ export const SignupPage: React.FC<SignupPageProps> = ({ onSignup }) => {
                     type="text"
                     placeholder="Your Name"
                     className="w-full h-10 px-3 border border-[#A0A0A0] rounded-md text-sm focus:outline-none focus:border-[#003399] focus:ring-2 focus:ring-[#003399]/20 transition-all shadow-inner"
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
+                    value={username}
+                    onChange={(e) => setUsername(e.target.value)}
                   />
                 </div>
               )}

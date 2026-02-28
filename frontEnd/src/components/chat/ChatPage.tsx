@@ -23,7 +23,7 @@ const DEFAULT_THEME = {
   fontFamily: 'sans-serif'
 };
 
-export const ChatPage: React.FC<ChatPageProps> = ({ user }) => {
+export const ChatPage: React.FC<ChatPageProps> = ({ user  ,onLogout}) => {
   const [currentUser, setCurrentUser] = useState<UserData>(user);
   const [personalMessage, setPersonalMessage] = useState('Listening to: Linkin Park - In The End');
   const [status, setStatus] = useState<'Online' | 'Busy' | 'Away' | 'Offline'>('Online');
@@ -67,17 +67,71 @@ export const ChatPage: React.FC<ChatPageProps> = ({ user }) => {
   const pdfInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    ws.current = new WebSocket("ws://localhost:5000"); // backend address
+
+
+    if(!currentUser?.token )  return 
+
+
+    const socket = new WebSocket("ws://localhost:5000");
+    ws.current = socket;
+
+
+    ws.current.onopen = () => {
+      console.log("Connected to server");
+      ws.current?.send(JSON.stringify({
+        type: "AUTH",
+        token: currentUser.token
+      }));
+    };
+    
     ws.current.onmessage = (event) => {
       const data = JSON.parse(event.data);
+
+
+        
+      if (data.type === "HISTORY") {
+        setMessages(data.messages);
+        return;
+      }
+
+       if (data.type === "AUTH_ERROR") {
+        alert("Authentication failed");
+        onLogout();
+        return;
+      }
+
+
+
       if (data.type === "text") {
         setMessages((prev) => [...prev,
-          { id: '2', sender: 'them',username: data.username , text: data.text, type: 'text', timestamp: new Date() }
+          { id: data.id, sender: 'them',username: data.username , text: data.text, type: 'text', timestamp: new Date() }
+        ]);
+      }
+
+       if (data.type === "image") {
+        setMessages((prev) => [...prev,
+          { sender: 'them',username: data.username , imageUrl: data.imageUrl, type: 'image', timestamp: new Date() }
         ]);
       }
     };
-    return () => ws.current.close();
-  }, []);
+
+    ws.current.onclose = (event) => {
+      console.log("Disconnected", event.reason);
+      if (ws.current === socket) {
+        ws.current = null;
+      }
+    };
+
+
+    return () => {
+      if (socket.readyState === WebSocket.OPEN || socket.readyState === WebSocket.CONNECTING) {
+        socket.close();
+      }
+    };
+
+  }, [currentUser?.token]);
+
+
 
   const scrollToBottom = () => {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -100,7 +154,20 @@ export const ChatPage: React.FC<ChatPageProps> = ({ user }) => {
 
   const handleSend = () => {
     if (!inputText.trim()) return;
-    const msgData: Partial<Message> = { text: inputText, type: 'text' ,username: currentUser.email || "abde"  };
+
+    if (!ws.current || ws.current.readyState !== WebSocket.OPEN) {
+      console.error("Cannot send message: WebSocket is not connected.");
+      // Optional: Trigger a toast or reconnection logic here
+      return;
+    }
+
+    const token = localStorage.getItem("chat_token");
+    if (!token) {
+      console.error("No token found");
+      return;
+    }
+    
+    const msgData: Partial<Message> = { text: inputText, type: 'text' ,username: currentUser.email  };
     if (replyingTo) {
       msgData.replyTo = {
         id: replyingTo.id,
@@ -138,8 +205,10 @@ export const ChatPage: React.FC<ChatPageProps> = ({ user }) => {
     const file = e.target.files?.[0];
     if (file) {
       const reader = new FileReader();
-      reader.onload = (event) => {
-        setPendingPhotoUrl(event.target?.result as string);
+      reader.onload = () => {
+        const base64 = reader.result;
+   
+        setPendingPhotoUrl(base64 as string);
       };
       reader.readAsDataURL(file);
     }
@@ -295,7 +364,12 @@ export const ChatPage: React.FC<ChatPageProps> = ({ user }) => {
             imageUrl={pendingPhotoUrl}
             onClose={() => setPendingPhotoUrl(null)}
             onSend={(url) => {
-              addMessage({ imageUrl: url, type: 'image' });
+                ws.current.send(JSON.stringify({
+                  type: "image",
+                  username : currentUser.email,
+                  imageUrl: url,
+                  timestamp: Date.now()
+                }));
               setPendingPhotoUrl(null);
             }}
           />
@@ -306,7 +380,7 @@ export const ChatPage: React.FC<ChatPageProps> = ({ user }) => {
         animate={windowControls}
         className="flex-1 flex flex-col overflow-hidden"
       >
-        <TitleBar title={`Conversation - Poops (${currentUser.email})`} />
+        <TitleBar title={`Conversation - (${currentUser.email})`} />
 
         {/* Menu Bar */}
         <div className="h-7 border-b border-[#ACA899] flex items-center px-2 gap-5 text-[11px] select-none shrink-0" style={{ backgroundColor: theme.bgColor }}>
@@ -325,7 +399,7 @@ export const ChatPage: React.FC<ChatPageProps> = ({ user }) => {
         <div className="flex-1 flex p-4 gap-4 overflow-hidden">
 
           {/* Left Column (Online Users) */}
-          <div className="w-48 xl:w-80 flex flex-col gap-4 shrink-0 overflow-hidden">
+          <div className="w-48 xl:w-72 flex flex-col gap-4 shrink-0 overflow-hidden">
             {/* Online Users List */}
             <div className="flex-1 flex flex-col bg-white/50 border border-[#ACA899] rounded-md shadow-inner overflow-hidden">
               <div className="border-b border-[#ACA899] px-2 py-1 flex items-center gap-2" style={{ background: 'linear-gradient(to bottom, #F4F2E8, #D6D3C4)' }}>
@@ -606,63 +680,71 @@ export const ChatPage: React.FC<ChatPageProps> = ({ user }) => {
             </div>
 
             {/* Input Section */}
-            <div className="flex flex-col shrink-0">
-              <AnimatePresence>
-                {replyingTo && (
-                  <motion.div
-                    initial={{ height: 0, opacity: 0 }}
-                    animate={{ height: 'auto', opacity: 1 }}
-                    exit={{ height: 0, opacity: 0 }}
-                    className="bg-[#F0F7FF] border-x-2 border-t-2 border-[#ACA899] rounded-t-md p-2 flex items-center justify-between overflow-hidden"
-                  >
-                    <div className="flex flex-col overflow-hidden">
-                      <span className="text-[10px] font-bold text-[#3169C6]">Replying to {replyingTo.sender === 'me' ? 'yourself' : 'Poops'}:</span>
-                      <span className="text-[11px] text-gray-600 truncate italic">
-                        {replyingTo.text || (replyingTo.type === 'image' ? 'Photo' : replyingTo.type === 'voice' ? 'Voice Clip' : 'Gift')}
-                      </span>
-                    </div>
-                    <button
-                      onClick={() => setReplyingTo(null)}
-                      className="p-1 hover:bg-white/50 rounded-full text-gray-400 hover:text-red-500 transition-colors"
-                    >
-                      <X size={14} />
-                    </button>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-              <div className={`h-28 flex gap-3 ${replyingTo ? 'border-t-0 rounded-t-none' : ''}`}>
-                <textarea
-                  className={`flex-1 bg-white border-2 border-[#ACA899] p-3 focus:outline-none focus:border-[#0055E5] focus:ring-2 focus:ring-[#0055E5]/10 resize-none shadow-inner transition-all text-black ${replyingTo ? 'rounded-b-md border-t-0' : 'rounded-md'}`}
-                  style={{ fontSize: `${fontSize}px` }}
-                  value={inputText}
-                  onChange={(e) => {
-                    setInputText(e.target.value);
-                    setIsTyping(true);
-                    setTimeout(() => setIsTyping(false), 3000);
-                  }}
-                  onKeyDown={handleKeyDown}
-                  placeholder="Type a message..."
-                />
-                <div className="w-28 flex flex-col gap-2">
-                  <motion.button
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                    onClick={handleSend}
-                    className="flex-1 bg-gradient-to-b from-[#F8F8F8] to-[#D6D3C4] border border-[#ACA899] rounded-lg text-sm font-bold text-gray-700 shadow-sm hover:brightness-105 active:shadow-inner transition-all"
-                  >
-                    Send
-                  </motion.button>
-                  <motion.button
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                    onClick={() => setShowStickerDialog(true)}
-                    className="h-10 bg-gradient-to-b from-[#F8F8F8] to-[#D6D3C4] border border-[#ACA899] rounded-lg text-[12px] font-bold text-gray-700 shadow-sm hover:brightness-105 active:shadow-inner transition-all flex items-center justify-center gap-2"
-                  >
-                    <Smile size={14} /> Stickers
-                  </motion.button>
-                </div>
+
+            <div className={`h-28 flex gap-3 ${replyingTo ? 'border-t-0 rounded-t-none' : ''}`}>
+              <div  className="flex flex-1 flex-col shrink-0 "  >
+
+                        <AnimatePresence>
+                        {replyingTo && (
+                          <motion.div
+                            initial={{ height: 0, opacity: 0 }}
+                            animate={{ height: 'auto', opacity: 1 }}
+                            exit={{ height: 0, opacity: 0 }}
+                            className="bg-[#F0F7FF] border-x-2 border-t-2 border-[#ACA899] rounded-t-md p-2 flex items-center justify-between overflow-hidden"
+                          >
+                            <div className="flex flex-col overflow-hidden">
+                              <span className="text-[10px] font-bold text-[#3169C6]">Replying to {replyingTo.sender === 'me' ? 'yourself' : 'Poops'}:</span>
+                              <span className="text-[11px] text-gray-600 truncate italic">
+                                {replyingTo.text || (replyingTo.type === 'image' ? 'Photo' : replyingTo.type === 'voice' ? 'Voice Clip' : 'Gift')}
+                              </span>
+                            </div>
+                            <button
+                              onClick={() => setReplyingTo(null)}
+                              className="p-1 hover:bg-white/50 rounded-full text-gray-400 hover:text-red-500 transition-colors"
+                            >
+                              <X size={14} />
+                            </button>
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+                      
+                    <textarea
+                    className={`flex-1 bg-white border-2 border-[#ACA899] p-3 focus:outline-none focus:border-[#0055E5] focus:ring-2 focus:ring-[#0055E5]/10 resize-none shadow-inner transition-all text-black ${replyingTo ? 'rounded-b-md border-t-0' : 'rounded-md'}`}
+                    style={{ fontSize: `${fontSize}px` }}
+                    value={inputText}
+                    onChange={(e) => {
+                      setInputText(e.target.value);
+                      setIsTyping(true);
+                      setTimeout(() => setIsTyping(false), 3000);
+                    }}
+                    onKeyDown={handleKeyDown}
+                    placeholder="Type a message..."
+                  />
+
+
+              
+              </div>
+
+              <div className="w-28 flex flex-col gap-2">
+                <motion.button
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  onClick={handleSend}
+                  className="flex-1 bg-gradient-to-b from-[#F8F8F8] to-[#D6D3C4] border border-[#ACA899] rounded-lg text-sm font-bold text-gray-700 shadow-sm hover:brightness-105 active:shadow-inner transition-all"
+                >
+                  Send
+                </motion.button>
+                <motion.button
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  onClick={() => setShowStickerDialog(true)}
+                  className="h-10 bg-gradient-to-b from-[#F8F8F8] to-[#D6D3C4] border border-[#ACA899] rounded-lg text-[12px] font-bold text-gray-700 shadow-sm hover:brightness-105 active:shadow-inner transition-all flex items-center justify-center gap-2"
+                >
+                  <Smile size={14} /> Stickers
+                </motion.button>
               </div>
             </div>
+
           </div>
 
           {/* Right Column (Avatars & News) */}
@@ -1236,11 +1318,11 @@ function ThemeDialog({ currentTheme, onClose, onSave }: { currentTheme: any, onC
 }
 
 function ProfileDialog({ user, onClose, onSave }: { user: UserData, onClose: () => void, onSave: (user: UserData) => void }) {
-  const [email, setEmail] = useState(user.email);
+  const [username, setUsername] = useState(user.username);
   const [avatar, setAvatar] = useState(user.avatar);
-  const [currentPassword, setCurrentPassword] = useState(user.password || '');
+  const [confirmPassword, setConfirmPassword] = useState(user.password || '');
   const [newPassword, setNewPassword] = useState('');
-  const [showCurrentPassword, setShowCurrentPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showAvatars, setShowAvatars] = useState(false);
 
@@ -1287,32 +1369,25 @@ function ProfileDialog({ user, onClose, onSave }: { user: UserData, onClose: () 
             </div>
             <div className="flex-1 flex flex-col gap-4">
               <div className="space-y-1">
-                <label className="text-[11px] font-bold text-gray-600">Display Name / Email</label>
+                <label className="text-[11px] font-bold text-gray-600">Email</label>
                 <input
                   type="text"
                   className="w-full h-10 px-3 border border-[#ACA899] rounded-md text-sm focus:outline-none focus:border-[#003399]"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  value={user.email}
+                  // onChange={(e) => setEmail(e.target.value)}
+                  disabled
                 />
+                
               </div>
-              <div className="space-y-1">
-                <label className="text-[11px] font-bold text-gray-600">Current Password</label>
-                <div className="relative">
-                  <input
-                    type={showCurrentPassword ? 'text' : 'password'}
-                    className="w-full h-10 px-3 pr-10 border border-[#ACA899] rounded-md text-sm focus:outline-none focus:border-[#003399]"
-                    value={currentPassword}
-                    readOnly
-                    placeholder="None set"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowCurrentPassword(!showCurrentPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
-                  >
-                    {showCurrentPassword ? <EyeOff size={16} /> : <Eye size={16} />}
-                  </button>
-                </div>
+               <div className="space-y-1">
+                <label className="text-[11px] font-bold text-gray-600">Display Name </label>
+                <input
+                  type="text"
+                  className="w-full h-10 px-3 border border-[#ACA899] rounded-md text-sm focus:outline-none focus:border-[#003399]"
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                />
+                
               </div>
               <div className="space-y-1">
                 <label className="text-[11px] font-bold text-gray-600">New Password</label>
@@ -1321,8 +1396,8 @@ function ProfileDialog({ user, onClose, onSave }: { user: UserData, onClose: () 
                     type={showNewPassword ? 'text' : 'password'}
                     className="w-full h-10 px-3 pr-10 border border-[#ACA899] rounded-md text-sm focus:outline-none focus:border-[#003399]"
                     value={newPassword}
-                    onChange={(e) => setNewPassword(e.target.value)}
-                    placeholder="Enter new password"
+                    onChange={(e) =>setNewPassword(e.target.value)}
+                    placeholder="None set"
                   />
                   <button
                     type="button"
@@ -1333,12 +1408,31 @@ function ProfileDialog({ user, onClose, onSave }: { user: UserData, onClose: () 
                   </button>
                 </div>
               </div>
+              <div className="space-y-1">
+                <label className="text-[11px] font-bold text-gray-600">New Password</label>
+                <div className="relative">
+                  <input
+                    type={showConfirmPassword ? 'text' : 'password'}
+                    className="w-full h-10 px-3 pr-10 border border-[#ACA899] rounded-md text-sm focus:outline-none focus:border-[#003399]"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    placeholder="Enter new password"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+                  >
+                    {showConfirmPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                  </button>
+                </div>
+              </div>
               <p className="text-[10px] text-gray-500 italic">This is how you appear to your contacts.</p>
             </div>
           </div>
           <div className="flex gap-3 mt-4">
             <button
-              onClick={() => onSave({ email, avatar, password: newPassword || currentPassword })}
+              onClick={() => onSave({ email : user.email, avatar, password: newPassword || confirmPassword  , token : user.token})}
               className="flex-1 h-10 bg-gradient-to-b from-[#F8F8F8] to-[#E0E0E0] border border-[#ACA899] rounded-lg text-sm font-bold text-gray-700 shadow-sm hover:brightness-105 transition-all"
             >
               Save Changes
