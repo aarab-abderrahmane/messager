@@ -118,23 +118,40 @@ export const SignupPage: React.FC<SignupPageProps> = ({ onSignup }) => {
                       initial={{ opacity: 0, scale: 0.9, y: 10 }}
                       animate={{ opacity: 1, scale: 1, y: 0 }}
                       exit={{ opacity: 0, scale: 0.9, y: 10 }}
-                      className="absolute top-full mt-4 left-0 bg-white border border-[#A0A0A0] rounded-xl shadow-2xl p-3 grid grid-cols-3 gap-3 z-20 w-56"
+                      className="absolute top-full mt-4 left-0 bg-white border border-[#A0A0A0] rounded-xl shadow-2xl z-20 w-96 overflow-hidden flex flex-col"
                     >
-                      {AVATARS.map((url, idx) => (
-                        <motion.img
-                          key={idx}
-                          whileHover={{ scale: 1.1 }}
-                          whileTap={{ scale: 0.95 }}
-                          src={url}
-                          className={`w-14 h-14 rounded-lg cursor-pointer border-2 transition-all ${selectedAvatar === url ? 'border-[#88C057] shadow-md' : 'border-transparent hover:border-gray-300'
-                            }`}
-                          onClick={() => {
-                            setSelectedAvatar(url);
-                            setShowAvatarList(false);
-                          }}
-                          alt={`Avatar ${idx}`}
-                        />
-                      ))}
+                      <div className="bg-[#F3F3F3] border-b border-[#E0E0E0] p-3 flex items-center justify-between">
+                        <span className="text-xs font-bold text-gray-700">Choose your dynamic picture</span>
+                        <button 
+                          onClick={() => setShowAvatarList(false)}
+                          className="text-gray-400 hover:text-gray-600 transition-colors"
+                        >
+                          <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M1 1L11 11M1 11L11 1" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                          </svg>
+                        </button>
+                      </div>
+                      
+                      <div className="p-3 max-h-64 overflow-y-auto custom-scrollbar">
+                        <div className="grid grid-cols-5 gap-3">
+                          {AVATARS.map((url, idx) => (
+                            <motion.img
+                              key={idx}
+                              whileHover={{ scale: 1.1, zIndex: 10 }}
+                              whileTap={{ scale: 0.95 }}
+                              src={url}
+                              className={`w-14 h-14 rounded-lg cursor-pointer border-2 transition-all object-cover ${selectedAvatar === url ? 'border-[#88C057] shadow-md ring-2 ring-[#88C057]/20' : 'border-transparent hover:border-gray-300'
+                                }`}
+                              onClick={() => {
+                                setSelectedAvatar(url);
+                                setShowAvatarList(false);
+                              }}
+                              alt={`Avatar ${idx}`}
+                            />
+                          ))}
+                        </div>
+                      </div>
+
                     </motion.div>
                   )}
                 </AnimatePresence>
