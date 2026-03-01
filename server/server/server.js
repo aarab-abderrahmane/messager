@@ -198,6 +198,7 @@ wss.on('connection', (ws, req) => {
           text: sanitizedText,
           timestamp: Date.now()
         };
+        
 
         addMessage(messageData);
         broadcast(messageData);
