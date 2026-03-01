@@ -76,7 +76,7 @@ export const SignupPage: React.FC<SignupPageProps> = ({ onSignup }) => {
   };
 
   return (
-    <div className="h-screen w-full bg-gradient-to-b from-[#C9E0F7] via-[#FFFFFF] to-[#C9E0F7] flex items-center justify-center p-4 font-sans">
+    <div className=" w-full bg-gradient-to-b from-[#C9E0F7] via-[#FFFFFF] to-[#C9E0F7] flex items-center justify-center p-4 font-sans">
       <AnimatePresence>
         {toast && (
           <Toast
