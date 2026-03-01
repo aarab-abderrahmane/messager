@@ -5,10 +5,10 @@ import {
   Gift, ImageIcon, Search, MoreHorizontal,
   Plus, Minus as MinusIcon, X, Reply,
   Calendar, Info, Globe, MessageSquare, Mail, Clock,
-  Newspaper, ExternalLink, TrendingUp, Eye, EyeOff, FileText , Download
+  Newspaper, ExternalLink, TrendingUp, Eye, EyeOff, FileText, Download
 } from 'lucide-react';
 import { motion, useAnimation, AnimatePresence } from 'motion/react';
-import { Message, UserData } from '../../types';
+import { Message, UserData, NewsItem } from '../../types';
 import { MSN_LOGO_URL, ALL_EMOJIS, AVATARS, STICKERS, GIFS } from '../../constants';
 import { TitleBar } from '../common/TitleBar';
 interface ChatPageProps {
@@ -56,7 +56,7 @@ export const ChatPage: React.FC<ChatPageProps> = ({ user, onLogout }) => {
   const [showUserProfileDialog, setShowUserProfileDialog] = useState(false);
   const [showNewsDialog, setShowNewsDialog] = useState(false);
   const [showStickerDialog, setShowStickerDialog] = useState(false);
-  const [selectedNews, setSelectedNews] = useState<any>(null);
+  const [selectedNews, setSelectedNews] = useState<NewsItem | null>(null);
   const [selectedUser, setSelectedUser] = useState<any>(null);
   const [replyingTo, setReplyingTo] = useState<Message | null>(null);
   const [userSearchQuery, setUserSearchQuery] = useState('');
@@ -787,56 +787,75 @@ export const ChatPage: React.FC<ChatPageProps> = ({ user, onLogout }) => {
           {/* Right Column (Avatars & News) */}
           <div className="w-48 xl:w-72 flex flex-col gap-4 shrink-0 overflow-hidden">
             {/* Breaking News Section */}
-            <div className="flex-1 flex flex-col bg-white border-2 border-[#ACA899] rounded-xl shadow-lg overflow-hidden">
-              <div className="bg-gradient-to-b from-[#FF6600] to-[#CC5200] px-2 py-1 flex items-center gap-2 border-b border-[#ACA899]">
-                <Newspaper size={12} className="text-white" />
-                <span className="text-[10px] xl:text-[14px] font-bold text-white uppercase tracking-wider">Breaking News</span>
+            <div className="flex-1 flex flex-col bg-white/20 backdrop-blur-md border border-white/30 rounded-xl shadow-[0_8px_32px_rgba(0,0,0,0.15)] overflow-hidden relative group/sidebar">
+              <div className="absolute inset-0 bg-gradient-to-b from-white/40 via-transparent to-white/5 pointer-events-none" />
+
+              <div className="bg-gradient-to-r from-[#FF6600]/80 to-[#CC5200]/80 px-3 py-2 flex items-center gap-2 border-b border-white/20 relative z-10">
+                <Newspaper size={14} className="text-white drop-shadow-sm" />
+                <span className="text-[11px] xl:text-[14px] font-bold text-white uppercase tracking-wider drop-shadow-sm">Breaking News</span>
               </div>
-              <div className="flex-1 p-2 flex flex-col gap-3 overflow-y-auto scrollbar-thin bg-[#FFFBF0]">
+
+              <div className="flex-1 p-3 flex flex-col gap-4 overflow-y-auto scrollbar-thin bg-white/10 relative z-10">
                 {[
                   {
-                    title: "MSN hits 100M users!",
-                    icon: <TrendingUp size={10} />,
-                    content: "MSN Messenger has officially surpassed 100 million active users worldwide! The service continues to grow as the premier destination for instant messaging and digital connection."
+                    id: '1',
+                    type: 'breaking',
+                    headline: "MSN hits 100M users!",
+                    text: "MSN Messenger has officially surpassed 100 million active users worldwide! The service continues to grow as the premier destination for instant messaging and digital connection.",
+                    publicationTime: new Date('2026-02-25T10:00:00'),
+                    expirationDate: new Date('2026-03-10T10:00:00'),
+                    coverImage: "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=800&auto=format&fit=crop&q=60",
+                    attachments: [{ name: "Read Moore at MSN.com", url: "https://msn.com" }]
                   },
                   {
-                    title: "New 3D Emoticons!",
-                    icon: <Smile size={10} />,
-                    content: "Express yourself like never before with our brand new pack of 3D animated emoticons. From dancing robots to spinning hearts, your conversations just got a lot more lively!"
+                    id: '2',
+                    type: 'breaking',
+                    headline: "New 3D Emoticons!",
+                    text: "Express yourself like never before with our brand new pack of 3D animated emoticons. From dancing robots to spinning hearts, your conversations just got a lot more lively!",
+                    publicationTime: new Date('2026-02-28T14:30:00'),
+                    expirationDate: new Date('2026-03-05T14:30:00'),
                   },
                   {
-                    title: "Vista Beta 2 out now",
-                    icon: <Globe size={10} />,
-                    content: "Microsoft has released Windows Vista Beta 2 to the public. Experience the new Aero interface and enhanced security features of the next generation of Windows."
+                    id: '3',
+                    type: 'regular',
+                    headline: "Vista Beta 2 out now",
+                    text: "Microsoft has released Windows Vista Beta 2 to the public. Experience the new Aero interface and enhanced security features of the next generation of Windows.",
+                    publicationTime: new Date('2026-03-01T08:00:00'),
+                    expirationDate: new Date('2026-03-15T08:00:00'),
+                    attachments: [{ name: "Download Beta", url: "#" }]
                   },
                   {
-                    title: "Top 10 Pop Hits",
-                    icon: <ExternalLink size={10} />,
-                    content: "Check out this week's top 10 pop hits on MSN Music. From the latest chart-toppers to rising stars, we've got the soundtrack for your summer."
-                  },
-                  {
-                    title: "Nudge etiquette 101",
-                    icon: <Info size={10} />,
-                    content: "Are you nudging too much? Learn the do's and don'ts of the Nudge feature in our latest guide. Remember: one nudge is a greeting, ten nudges is a problem!"
+                    id: '4',
+                    type: 'regular',
+                    headline: "Top 10 Pop Hits",
+                    text: "Check out this week's top 10 pop hits on MSN Music. From the latest chart-toppers to rising stars, we've got the soundtrack for your summer.",
+                    publicationTime: new Date('2026-02-27T12:00:00'),
+                    expirationDate: new Date('2026-03-06T12:00:00'),
                   }
-                ].map((news, i) => (
-                  <div
-                    key={i}
-                    onClick={() => {
-                      setSelectedNews(news);
-                      setShowNewsDialog(true);
-                    }}
-                    className="flex flex-col gap-1 group cursor-pointer"
-                  >
-                    <div className="flex items-center gap-1.5 text-[#3169C6] group-hover:underline">
-                      <span className="shrink-0">{news.icon}</span>
-                      <span className="text-[10px] xl:text-[12px] font-bold leading-tight">{news.title}</span>
+                ]
+                  .filter(news => new Date(news.expirationDate) > new Date())
+                  .map((news) => (
+                    <div
+                      key={news.id}
+                      onClick={() => {
+                        setSelectedNews(news as NewsItem);
+                        setShowNewsDialog(true);
+                      }}
+                      className="flex flex-col gap-1.5 group cursor-pointer p-2 rounded-lg hover:bg-white/20 transition-all border border-transparent hover:border-white/30"
+                    >
+                      <div className="flex items-start gap-2">
+                        <div className="mt-1 w-1.5 h-1.5 rounded-full bg-[#FF6600] border border-white/50 shadow-sm shrink-0" />
+                        <span className="text-[11px] xl:text-[13px] font-semibold leading-snug text-gray-800 group-hover:text-[#3169C6] transition-colors">{news.headline}</span>
+                      </div>
+                      <div className="flex items-center gap-1.5 ml-3.5 opacity-60">
+                        <Clock size={10} />
+                        <span className="text-[9px] font-medium">{new Date(news.publicationTime).toLocaleDateString()}</span>
+                      </div>
                     </div>
-                    <div className="h-[1px] bg-gray-200 w-full"></div>
-                  </div>
-                ))}
-                <div className="mt-auto pt-2 text-center">
-                  <span className="text-[9px] text-[#FF6600] font-bold hover:underline cursor-pointer italic">More on Dot.com →</span>
+                  ))}
+
+                <div className="mt-auto pt-4 text-center border-t border-white/10">
+                  <span className="text-[10px] text-[#FF6600] font-bold hover:underline cursor-pointer italic drop-shadow-sm">View all news on MSN.com →</span>
                 </div>
               </div>
             </div>
@@ -1009,7 +1028,7 @@ function PhotoPreviewDialog({ imageUrl, onClose }: { imageUrl: string, onClose: 
             className="px-6 h-13  bg-gradient-to-b from-[#58e84b] via-[#4dd43b] to-[#4ec02b] hover:bg-red-500/80  text-white border border-white/20 rounded-full font-bold text-sm transition-all flex items-center gap-2 group cursor-pointer"
           >
             <span>Download Photo</span>
-            <Download size={16}  />
+            <Download size={16} />
 
           </button>
         </div>
@@ -1081,38 +1100,79 @@ function GiftDialog({ onClose, onSend }: { onClose: () => void, onSend: (msg: st
   );
 }
 
-function NewsDialog({ news, onClose }: { news: any, onClose: () => void }) {
+function NewsDialog({ news, onClose }: { news: NewsItem, onClose: () => void }) {
   return (
-    <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-[120] p-4">
+    <div className="fixed inset-0 bg-black/20 backdrop-blur-sm flex items-center justify-center z-[150] p-4">
       <motion.div
-        initial={{ scale: 0.9, opacity: 0 }}
-        animate={{ scale: 1, opacity: 1 }}
-        exit={{ scale: 0.9, opacity: 0 }}
-        className="w-[400px] bg-white border border-[#ACA899] rounded-lg shadow-2xl overflow-hidden flex flex-col"
+        initial={{ scale: 0.95, opacity: 0, y: 20 }}
+        animate={{ scale: 1, opacity: 1, y: 0 }}
+        exit={{ scale: 0.95, opacity: 0, y: 20 }}
+        className="w-[550px] bg-white/70 backdrop-blur-xl border border-white/40 rounded-xl shadow-[0_32px_64px_rgba(0,0,0,0.3)] overflow-hidden flex flex-col relative"
       >
-        <TitleBar title="MSN Today - News Detail" />
-        <div className="p-6 flex flex-col gap-4">
-          <div className="flex items-center gap-3 text-[#FF6600]">
-            <Newspaper size={24} />
-            <h2 className="text-xl font-bold">{news.title}</h2>
-          </div>
+        <div className="absolute inset-0 bg-gradient-to-br from-white/40 via-transparent to-black/5 pointer-events-none" />
 
-          <div className="bg-[#FFFBF0] border border-[#FF6600]/20 rounded-lg p-4 shadow-inner">
-            <p className="text-sm text-gray-700 leading-relaxed italic">
-              {news.content}
-            </p>
-          </div>
+        <TitleBar title="MSN Today - Windows Internet Explorer" variant="win7" icon="/assets/icons/globe.png" />
 
-          <div className="flex items-center gap-2 text-[11px] text-gray-400 mt-2">
-            <Clock size={12} />
-            <span>Published: {new Date().toLocaleDateString()}</span>
-          </div>
+        <div className="flex-1 overflow-y-auto custom-scrollbar relative z-10">
+          {news.coverImage && (
+            <div className="w-full h-48 relative overflow-hidden">
+              <img src={news.coverImage} className="w-full h-full object-cover" alt="Cover" />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+              <h2 className="absolute bottom-4 left-6 right-6 text-2xl font-bold text-white drop-shadow-lg leading-tight uppercase tracking-tight">
+                {news.headline}
+              </h2>
+            </div>
+          )}
 
+          <div className="p-8 flex flex-col gap-6">
+            {!news.coverImage && (
+              <h2 className="text-2xl font-bold text-gray-800 leading-tight border-b border-gray-200 pb-4">
+                {news.headline}
+              </h2>
+            )}
+
+            <div className="flex items-center gap-3 text-xs font-semibold text-[#3169C6] bg-blue-50/50 p-3 rounded-lg border border-blue-100/50">
+              <Clock size={14} />
+              <span>Published: {new Date(news.publicationTime).toLocaleString()}</span>
+              <span className="mx-2 opacity-30 text-gray-400">|</span>
+              <Newspaper size={14} />
+              <span className="capitalize">{news.type} News</span>
+            </div>
+
+            <div className="text-base text-gray-700 leading-relaxed space-y-4">
+              {news.text.split('\n').map((para, i) => (
+                <p key={i}>{para}</p>
+              ))}
+            </div>
+
+            {news.attachments && news.attachments.length > 0 && (
+              <div className="mt-4 pt-6 border-t border-gray-100 flex flex-col gap-3">
+                <span className="text-xs font-bold text-gray-400 uppercase tracking-widest">Related Links & Attachments</span>
+                <div className="flex flex-wrap gap-3">
+                  {news.attachments.map((att, i) => (
+                    <a
+                      key={i}
+                      href={att.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-2 px-4 py-2 bg-white/50 hover:bg-white border border-gray-200 rounded-full text-sm font-semibold text-[#3169C6] transition-all hover:shadow-md hover:-translate-y-0.5"
+                    >
+                      <ExternalLink size={14} />
+                      {att.name}
+                    </a>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+
+        <div className="p-4 bg-gray-50/50 border-t border-white/30 flex justify-end relative z-10">
           <button
             onClick={onClose}
-            className="w-full h-10 bg-gradient-to-b from-[#F8F8F8] to-[#E0E0E0] border border-[#ACA899] rounded-lg text-sm font-bold text-gray-700 shadow-sm hover:brightness-105 transition-all mt-2"
+            className="px-8 h-10 bg-gradient-to-b from-white via-[#F0F0F0] to-[#E0E0E0] border border-[#ACA899] rounded-lg text-sm font-bold text-gray-700 shadow-[0_1px_2px_rgba(0,0,0,0.1)] hover:brightness-105 active:shadow-inner transition-all flex items-center gap-2 group"
           >
-            Back to MSN Today
+            <span>Back to Messenger</span>
           </button>
         </div>
       </motion.div>
@@ -1510,7 +1570,7 @@ function ProfileDialog({ user, onClose, onSave }: { user: UserData, onClose: () 
           </div>
           <div className="flex gap-3 mt-4">
             <button
-              onClick={() => onSave({ email: user.email, avatar, password: newPassword || confirmPassword, token: user.token })}
+              onClick={() => onSave({ email: user.email, username, avatar, password: newPassword || confirmPassword, token: user.token })}
               className="flex-1 h-10 bg-gradient-to-b from-[#F8F8F8] to-[#E0E0E0] border border-[#ACA899] rounded-lg text-sm font-bold text-gray-700 shadow-sm hover:brightness-105 transition-all"
             >
               Save Changes

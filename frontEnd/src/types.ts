@@ -5,7 +5,7 @@
 
 export interface Message {
   id: string;
-  token : string ;
+  token: string;
   username: string;
   sender: 'me' | 'them';
   text?: string;
@@ -28,8 +28,25 @@ export interface Message {
 
 export interface UserData {
   email: string;
-  token : string ; 
+  username: string;
+  token: string;
   avatar: string;
   name?: string;
   password?: string;
+}
+
+export interface NewsAttachment {
+  name: string;
+  url: string;
+}
+
+export interface NewsItem {
+  id: string;
+  type: 'breaking' | 'regular';
+  headline: string;
+  text: string;
+  publicationTime: Date;
+  expirationDate: Date;
+  coverImage?: string;
+  attachments?: NewsAttachment[];
 }
