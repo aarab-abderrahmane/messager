@@ -39,10 +39,7 @@ export const SignupPage: React.FC<SignupPageProps> = ({ onSignup }) => {
         setToast({ message: 'Please enter your name!', type: 'error' });
         return;
       }
-      // if (EXISTING_USERS.includes(email)) {
-      //   setToast({ message: 'Email already exists!', type: 'error' });
-      //   return;
-      // }
+
       if (password !== confirmPassword) {
         setToast({ message: 'Passwords do not match!', type: 'error' });
         return;
@@ -88,12 +85,12 @@ export const SignupPage: React.FC<SignupPageProps> = ({ onSignup }) => {
       </AnimatePresence>
 
       <div className="w-[640px] bg-white border border-[#A0A0A0] rounded-lg shadow-2xl overflow-hidden flex flex-col">
-        <TitleBar title="Windows Live Messenger" variant="live" />
+        <TitleBar title="Dot Messenger" variant="live" />
 
         <div className="p-10 flex flex-col gap-8">
           <div className="flex flex-col gap-1">
             <h1 className="text-3xl text-[#003399] font-light tracking-tight">{isSignIn ? 'Sign in to' : 'Sign up to'}</h1>
-            <h2 className="text-4xl text-[#003399] font-medium tracking-tight">Windows Live <span className="font-bold">Messenger</span></h2>
+            <h2 className="text-4xl text-[#003399] font-medium tracking-tight">Dot <span className="font-bold">Messenger</span></h2>
           </div>
 
           <div className="flex gap-10">
@@ -216,11 +213,11 @@ export const SignupPage: React.FC<SignupPageProps> = ({ onSignup }) => {
                   <input type="checkbox" id="remember" className="w-4 h-4 rounded border-gray-300 text-[#003399] focus:ring-[#003399]" />
                   <label htmlFor="remember" className="text-xs text-gray-600 cursor-pointer group-hover:text-black transition-colors">Remember my ID and password</label>
                 </div>
-                <div className="flex items-center gap-3 group cursor-pointer">
+                {/* <div className="flex items-center gap-3 group cursor-pointer">
                   <input type="checkbox" id="auto" className="w-4 h-4 rounded border-gray-300 text-[#003399] focus:ring-[#003399]" />
                   <label htmlFor="auto" className="text-xs text-gray-600 cursor-pointer group-hover:text-black transition-colors">Sign me in automatically</label>
                   <span className="text-xs text-[#003399] font-medium cursor-pointer hover:underline ml-auto">Options</span>
-                </div>
+                </div> */}
               </div>
 
               <div className="flex gap-4 mt-4">
@@ -246,9 +243,9 @@ export const SignupPage: React.FC<SignupPageProps> = ({ onSignup }) => {
 
           <div className="text-xs text-center text-gray-500 mt-6">
             {isSignIn ? (
-              <>Don't have a Windows Live ID? <span onClick={() => setIsSignIn(false)} className="text-[#003399] font-bold cursor-pointer hover:underline">Sign up</span></>
+              <>Don't have a Dot Messenger ID? <span onClick={() => setIsSignIn(false)} className="text-[#003399] font-bold cursor-pointer hover:underline">Sign up</span></>
             ) : (
-              <>Already have a Windows Live ID? <span onClick={() => setIsSignIn(true)} className="text-[#003399] font-bold cursor-pointer hover:underline">Sign in</span></>
+              <>Already have a Dot Messenger ID? <span onClick={() => setIsSignIn(true)} className="text-[#003399] font-bold cursor-pointer hover:underline">Sign in</span></>
             )}
           </div>
         </div>

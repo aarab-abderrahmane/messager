@@ -7,7 +7,7 @@ interface TitleBarProps {
   variant?: 'xp' | 'live';
 }
 
-export const TitleBar: React.FC<TitleBarProps> = ({ title, variant = 'xp' }) => {
+export const TitleBar: React.FC<TitleBarProps> = ({ title, variant = 'xp' , icon }) => {
   if (variant === 'live') {
     return (
       <div className="h-8 bg-gradient-to-b from-[#F0F0F0] to-[#D0D0D0] flex items-center justify-between px-2 border-b border-[#A0A0A0] shrink-0">
@@ -25,10 +25,10 @@ export const TitleBar: React.FC<TitleBarProps> = ({ title, variant = 'xp' }) => 
   }
 
   return (
-    <div className="h-8 bg-gradient-to-b from-[#0058E6] via-[#3C96FF] to-[#0058E6] flex items-center justify-between px-2 select-none shrink-0 border-b border-[#003399]">
+    <div className="h-10 bg-gradient-to-b from-[#0058E6] via-[#3C96FF] to-[#0058E6] flex items-center justify-between px-2 select-none shrink-0 border-b border-[#003399]">
       <div className="flex items-center gap-2">
-        <div className="w-5 h-5 bg-white rounded-sm flex items-center justify-center shadow-inner">
-          <img src={MSN_LOGO_URL} className="w-4 h-4" alt="MSN" />
+        <div className="w-6 h-5  rounded-sm flex items-center justify-center shadow-inner">
+          <img src={icon} className="w-6 h-6" alt="MSN" />
         </div>
         <span className="text-white font-bold text-sm drop-shadow-md">{title}</span>
       </div>

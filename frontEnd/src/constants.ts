@@ -44,16 +44,18 @@ export const AVATARS = [
   '/assets/avatars/usertile43.bmp',
   '/assets/avatars/usertile44.bmp',
 ];
-
+  
 export const MSN_LOGO_URL = 'https://upload.wikimedia.org/wikipedia/en/thumb/3/30/MSN_Messenger_logo.svg/1200px-MSN_Messenger_logo.svg.png';
 
 export const ALL_EMOJIS = ['😊', '😂', '❤️', '🥺', '🫶', '☹️', '😎', '🤔', '🔥', '👍', '🙌', '✨', '🎉', '🍕', '🍦', '🎮', '💻', '📱'];
 
 export const STICKERS = [
-  'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExNHJ6eXN6eXN6eXN6eXN6eXN6eXN6eXN6eXN6eXN6eXN6eXN6eXN6JmVwPXYxX3N0aWNrZXJzX3NlYXJjaCZjdD1z/3o7TKMGpxx669V3Fv2/giphy.gif',
-  'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExNHJ6eXN6eXN6eXN6eXN6eXN6eXN6eXN6eXN6eXN6eXN6eXN6eXN6JmVwPXYxX3N0aWNrZXJzX3NlYXJjaCZjdD1z/l41lTfuxV3G8v6m5G/giphy.gif',
-  'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExNHJ6eXN6eXN6eXN6eXN6eXN6eXN6eXN6eXN6eXN6eXN6eXN6eXN6JmVwPXYxX3N0aWNrZXJzX3NlYXJjaCZjdD1z/3o7TKMGpxx669V3Fv2/giphy.gif',
-  'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExNHJ6eXN6eXN6eXN6eXN6eXN6eXN6eXN6eXN6eXN6eXN6eXN6eXN6JmVwPXYxX3N0aWNrZXJzX3NlYXJjaCZjdD1z/l41lTfuxV3G8v6m5G/giphy.gif',
+  '/assets/stickers/STK-20250901-WA0000.png',
+  '/assets/stickers/STK-20250916-WA0009.png',
+  '/assets/stickers/STK-20250918-WA0002.png',
+  '/assets/stickers/STK-20250923-WA0004.png',
+  '/assets/stickers/STK-20250923-WA0005.png',
+  '/assets/stickers/STK-20250923-WA0008.png',
 ];
 
 export const GIFS = [

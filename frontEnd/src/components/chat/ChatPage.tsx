@@ -392,7 +392,7 @@ export const ChatPage: React.FC<ChatPageProps> = ({ user  ,onLogout}) => {
         animate={windowControls}
         className="flex-1 flex flex-col overflow-hidden"
       >
-        <TitleBar title={`Conversation - (${currentUser.email})`} />
+        <TitleBar title={`Conversation - (${currentUser.username})`} />
 
         {/* Menu Bar */}
         <div className="h-7 border-b border-[#ACA899] flex items-center px-2 gap-5 text-[11px] select-none shrink-0" style={{ backgroundColor: theme.bgColor }}>
@@ -483,7 +483,7 @@ export const ChatPage: React.FC<ChatPageProps> = ({ user  ,onLogout}) => {
           </div>
 
           {/* Center Column (Chat Area) */}
-          <div className="flex-1 flex flex-col gap-4 overflow-hidden">
+          <div className="flex-1 flex flex-col gap-4 ">
             {/* Conversation Panel */}
             <div className="flex-1 bg-white border-2 border-[#ACA899] rounded-md shadow-inner overflow-y-auto p-5 flex flex-col gap-3 scrollbar-thin scrollbar-thumb-[#ACA899] scrollbar-track-[#F1F1F1]">
               <div className="text-[12px] font-bold border-b border-[#F1F1F1] pb-2 mb-2 flex items-center gap-2">
@@ -643,10 +643,11 @@ export const ChatPage: React.FC<ChatPageProps> = ({ user  ,onLogout}) => {
             </div>
 
             {/* Formatting Toolbar */}
-            <div className="h-10 flex items-center px-2 gap-2 select-none shrink-0 rounded-md relative" style={{ backgroundColor: 'rgba(244, 242, 232, 0.3)' }}>
+            <div className="h-10 flex items-center px-2 gap-2 select-none shrink-0 rounded-md relative" style={{ backgroundColor: 'rgba(244, 242, 232, 0.4)' }}>
               <div className="relative">
                 <FormatButton
-                  icon={<Type size={16} />}
+                  icon={<Type size={18} />}
+                  label='text'
                   onClick={() => setActiveDropdown(activeDropdown === 'font' ? null : 'font')}
                 />
                 <AnimatePresence>
@@ -655,19 +656,19 @@ export const ChatPage: React.FC<ChatPageProps> = ({ user  ,onLogout}) => {
                       initial={{ opacity: 0, y: -10 }}
                       animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0, y: -10 }}
-                      className="absolute bottom-full mb-2 left-0 bg-white border border-[#ACA899] rounded-md shadow-xl p-1 flex flex-col gap-1 z-30 w-24"
+                      className="absolute bottom-full mb-2 left-0 bg-white border border-[#ACA899] rounded-md shadow-xl p-1 flex flex-col gap-1 z-30 w-32"
                     >
                       <button
                         onClick={() => { setFontSize(prev => Math.min(prev + 2, 24)); setActiveDropdown(null); }}
                         className="flex items-center gap-2 px-3 py-1.5 hover:bg-[#316AC5] hover:text-white text-[11px] font-bold transition-colors rounded-sm"
                       >
-                        <Plus size={12} /> +inc
+                        <Plus size={12} /> Enlarge Text
                       </button>
                       <button
                         onClick={() => { setFontSize(prev => Math.max(prev - 2, 10)); setActiveDropdown(null); }}
                         className="flex items-center gap-2 px-3 py-1.5 hover:bg-[#316AC5] hover:text-white text-[11px] font-bold transition-colors rounded-sm"
                       >
-                        <MinusIcon size={12} /> -dec
+                        <MinusIcon size={12} /> Reduce Text
                       </button>
                     </motion.div>
                   )}
@@ -676,7 +677,8 @@ export const ChatPage: React.FC<ChatPageProps> = ({ user  ,onLogout}) => {
 
               <div className="relative">
                 <FormatButton
-                  icon={<Smile size={16} />}
+                  icon={<Smile size={18} />}
+                  label='emoji'
                   onClick={() => setActiveDropdown(activeDropdown === 'emoji' ? null : 'emoji')}
                 />
                 <AnimatePresence>
@@ -705,10 +707,10 @@ export const ChatPage: React.FC<ChatPageProps> = ({ user  ,onLogout}) => {
               </div>
 
               <div className="h-5 w-[1px] bg-[#ACA899] mx-1"></div>
-              <FormatButton icon={<Mic size={16} />} label="Voice Clip" onClick={() => voiceInputRef.current?.click()} />
-              <FormatButton icon={<FileText size={16} />} label="PDF" onClick={() => pdfInputRef.current?.click()} />
-              <FormatButton icon={<ImageIcon size={16} />} onClick={() => fileInputRef.current?.click()} />
-              <FormatButton icon={<Gift size={16} />} onClick={() => setShowGiftDialog(true)} />
+              <FormatButton icon={<Mic size={18} />} label="Voice Clip" onClick={() => voiceInputRef.current?.click()} />
+              <FormatButton icon={<FileText size={18} />} label="PDF" onClick={() => pdfInputRef.current?.click()} />
+              <FormatButton icon={<ImageIcon size={18} />} onClick={() => fileInputRef.current?.click()} />
+              <FormatButton icon={<Gift size={18} />} onClick={() => setShowGiftDialog(true)} />
             </div>
 
             {/* Input Section */}
@@ -762,9 +764,13 @@ export const ChatPage: React.FC<ChatPageProps> = ({ user  ,onLogout}) => {
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
                   onClick={handleSend}
-                  className="flex-1 bg-gradient-to-b from-[#F8F8F8] to-[#D6D3C4] border border-[#ACA899] rounded-lg text-sm font-bold text-gray-700 shadow-sm hover:brightness-105 active:shadow-inner transition-all"
+                  className="flex-1 bg-gradient-to-b flex justify-center items-center  from-[#F8F8F8] to-[#D6D3C4] border border-[#ACA899] rounded-lg text-[16px] font-bold text-gray-700 shadow-sm hover:brightness-105 active:shadow-inner transition-all"
                 >
-                  Send
+                  <span className="flex items-center gap-1 ">
+                        Send
+                       <img src="/assets/icons/up.png" className="w-6 h-6"></img>
+                  </span>
+
                 </motion.button>
                 <motion.button
                   whileHover={{ scale: 1.02 }}
@@ -831,14 +837,14 @@ export const ChatPage: React.FC<ChatPageProps> = ({ user  ,onLogout}) => {
                   </div>
                 ))}
                 <div className="mt-auto pt-2 text-center">
-                  <span className="text-[9px] text-[#FF6600] font-bold hover:underline cursor-pointer italic">More on MSN.com →</span>
+                  <span className="text-[9px] text-[#FF6600] font-bold hover:underline cursor-pointer italic">More on Dot.com →</span>
                 </div>
               </div>
             </div>
 
             {/* Bottom Display Picture (My Profile) */}
             <div className="relative group mt-auto xl:w-[200px] mx-auto shrink-0">
-              <div className="w-full aspect-square bg-white border-2 border-[#ACA899] rounded-xl p-1.5 shadow-lg overflow-hidden transition-transform hover:scale-105">
+              <div className="w-full aspect-square bg-white border-2 border-[#ACA899] rounded-xl p-1.5 shadow-lg overflow-hidden transition-transform ">
                 <div className="w-full h-full bg-[#F0F0F0] rounded-lg flex items-center justify-center overflow-hidden border border-black/5">
                   <img src={currentUser.avatar} className="w-full h-full object-cover" alt="Me" />
                 </div>
@@ -1138,13 +1144,13 @@ function StickerDialog({ onSelect, onClose }: { onSelect: (url: string, type: 's
             />
           </div>
 
-          <div className="h-[300px] overflow-y-auto p-2 grid grid-cols-2 gap-3 bg-gray-50 rounded border border-[#ACA899]/30">
+          <div className="h-[300px] overflow-y-auto p-2 grid grid-cols-3 gap-3 bg-gray-50 rounded border border-[#ACA899]/30">
             {filteredItems.length > 0 ? (
               filteredItems.map((url, i) => (
                 <div
                   key={i}
                   onClick={() => onSelect(url, tab === 'stickers' ? 'sticker' : 'gif')}
-                  className="bg-white border border-[#ACA899]/20 rounded p-2 cursor-pointer hover:border-[#3169C6] hover:shadow-md transition-all flex items-center justify-center group"
+                  className="bg-white border border-[#ACA899]/70 rounded p-2 cursor-pointer hover:border-[#3169C6] hover:shadow-md transition-all flex items-center justify-center group"
                 >
                   <img src={url} className="max-w-full max-h-full group-hover:scale-110 transition-transform" alt="Sticker/GIF" />
                 </div>
@@ -1364,41 +1370,60 @@ function ProfileDialog({ user, onClose, onSave }: { user: UserData, onClose: () 
         initial={{ scale: 0.9, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
         exit={{ scale: 0.9, opacity: 0 }}
-        className="w-[450px] bg-white border border-[#ACA899] rounded-lg shadow-2xl overflow-hidden flex flex-col"
+        className="w-[450px] bg-white border border-[#ACA899] rounded-lg shadow-2xl  flex flex-col"
       >
-        <TitleBar title="Edit Profile" />
+        <TitleBar title="Edit Profile" icon="/assets/icons/user.png" />
         <div className="p-8 flex flex-col gap-6">
           <div className="flex gap-6">
-            <div className="flex flex-col items-center gap-3">
-              <div className="relative group cursor-pointer" onClick={() => setShowAvatars(!showAvatars)}>
-                <div className="w-24 h-24 bg-white border-4 border-[#88C057] rounded-xl p-1 shadow-md overflow-hidden flex items-center justify-center">
-                  <img src={avatar} className="w-full h-full object-cover rounded-lg" alt="Avatar" />
-                </div>
-                <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center rounded-lg">
-                  <span className="text-white text-[10px] font-bold">Change</span>
-                </div>
-              </div>
-              <AnimatePresence>
-                {showAvatars && (
-                  <motion.div
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: 10 }}
-                    className="absolute mt-28 bg-white border border-[#ACA899] rounded-lg shadow-xl p-2 grid grid-cols-3 gap-2 z-50 w-40"
-                  >
-                    {AVATARS.map((url, idx) => (
-                      <img
-                        key={idx}
-                        src={url}
-                        className="w-10 h-10 rounded cursor-pointer hover:border-2 hover:border-[#88C057]"
-                        onClick={() => { setAvatar(url); setShowAvatars(false); }}
-                        alt="Avatar"
-                      />
-                    ))}
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </div>
+                    <div className="flex flex-col items-center gap-3 relative"> 
+                  <div className="relative group cursor-pointer" onClick={() => setShowAvatars(!showAvatars)}>
+                    <div className="w-24 h-24 bg-white border-4 border-[#88C057] rounded-xl p-1 shadow-md overflow-hidden flex items-center justify-center">
+                      <img src={avatar} className="w-full h-full object-cover rounded-lg" alt="Avatar" />
+                    </div>
+                    <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center rounded-lg">
+                      <span className="text-white text-[10px] font-bold">Change</span>
+                    </div>
+                  </div>
+
+            <AnimatePresence>
+              {showAvatars && (
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.9, y: 10 }}
+                  animate={{ opacity: 1, scale: 1, y: 0 }}
+                  exit={{ opacity: 0, scale: 0.9, y: 10 }}
+                  className="absolute top-[90px] mt-4 -left-36 bg-white border border-[#A0A0A0] rounded-xl shadow-2xl z-[110] w-96 overflow-hidden flex flex-col"
+                >
+                  <div className="bg-[#F3F3F3] border-b border-[#E0E0E0] p-3 flex items-center justify-between">
+                    <span className="text-xs font-bold text-gray-700">Choose your dynamic picture</span>
+                    <button onClick={() => setShowAvatars(false)} className="text-gray-400 hover:text-gray-600">
+                      <X size={14} />
+                    </button>
+                  </div>
+                  
+                  <div className="p-3 max-h-64 overflow-y-auto custom-scrollbar">
+                    <div className="grid grid-cols-5 gap-3">
+                      {AVATARS.map((url, idx) => (
+                        <motion.img
+                          key={idx}
+                          whileHover={{ scale: 1.1 }}
+                          whileTap={{ scale: 0.95 }}
+                          src={url}
+                          className={`w-14 h-14 rounded-lg cursor-pointer border-2 transition-all object-cover ${
+                            avatar === url ? 'border-[#88C057] shadow-md' : 'border-transparent hover:border-gray-300'
+                          }`}
+                          onClick={() => {
+                            setAvatar(url); // Fixed name
+                            setShowAvatars(false); // Fixed name
+                          }}
+                          alt={`Avatar ${idx}`}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
             <div className="flex-1 flex flex-col gap-4">
               <div className="space-y-1">
                 <label className="text-[11px] font-bold text-gray-600">Email</label>
@@ -1502,11 +1527,17 @@ function FormatButton({ icon, label, onClick }: { icon: React.ReactNode, label?:
   return (
     <div
       onClick={onClick}
-      className={`h-7 px-2 flex items-center gap-2 border border-transparent hover:border-[#ACA899] hover:bg-white/60 rounded-md cursor-pointer transition-all ${label ? 'pr-3' : ''}`}
+      className={`h-8 px-2 flex items-center gap-2 border border-transparent hover:border-[#ACA899] hover:bg-white/60 rounded-md cursor-pointer transition-all ${label ? 'pr-3' : ''}`}
     >
-      <div className="text-[#3169C6] drop-shadow-sm">{icon}</div>
-      {label && <span className="text-[11px] font-medium text-gray-700">{label}</span>}
-      <div className="w-0 h-0 border-l-[4px] border-l-transparent border-r-[4px] border-r-transparent border-t-[4px] border-t-gray-500 ml-1"></div>
+      <div className="text-[#3169C6] drop-shadow-sm ">{icon}</div>
+      {(label === "Voice Clip" || label === "PDF")  && <span className="text-[12px] font-medium text-gray-700">{label}</span>}
+      {
+        (label === "text" || label==="emoji") && (
+
+           <div className="w-0 h-0 border-l-[4px] border-l-transparent border-r-[4px] border-r-transparent border-t-[4px] border-t-gray-500 ml-1"></div>
+            
+        )
+      }
     </div>
   );
 }
