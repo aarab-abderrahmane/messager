@@ -1,1 +1,28 @@
 @import "tailwindcss";
+
+@layer utilities {
+  .custom-scrollbar-modern::-webkit-scrollbar {
+    width: 8px;
+  }
+  .custom-scrollbar-modern::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  .custom-scrollbar-modern::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.1);
+    border-radius: 10px;
+  }
+  .custom-scrollbar-modern::-webkit-scrollbar-thumb:hover {
+    background: rgba(0, 0, 0, 0.2);
+  }
+
+  .custom-scrollbar-modern {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(0, 0, 0, 0.1) transparent;
+  }
+}
+
+body {
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}

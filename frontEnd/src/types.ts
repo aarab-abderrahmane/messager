@@ -8,6 +8,7 @@ export interface Message {
   token: string;
   username: string;
   sender: 'me' | 'them';
+  email : string ; 
   text?: string;
   imageUrl?: string;
   audioUrl?: string;

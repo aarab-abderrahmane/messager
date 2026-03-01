@@ -8,7 +8,7 @@ interface TitleBarProps {
   icon?: string;
 }
 
-export const TitleBar: React.FC<TitleBarProps> = ({ title, variant = 'xp', icon }) => {
+export const TitleBar: React.FC<TitleBarProps> = ({ title, variant = 'xp', icon  , onClose}) => {
   if (variant === 'live') {
     return (
       <div className="h-10 bg-gradient-to-b from-[#F0F0F0] to-[#D0D0D0] flex items-center justify-between px-2 border-b border-[#A0A0A0] shrink-0">
@@ -17,9 +17,9 @@ export const TitleBar: React.FC<TitleBarProps> = ({ title, variant = 'xp', icon 
           <span className="text-[13px] text-black font-medium">{title}</span>
         </div>
         <div className="flex items-center gap-1">
-          <button className="w-6 h-5 hover:bg-gray-200 flex items-center justify-center transition-colors"><Minus size={12} /></button>
-          <button className="w-6 h-5 hover:bg-gray-200 flex items-center justify-center transition-colors"><Square size={10} /></button>
-          <button className="w-11 h-5 hover:bg-[#E81123] hover:text-white flex items-center justify-center transition-colors"><X size={12} /></button>
+          <button className="w-6 h-6 hover:bg-gray-200 flex items-center justify-center transition-colors rounded-sm"><Minus size={12} /></button>
+          <button className="w-6 h-6 hover:bg-gray-200 flex items-center justify-center transition-colors rounded-sm"><Square size={10} /></button>
+          <button className="w-11 h-6 hover:bg-[#E81123] hover:text-white flex items-center justify-center transition-colors rounded-sm cursor-pointer" onClick={onClose}><X size={12} /></button>
         </div>
       </div>
     );

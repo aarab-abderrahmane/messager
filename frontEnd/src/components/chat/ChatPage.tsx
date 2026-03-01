@@ -56,7 +56,45 @@ export const ChatPage: React.FC<ChatPageProps> = ({ user, onLogout }) => {
   const [showUserProfileDialog, setShowUserProfileDialog] = useState(false);
   const [showNewsDialog, setShowNewsDialog] = useState(false);
   const [showStickerDialog, setShowStickerDialog] = useState(false);
+  const [showAddNewsDialog, setShowAddNewsDialog] = useState(false);
   const [selectedNews, setSelectedNews] = useState<NewsItem | null>(null);
+  const [newsList, setNewsList] = useState<NewsItem[]>([
+    {
+      id: '1',
+      type: 'breaking',
+      headline: "MSN hits 100M users!",
+      text: "MSN Messenger has officially surpassed 100 million active users worldwide! The service continues to grow as the premier destination for instant messaging and digital connection.",
+      publicationTime: new Date('2026-02-25T10:00:00'),
+      expirationDate: new Date('2026-03-10T10:00:00'),
+      coverImage: "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=800&auto=format&fit=crop&q=60",
+      attachments: [{ name: "Read Moore at MSN.com", url: "https://msn.com" }]
+    },
+    {
+      id: '2',
+      type: 'breaking',
+      headline: "New 3D Emoticons!",
+      text: "Express yourself like never before with our brand new pack of 3D animated emoticons. From dancing robots to spinning hearts, your conversations just got a lot more lively!",
+      publicationTime: new Date('2026-02-28T14:30:00'),
+      expirationDate: new Date('2026-03-05T14:30:00'),
+    },
+    {
+      id: '3',
+      type: 'regular',
+      headline: "Vista Beta 2 out now",
+      text: "Microsoft has released Windows Vista Beta 2 to the public. Experience the new Aero interface and enhanced security features of the next generation of Windows.",
+      publicationTime: new Date('2026-03-01T08:00:00'),
+      expirationDate: new Date('2026-03-15T08:00:00'),
+      attachments: [{ name: "Download Beta", url: "#" }]
+    },
+    {
+      id: '4',
+      type: 'regular',
+      headline: "Top 10 Pop Hits",
+      text: "Check out this week's top 10 pop hits on MSN Music. From the latest chart-toppers to rising stars, we've got the soundtrack for your summer.",
+      publicationTime: new Date('2026-02-27T12:00:00'),
+      expirationDate: new Date('2026-03-06T12:00:00'),
+    }
+  ]);
   const [selectedUser, setSelectedUser] = useState<any>(null);
   const [replyingTo, setReplyingTo] = useState<Message | null>(null);
   const [userSearchQuery, setUserSearchQuery] = useState('');
@@ -115,7 +153,7 @@ export const ChatPage: React.FC<ChatPageProps> = ({ user, onLogout }) => {
 
       if (data.type === "text") {
         setMessages((prev) => [...prev,
-          data
+          {...data , sender: data.email === currentUser.email ? "me" : 'them'}
         ]);
       }
 
@@ -178,7 +216,7 @@ export const ChatPage: React.FC<ChatPageProps> = ({ user, onLogout }) => {
       return;
     }
 
-    const msgData: Partial<Message> = { text: inputText, type: 'text', username: currentUser.email };
+    const msgData: Partial<Message> = { text: inputText, type: 'text', username: currentUser.username , email  : currentUser.email  };
     if (replyingTo) {
       msgData.replyTo = {
         id: replyingTo.id,
@@ -358,6 +396,15 @@ export const ChatPage: React.FC<ChatPageProps> = ({ user, onLogout }) => {
             onClose={() => setShowNewsDialog(false)}
           />
         )}
+        {showAddNewsDialog && (
+          <AddNewsDialog
+            onClose={() => setShowAddNewsDialog(false)}
+            onAdd={(newNews) => {
+              setNewsList(prev => [newNews, ...prev]);
+              setShowAddNewsDialog(false);
+            }}
+          />
+        )}
         {showStickerDialog && (
           <StickerDialog
             onSelect={handleSendSticker}
@@ -434,12 +481,16 @@ export const ChatPage: React.FC<ChatPageProps> = ({ user, onLogout }) => {
 
               <div className="flex-1 overflow-y-auto p-2 flex flex-col gap-2 scrollbar-thin">
                 {onlineUsers.filter(u => u.username.toLowerCase().includes(userSearchQuery.toLowerCase())).map((onlineUser) => (
-                  <div
+                
+                <div
                     key={onlineUser.username}
                     onClick={() => {
-                      setSelectedUser(onlineUser);
-                      setShowUserProfileDialog(true);
-                    }}
+                    if (onlineUser.email === currentUser.email) return; 
+
+                    setSelectedUser(onlineUser);
+                    setShowUserProfileDialog(true);
+                  }}
+
                     className="flex items-center gap-2 p-1 hover:bg-[#316AC5]/10 rounded cursor-pointer group transition-colors"
                   >
                     <div className="relative">
@@ -787,75 +838,64 @@ export const ChatPage: React.FC<ChatPageProps> = ({ user, onLogout }) => {
           {/* Right Column (Avatars & News) */}
           <div className="w-48 xl:w-72 flex flex-col gap-4 shrink-0 overflow-hidden">
             {/* Breaking News Section */}
-            <div className="flex-1 flex flex-col bg-white/20 backdrop-blur-md border border-white/30 rounded-xl shadow-[0_8px_32px_rgba(0,0,0,0.15)] overflow-hidden relative group/sidebar">
+            <div className="flex-1 flex flex-col  bg-white/20 backdrop-blur-md border  border-[#ACA899] rounded-xl  overflow-hidden relative group/sidebar">
               <div className="absolute inset-0 bg-gradient-to-b from-white/40 via-transparent to-white/5 pointer-events-none" />
 
-              <div className="bg-gradient-to-r from-[#FF6600]/80 to-[#CC5200]/80 px-3 py-2 flex items-center gap-2 border-b border-white/20 relative z-10">
+              <div  style={{ background: 'linear-gradient(to bottom, #ffdd00, transparent)' }} className=" px-3 py-2 flex items-center gap-2  relative z-10">
                 <Newspaper size={14} className="text-white drop-shadow-sm" />
-                <span className="text-[11px] xl:text-[14px] font-bold text-white uppercase tracking-wider drop-shadow-sm">Breaking News</span>
+                <span className="text-[11px] xl:text-[14px] font-bold text-gray-700 uppercase tracking-wider drop-shadow-sm">Breaking News</span>
               </div>
 
               <div className="flex-1 p-3 flex flex-col gap-4 overflow-y-auto scrollbar-thin bg-white/10 relative z-10">
-                {[
-                  {
-                    id: '1',
-                    type: 'breaking',
-                    headline: "MSN hits 100M users!",
-                    text: "MSN Messenger has officially surpassed 100 million active users worldwide! The service continues to grow as the premier destination for instant messaging and digital connection.",
-                    publicationTime: new Date('2026-02-25T10:00:00'),
-                    expirationDate: new Date('2026-03-10T10:00:00'),
-                    coverImage: "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=800&auto=format&fit=crop&q=60",
-                    attachments: [{ name: "Read Moore at MSN.com", url: "https://msn.com" }]
-                  },
-                  {
-                    id: '2',
-                    type: 'breaking',
-                    headline: "New 3D Emoticons!",
-                    text: "Express yourself like never before with our brand new pack of 3D animated emoticons. From dancing robots to spinning hearts, your conversations just got a lot more lively!",
-                    publicationTime: new Date('2026-02-28T14:30:00'),
-                    expirationDate: new Date('2026-03-05T14:30:00'),
-                  },
-                  {
-                    id: '3',
-                    type: 'regular',
-                    headline: "Vista Beta 2 out now",
-                    text: "Microsoft has released Windows Vista Beta 2 to the public. Experience the new Aero interface and enhanced security features of the next generation of Windows.",
-                    publicationTime: new Date('2026-03-01T08:00:00'),
-                    expirationDate: new Date('2026-03-15T08:00:00'),
-                    attachments: [{ name: "Download Beta", url: "#" }]
-                  },
-                  {
-                    id: '4',
-                    type: 'regular',
-                    headline: "Top 10 Pop Hits",
-                    text: "Check out this week's top 10 pop hits on MSN Music. From the latest chart-toppers to rising stars, we've got the soundtrack for your summer.",
-                    publicationTime: new Date('2026-02-27T12:00:00'),
-                    expirationDate: new Date('2026-03-06T12:00:00'),
-                  }
-                ]
+          
+                <motion.button
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  onClick={() => setShowAddNewsDialog(true)}
+                  className="h-10 py-2 bg-gradient-to-b from-[#F8F8F8] to-[#D6D3C4] border border-[#ACA899] rounded-lg text-[12px] font-bold text-gray-700 shadow-sm hover:brightness-105 active:shadow-inner transition-all flex items-center justify-center gap-2 cursor-pointer"
+                >
+                  Add New News
+                  <Plus size={14}  />
+                </motion.button>
+
+                {newsList
                   .filter(news => new Date(news.expirationDate) > new Date())
                   .map((news) => (
-                    <div
+                    <motion.div
                       key={news.id}
+                      whileHover={{ x: 2 }}
+                      whileTap={{ scale: 0.98 }}
                       onClick={() => {
-                        setSelectedNews(news as NewsItem);
+                        setSelectedNews(news);
                         setShowNewsDialog(true);
                       }}
-                      className="flex flex-col gap-1.5 group cursor-pointer p-2 rounded-lg hover:bg-white/20 transition-all border border-transparent hover:border-white/30"
+                      className="flex  gap-1 cursor-pointer group/item py-1 px-2"
                     >
-                      <div className="flex items-start gap-2">
-                        <div className="mt-1 w-1.5 h-1.5 rounded-full bg-[#FF6600] border border-white/50 shadow-sm shrink-0" />
-                        <span className="text-[11px] xl:text-[13px] font-semibold leading-snug text-gray-800 group-hover:text-[#3169C6] transition-colors">{news.headline}</span>
+                      <div className="flex items-center gap-2 overflow-hidden">
+                     
+                        <span className={`text-[12px] xl:text-[13px] font-bold transition-all truncate hover:underline
+                          ${news.type === 'breaking' ? 'text-[#8a8b26]' : 'text-[#3169C6]'}`}>
+                          {news.headline}
+                        </span>
+
+
+                        {news.type === 'breaking' && (
+                          <div className="w-2 h-2 rounded-full bg-[#b3a700] border border-white shadow-sm shrink-0 animate-pulse" />
+                        )}
+
+                        <ExternalLink size={10} className="shrink-0 opacity-0 group-hover/item:opacity-100 transition-opacity" />
                       </div>
-                      <div className="flex items-center gap-1.5 ml-3.5 opacity-60">
-                        <Clock size={10} />
-                        <span className="text-[9px] font-medium">{new Date(news.publicationTime).toLocaleDateString()}</span>
+                      <div className="flex items-center gap-2 ml-4 opacity-40">
+                        <Clock size={8} />
+                        <span className="text-[9px] font-bold uppercase">
+                          {new Date(news.publicationTime).toLocaleDateString([], { month: 'short', day: 'numeric' })}
+                        </span>
                       </div>
-                    </div>
+                    </motion.div>
                   ))}
 
                 <div className="mt-auto pt-4 text-center border-t border-white/10">
-                  <span className="text-[10px] text-[#FF6600] font-bold hover:underline cursor-pointer italic drop-shadow-sm">View all news on MSN.com →</span>
+                  <span className="text-[10px] text-[#FF6600] font-bold hover:underline cursor-pointer italic drop-shadow-sm">View all news on Dot.com</span>
                 </div>
               </div>
             </div>
@@ -979,7 +1019,7 @@ function PhotoPreviewDialog({ imageUrl, onClose }: { imageUrl: string, onClose: 
         className="relative max-w-[800px] max-h-[600px] h-[85vh] flex flex-col  bg-white/80 backdrop-blur-xl border border-white/40 rounded-lg  shadow-[0_30px_100px_rgba(0,0,0,0.5)] overflow-hidden"
         onClick={(e) => e.stopPropagation()}
       >
-        <TitleBar title="Windows Photo Viewer" variant="live" icon="/assets/icons/image.png" />
+        <TitleBar title="Windows Photo Viewer" variant="live" icon="/assets/icons/image.png" onClose={onClose} />
 
         <div className="relative flex-1 flex items-center justify-center  overflow-hidden p-8 min-h-[400px] min-w-[500px]">
           <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent pointer-events-none" />
@@ -996,10 +1036,10 @@ function PhotoPreviewDialog({ imageUrl, onClose }: { imageUrl: string, onClose: 
           </div>
         </div>
 
-        <div className="h-20 bg-gradient-to-b from-[#dadada] to-[#c0c0c0] border-t border-white/10 flex items-center justify-center gap-6 relative px-8">
+        <div className="h-20  bg-gradient-to-b from-[#e6e4e4] to-[#c5c3ba]  border-t  border-gray-400 flex items-center justify-center gap-6 relative px-8">
           <div className="absolute inset-0   pointer-events-none" />
 
-          <div className="flex items-center gap-4 p-2 rounded-full border border-white/40">
+          <div className="flex items-center gap-4 p-2 rounded-full border border-gray-400">
             <button
               onClick={zoomOut}
               className="w-10 h-10 flex items-center justify-center  bg-gradient-to-b from-[#e84b4b] via-[#d43b3b] to-[#c02b2b] text-white hover:bg-white/20 transition-all rounded-full group cursor-pointer"
@@ -1021,16 +1061,18 @@ function PhotoPreviewDialog({ imageUrl, onClose }: { imageUrl: string, onClose: 
             </button>
           </div>
 
-          <div className="h-8 w-px bg-white/40 " />
+          <div className="h-8 w-px bg-gray-400 " />
 
-          <button
-            onClick={onClose}
+
+          <a
+            href={imageUrl}
+            download="shared-photo.png" // This forces the download
             className="px-6 h-13  bg-gradient-to-b from-[#58e84b] via-[#4dd43b] to-[#4ec02b] hover:bg-red-500/80  text-white border border-white/20 rounded-full font-bold text-sm transition-all flex items-center gap-2 group cursor-pointer"
           >
-            <span>Download Photo</span>
-            <Download size={16} />
+               <span>Download Photo</span>
+               <Download size={16} />
+          </a>
 
-          </button>
         </div>
       </motion.div>
     </div>
@@ -1102,63 +1144,87 @@ function GiftDialog({ onClose, onSend }: { onClose: () => void, onSend: (msg: st
 
 function NewsDialog({ news, onClose }: { news: NewsItem, onClose: () => void }) {
   return (
-    <div className="fixed inset-0 bg-black/20 backdrop-blur-sm flex items-center justify-center z-[150] p-4">
+    <div className="fixed inset-0 bg-black/40 backdrop-blur-md flex items-center justify-center z-[150] p-4" onClick={onClose}>
       <motion.div
-        initial={{ scale: 0.95, opacity: 0, y: 20 }}
+        initial={{ scale: 0.9, opacity: 0, y: 40 }}
         animate={{ scale: 1, opacity: 1, y: 0 }}
-        exit={{ scale: 0.95, opacity: 0, y: 20 }}
-        className="w-[550px] bg-white/70 backdrop-blur-xl border border-white/40 rounded-xl shadow-[0_32px_64px_rgba(0,0,0,0.3)] overflow-hidden flex flex-col relative"
+        exit={{ scale: 0.9, opacity: 0, y: 40 }}
+        className="w-[650px] max-h-[90vh] bg-white border border-[#A0A0A0] rounded-xl shadow-[0_40px_100px_rgba(0,0,0,0.5)] overflow-hidden flex flex-col relative"
+        onClick={(e) => e.stopPropagation()}
       >
-        <div className="absolute inset-0 bg-gradient-to-br from-white/40 via-transparent to-black/5 pointer-events-none" />
+        {/* Title Bar */}
+        
 
-        <TitleBar title="MSN Today - Windows Internet Explorer" variant="win7" icon="/assets/icons/globe.png" />
+         <TitleBar title="Dot Messenger News Reader" variant="live" icon="/assets/icons/image.png" />
 
-        <div className="flex-1 overflow-y-auto custom-scrollbar relative z-10">
-          {news.coverImage && (
-            <div className="w-full h-48 relative overflow-hidden">
-              <img src={news.coverImage} className="w-full h-full object-cover" alt="Cover" />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-              <h2 className="absolute bottom-4 left-6 right-6 text-2xl font-bold text-white drop-shadow-lg leading-tight uppercase tracking-tight">
+        <div className="flex-1 overflow-y-auto custom-scrollbar-modern bg-[#F8F9FA]">
+          {news.coverImage ? (
+            <div className="w-full h-64 relative overflow-hidden group">
+              <img src={news.coverImage} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" alt="Cover" />
+              <div className="absolute inset-0 bg-gradient-to-t from-[#1a1a1a] via-transparent to-transparent opacity-80" />
+              <div className="absolute bottom-6 left-8 right-8 flex flex-col gap-2">
+                <div className="flex items-center gap-2">
+                  <span className={`px-2 py-0.5 rounded text-[10px] font-black tracking-[0.2em] text-white uppercase border shadow-sm
+                    ${news.type === 'breaking' ? 'bg-[#FF6600] border-[#FF6600]' : 'bg-[#3169C6] border-[#3169C6]'}`}>
+                    {news.type}
+                  </span>
+                  <span className="text-[11px] font-bold text-white/80 drop-shadow-sm">
+                    {new Date(news.publicationTime).toLocaleDateString([], { month: 'long', day: 'numeric', year: 'numeric' })}
+                  </span>
+                </div>
+                <h2 className="text-3xl font-black text-white leading-tight drop-shadow-xl tracking-tight">
+                  {news.headline}
+                </h2>
+              </div>
+            </div>
+          ) : (
+            <div className="p-10 pb-6 border-b border-gray-100 bg-white">
+              <div className="flex items-center gap-2 mb-4">
+                <span className={`px-2 py-0.5 rounded text-[10px] font-black tracking-[0.2em] text-white uppercase border shadow-sm
+                    ${news.type === 'breaking' ? 'bg-[#FF6600] border-[#FF6600]' : 'bg-[#3169C6] border-[#3169C6]'}`}>
+                  {news.type}
+                </span>
+                <span className="text-[11px] font-bold text-gray-400">
+                  {new Date(news.publicationTime).toLocaleDateString([], { month: 'long', day: 'numeric', year: 'numeric' })}
+                </span>
+              </div>
+              <h2 className="text-4xl font-black text-gray-900 leading-[1.1] tracking-tighter">
                 {news.headline}
               </h2>
             </div>
           )}
 
-          <div className="p-8 flex flex-col gap-6">
-            {!news.coverImage && (
-              <h2 className="text-2xl font-bold text-gray-800 leading-tight border-b border-gray-200 pb-4">
-                {news.headline}
-              </h2>
-            )}
-
-            <div className="flex items-center gap-3 text-xs font-semibold text-[#3169C6] bg-blue-50/50 p-3 rounded-lg border border-blue-100/50">
-              <Clock size={14} />
-              <span>Published: {new Date(news.publicationTime).toLocaleString()}</span>
-              <span className="mx-2 opacity-30 text-gray-400">|</span>
-              <Newspaper size={14} />
-              <span className="capitalize">{news.type} News</span>
-            </div>
-
-            <div className="text-base text-gray-700 leading-relaxed space-y-4">
+          <div className="p-10 pt-8 flex flex-col gap-8 bg-white/50 backdrop-blur-sm">
+            <div className="text-lg text-gray-700 leading-relaxed font-serif space-y-6">
               {news.text.split('\n').map((para, i) => (
-                <p key={i}>{para}</p>
+                <p key={i} className="first-letter:text-5xl first-letter:font-bold first-letter:mr-3 first-letter:float-left first-letter:text-[#3169C6] first-letter:mt-1">{para}</p>
               ))}
             </div>
 
             {news.attachments && news.attachments.length > 0 && (
-              <div className="mt-4 pt-6 border-t border-gray-100 flex flex-col gap-3">
-                <span className="text-xs font-bold text-gray-400 uppercase tracking-widest">Related Links & Attachments</span>
-                <div className="flex flex-wrap gap-3">
+              <div className="mt-4 p-8 bg-gradient-to-br from-[#F0F7FF] to-white border-2 border-[#3169C6]/10 rounded-2xl flex flex-col gap-4 shadow-inner">
+                <div className="flex items-center gap-2">
+                  <TrendingUp size={18} className="text-[#3169C6]" />
+                  <span className="text-sm font-black text-gray-800 uppercase tracking-widest">Discover More Content</span>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   {news.attachments.map((att, i) => (
                     <a
                       key={i}
                       href={att.url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="flex items-center gap-2 px-4 py-2 bg-white/50 hover:bg-white border border-gray-200 rounded-full text-sm font-semibold text-[#3169C6] transition-all hover:shadow-md hover:-translate-y-0.5"
+                      className="flex items-center justify-between px-5 py-3.5 bg-white hover:bg-[#3169C6] border border-gray-200 hover:border-[#3169C6] rounded-xl group transition-all hover:shadow-[0_10px_20px_rgba(49,105,198,0.15)]"
                     >
-                      <ExternalLink size={14} />
-                      {att.name}
+                      <div className="flex items-center gap-3">
+                        <div className="p-2 bg-blue-50 group-hover:bg-white/20 rounded-lg transition-colors">
+                          <ExternalLink size={16} className="text-[#3169C6] group-hover:text-white" />
+                        </div>
+                        <span className="text-[14px] font-bold text-gray-800 group-hover:text-white">{att.name}</span>
+                      </div>
+                      <div className="w-6 h-6 rounded-full border border-gray-100 group-hover:border-white/30 flex items-center justify-center transition-all opacity-0 group-hover:opacity-100 group-hover:translate-x-1">
+                        <Plus size={12} className="text-white" />
+                      </div>
                     </a>
                   ))}
                 </div>
@@ -1167,12 +1233,16 @@ function NewsDialog({ news, onClose }: { news: NewsItem, onClose: () => void }) 
           </div>
         </div>
 
-        <div className="p-4 bg-gray-50/50 border-t border-white/30 flex justify-end relative z-10">
+        <div className="p-5 bg-white border-t border-gray-100 flex justify-between items-center shrink-0">
+          <div className="flex items-center gap-2 text-xs font-bold text-gray-400 uppercase tracking-tighter">
+            <Clock size={14} className="text-[#3169C6]" />
+            <span>Published on {new Date(news.publicationTime).toLocaleDateString([], { month: 'long', day: 'numeric', year: 'numeric' })}</span>
+          </div>
           <button
             onClick={onClose}
-            className="px-8 h-10 bg-gradient-to-b from-white via-[#F0F0F0] to-[#E0E0E0] border border-[#ACA899] rounded-lg text-sm font-bold text-gray-700 shadow-[0_1px_2px_rgba(0,0,0,0.1)] hover:brightness-105 active:shadow-inner transition-all flex items-center gap-2 group"
+            className="px-10 h-11 bg-gradient-to-b from-[#3169C6] to-[#0055E5] border border-[#003399] rounded-xl text-sm font-black text-white shadow-[0_4px_12px_rgba(49,105,198,0.3)] hover:brightness-110 active:brightness-95 active:shadow-inner transition-all flex items-center gap-2"
           >
-            <span>Back to Messenger</span>
+            <span>Close Article</span>
           </button>
         </div>
       </motion.div>
@@ -1260,14 +1330,18 @@ function StickerDialog({ onSelect, onClose }: { onSelect: (url: string, type: 's
 }
 
 function UserProfileDialog({ user, lastMessageObj, onClose }: { user: any, lastMessageObj: Message | undefined, onClose: () => void }) {
-  // const formatDate = (date: Date) => {
-  //   const year = date.getFullYear();
-  //   const month = date.toLocaleString('default', { month: 'long' });
-  //   const day = date.getDate();
-  //   const hours = date.getHours().toString().padStart(2, '0');
-  //   const minutes = date.getMinutes().toString().padStart(2, '0');
-  //   return `${year} ${month} ${day} ${hours}:${minutes}`;
-  // };
+  const formatDate = (timestamp: number) => {
+  // Create the Date object here!
+    const date = new Date(timestamp); 
+
+    const year = date.getFullYear();
+    const month = date.toLocaleString('default', { month: 'long' });
+    const day = date.getDate();
+    const hours = date.getHours().toString().padStart(2, '0');
+    const minutes = date.getMinutes().toString().padStart(2, '0');
+    
+    return `${year} ${month} ${day} ${hours}:${minutes}`;
+  };
 
   return (
     <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-[110] p-4">
@@ -1304,7 +1378,7 @@ function UserProfileDialog({ user, lastMessageObj, onClose }: { user: any, lastM
                 <Calendar size={16} className="text-[#3169C6]" />
                 <div className="flex flex-col">
                   <span className="text-[10px] font-bold uppercase text-gray-400">Account Created</span>
-                  <span className="text-sm font-medium">{user.creationDate}</span>
+                  <span className="text-sm font-medium">{formatDate(user.creationDate)}</span>
                 </div>
               </div>
               <div className="flex items-center gap-3 text-gray-700">
@@ -1328,7 +1402,7 @@ function UserProfileDialog({ user, lastMessageObj, onClose }: { user: any, lastM
                   <div className="flex items-center gap-3 text-gray-700 ml-7">
                     <Clock size={12} className="text-gray-400" />
                     <span className="text-[11px] text-gray-500">
-                      {/* {formatDate(lastMessageObj.timestamp)} */}
+                      {formatDate(lastMessageObj.timestamp)}
                     </span>
                   </div>
                 )}
@@ -1619,6 +1693,168 @@ function FormatButton({ icon, label, onClick }: { icon: React.ReactNode, label?:
 
         )
       }
+    </div>
+  );
+}
+
+function AddNewsDialog({ onClose, onAdd }: { onClose: () => void, onAdd: (news: NewsItem) => void }) {
+  const [headline, setHeadline] = useState('');
+  const [text, setText] = useState('');
+  const [type, setType] = useState<'breaking' | 'regular'>('regular');
+  const [expirationDate, setExpirationDate] = useState('');
+  const [coverImage, setCoverImage] = useState('');
+  const [attachments, setAttachments] = useState<{ name: string, url: string }[]>([]);
+
+  const handleAddAttachment = () => {
+    if (attachments.length < 2) {
+      setAttachments([...attachments, { name: '', url: '' }]);
+    }
+  };
+
+  const handleAttachmentChange = (index: number, field: 'name' | 'url', value: string) => {
+    const newAttachments = [...attachments];
+    newAttachments[index][field] = value;
+    setAttachments(newAttachments);
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!headline || !text || !expirationDate) return;
+
+    const newNews: NewsItem = {
+      id: Date.now().toString(),
+      type,
+      headline,
+      text,
+      publicationTime: new Date(),
+      expirationDate: new Date(expirationDate),
+      coverImage: coverImage || undefined,
+      attachments: attachments.filter(a => a.name && a.url).length > 0 ? attachments.filter(a => a.name && a.url) : undefined
+    };
+
+    onAdd(newNews);
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black/20 backdrop-blur-sm flex items-center justify-center z-[150] p-4">
+      <motion.div
+        initial={{ scale: 0.95, opacity: 0, y: 20 }}
+        animate={{ scale: 1, opacity: 1, y: 0 }}
+        exit={{ scale: 0.95, opacity: 0, y: 20 }}
+        className="w-[500px] bg-white/80 backdrop-blur-xl border border-white/40 rounded-xl shadow-[0_32px_64px_rgba(0,0,0,0.3)] overflow-hidden flex flex-col relative"
+      >
+        <div className="absolute inset-0 bg-gradient-to-br from-white/40 via-transparent to-black/5 pointer-events-none" />
+        <TitleBar title="Create News Item - MSN Today" variant="live" icon="/assets/icons/globe.png" />
+
+        <form onSubmit={handleSubmit} className="p-6 flex flex-col gap-4 relative z-10 overflow-y-auto custom-scrollbar max-h-[70vh]">
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-1">
+              <label className="text-[11px] font-bold text-gray-600 uppercase tracking-wider">Headline *</label>
+              <input
+                type="text"
+                required
+                className="w-full h-10 px-3 bg-white/50 border border-[#ACA899] rounded-md text-sm focus:outline-none focus:border-[#3169C6] focus:ring-1 focus:ring-[#3169C6]/20 transition-all text-black"
+                value={headline}
+                onChange={(e) => setHeadline(e.target.value)}
+                placeholder="Enter headline..."
+              />
+            </div>
+            <div className="space-y-1">
+              <label className="text-[11px] font-bold text-gray-600 uppercase tracking-wider">News Type *</label>
+              <select
+                className="w-full h-10 px-3 bg-white/50 border border-[#ACA899] rounded-md text-sm focus:outline-none focus:border-[#3169C6] text-black"
+                value={type}
+                onChange={(e) => setType(e.target.value as 'breaking' | 'regular')}
+              >
+                <option value="regular">Regular News</option>
+                <option value="breaking">Breaking News</option>
+              </select>
+            </div>
+          </div>
+
+          <div className="space-y-1">
+            <label className="text-[11px] font-bold text-gray-600 uppercase tracking-wider">Description *</label>
+            <textarea
+              required
+              className="w-full h-24 p-3 bg-white/50 border border-[#ACA899] rounded-md text-sm focus:outline-none focus:border-[#3169C6] focus:ring-1 focus:ring-[#3169C6]/20 transition-all resize-none text-black"
+              value={text}
+              onChange={(e) => setText(e.target.value)}
+              placeholder="Enter news description..."
+            />
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-1">
+              <label className="text-[11px] font-bold text-gray-600 uppercase tracking-wider">Expiration Date *</label>
+              <input
+                type="date"
+                required
+                className="w-full h-10 px-3 bg-white/50 border border-[#ACA899] rounded-md text-sm focus:outline-none focus:border-[#3169C6] text-black"
+                value={expirationDate}
+                onChange={(e) => setExpirationDate(e.target.value)}
+              />
+            </div>
+            <div className="space-y-1">
+              <label className="text-[11px] font-bold text-gray-600 uppercase tracking-wider">Cover Image URL (Optional)</label>
+              <input
+                type="text"
+                className="w-full h-10 px-3 bg-white/50 border border-[#ACA899] rounded-md text-sm focus:outline-none focus:border-[#3169C6] text-black"
+                value={coverImage}
+                onChange={(e) => setCoverImage(e.target.value)}
+                placeholder="https://..."
+              />
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <label className="text-[11px] font-bold text-gray-600 uppercase tracking-wider">Attachments (Max 2)</label>
+              <button
+                type="button"
+                onClick={handleAddAttachment}
+                disabled={attachments.length >= 2}
+                className="text-[10px] font-bold text-[#3169C6] hover:underline disabled:opacity-50"
+              >
+                + Add Attachment
+              </button>
+            </div>
+            {attachments.map((att, i) => (
+              <div key={i} className="flex gap-2 p-3 bg-black/5 rounded-lg border border-black/5">
+                <input
+                  type="text"
+                  placeholder="Name (e.g. Read more)"
+                  className="flex-1 h-8 px-2 bg-white/80 border border-[#ACA899] rounded text-[11px] focus:outline-none focus:border-[#3169C6] text-black"
+                  value={att.name}
+                  onChange={(e) => handleAttachmentChange(i, 'name', e.target.value)}
+                />
+                <input
+                  type="text"
+                  placeholder="URL (https://...)"
+                  className="flex-1 h-8 px-2 bg-white/80 border border-[#ACA899] rounded text-[11px] focus:outline-none focus:border-[#3169C6] text-black"
+                  value={att.url}
+                  onChange={(e) => handleAttachmentChange(i, 'url', e.target.value)}
+                />
+              </div>
+            ))}
+          </div>
+
+          <div className="flex gap-3 mt-4">
+            <button
+              type="submit"
+              className="flex-1 h-11 bg-gradient-to-b from-[#4BA1E8] via-[#3B8ED4] to-[#2B7BC0] text-white rounded-lg text-sm font-bold shadow-[0_1px_3px_rgba(0,0,0,0.2),inset_0_1px_0_rgba(255,255,255,0.3)] hover:brightness-110 active:brightness-95 transition-all border border-[#1A5485]"
+            >
+              Post News
+            </button>
+            <button
+              type="button"
+              onClick={onClose}
+              className="flex-1 h-11 bg-gradient-to-b from-white via-[#F0F0F0] to-[#E0E0E0] border border-[#ACA899] rounded-lg text-sm font-bold text-gray-700 shadow-[0_1px_2px_rgba(0,0,0,0.1)] hover:brightness-105 active:shadow-inner transition-all flex items-center justify-center gap-2"
+            >
+              Cancel
+            </button>
+          </div>
+        </form>
+      </motion.div>
     </div>
   );
 }
