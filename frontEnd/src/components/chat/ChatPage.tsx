@@ -9,7 +9,7 @@ import {
 } from 'lucide-react';
 import { motion, useAnimation, AnimatePresence } from 'motion/react';
 import { Message, UserData } from '../../types';
-import { MSN_LOGO_URL, ALL_EMOJIS, ONLINE_USERS, AVATARS, STICKERS, GIFS } from '../../constants';
+import { MSN_LOGO_URL, ALL_EMOJIS, AVATARS, STICKERS, GIFS } from '../../constants';
 import { TitleBar } from '../common/TitleBar';
 
 interface ChatPageProps {
@@ -25,12 +25,19 @@ const DEFAULT_THEME = {
 
 export const ChatPage: React.FC<ChatPageProps> = ({ user  ,onLogout}) => {
   const [currentUser, setCurrentUser] = useState<UserData>(user);
+  const [onlineUsers , setOnlineUsers] = useState([])
+  const [offlineUsers , setOfflineUsers] = useState([])
+
   const [personalMessage, setPersonalMessage] = useState('Listening to: Linkin Park - In The End');
   const [status, setStatus] = useState<'Online' | 'Busy' | 'Away' | 'Offline'>('Online');
   const [messages, setMessages] = useState<Message[]>([
     { id: '2', sender: 'them',username: "data.username" , text: "data.message", type: 'text', timestamp: new Date() }
 
   ]);
+
+
+  console.log(messages)
+
   const ws = useRef(null);
 
 
@@ -87,7 +94,12 @@ export const ChatPage: React.FC<ChatPageProps> = ({ user  ,onLogout}) => {
     ws.current.onmessage = (event) => {
       const data = JSON.parse(event.data);
 
+      if (data.type === "USER_STATUS_UPDATE") {
 
+        console.log(data)
+        setOnlineUsers(data.online);
+        setOfflineUsers(data.offline);
+      }
         
       if (data.type === "HISTORY") {
         setMessages(data.messages);
@@ -104,7 +116,7 @@ export const ChatPage: React.FC<ChatPageProps> = ({ user  ,onLogout}) => {
 
       if (data.type === "text") {
         setMessages((prev) => [...prev,
-          { id: data.id, sender: 'them',username: data.username , text: data.text, type: 'text', timestamp: new Date() }
+          data
         ]);
       }
 
@@ -337,7 +349,7 @@ export const ChatPage: React.FC<ChatPageProps> = ({ user  ,onLogout}) => {
         {showUserProfileDialog && selectedUser && (
           <UserProfileDialog
             user={selectedUser}
-            lastMessageObj={messages.filter(m => m.sender === 'them').slice(-1)[0]}
+            lastMessageObj={messages.filter(m => m.email  === selectedUser.email ).slice(-1)[0]}
             onClose={() => setShowUserProfileDialog(false)}
           />
         )}
@@ -422,9 +434,9 @@ export const ChatPage: React.FC<ChatPageProps> = ({ user  ,onLogout}) => {
               </div>
 
               <div className="flex-1 overflow-y-auto p-2 flex flex-col gap-2 scrollbar-thin">
-                {ONLINE_USERS.filter(u => u.name.toLowerCase().includes(userSearchQuery.toLowerCase())).map((onlineUser) => (
+                {onlineUsers.filter(u => u.username.toLowerCase().includes(userSearchQuery.toLowerCase())).map((onlineUser) => (
                   <div
-                    key={onlineUser.name}
+                    key={onlineUser.username}
                     onClick={() => {
                       setSelectedUser(onlineUser);
                       setShowUserProfileDialog(true);
@@ -432,18 +444,38 @@ export const ChatPage: React.FC<ChatPageProps> = ({ user  ,onLogout}) => {
                     className="flex items-center gap-2 p-1 hover:bg-[#316AC5]/10 rounded cursor-pointer group transition-colors"
                   >
                     <div className="relative">
-                      <img src={onlineUser.avatar} className="w-8 h-8 xl:w-12 xl:h-12 rounded border border-[#ACA899]" alt={onlineUser.name} />
-                      <div className={`absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 xl:w-3 xl:h-3 rounded-full border border-white shadow-sm ${onlineUser.status === 'Online' ? 'bg-green-500' :
-                        onlineUser.status === 'Busy' ? 'bg-red-500' : 'bg-yellow-500'
-                        }`}></div>
+                      <img src={onlineUser.avatar} className="w-8 h-8 xl:w-12 xl:h-12 rounded border border-[#ACA899]" alt={onlineUser.username} />
+                      <div className={`absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 xl:w-3 xl:h-3 rounded-full border border-white shadow-sm bg-green-500 `}></div>
                     </div>
                     <div className="flex flex-col overflow-hidden">
-                      <span className="text-[11px] xl:text-[13px] font-bold truncate group-hover:text-[#3169C6]">{onlineUser.name}</span>
-                      <span className="text-[9px] xl:text-[11px] opacity-60 leading-none">{onlineUser.status}</span>
+                      <span className="text-[11px] xl:text-[13px] font-bold truncate group-hover:text-[#3169C6]">{onlineUser.username}</span>
+                      <span className="text-[9px] xl:text-[11px] opacity-60 leading-none">online</span>
                     </div>
                   </div>
                 ))}
-                {ONLINE_USERS.filter(u => u.name.toLowerCase().includes(userSearchQuery.toLowerCase())).length === 0 && (
+
+                 {offlineUsers.filter(u => u.username.toLowerCase().includes(userSearchQuery.toLowerCase())).map((onlineUser) => (
+                  <div
+                    key={onlineUser.username}
+                    onClick={() => {
+                      setSelectedUser(onlineUser);
+                      setShowUserProfileDialog(true);
+                    }}
+                    className="flex items-center gap-2 p-1 hover:bg-[#316AC5]/10 rounded cursor-pointer group transition-colors"
+                  >
+                    <div className="relative">
+                      <img src={onlineUser.avatar} className="w-8 h-8 xl:w-12 xl:h-12 rounded border border-[#ACA899]" alt={onlineUser.username} />
+                      <div className={`absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 xl:w-3 xl:h-3 rounded-full border border-white shadow-sm bg-red-500
+                        `}></div>
+                    </div>
+                    <div className="flex flex-col overflow-hidden">
+                      <span className="text-[11px] xl:text-[13px] font-bold truncate group-hover:text-[#3169C6]">{onlineUser.username}</span>
+                      <span className="text-[9px] xl:text-[11px] opacity-60 leading-none">offline</span>
+                    </div>
+                  </div>
+                ))}
+
+                {onlineUsers.filter(u => u.username.toLowerCase().includes(userSearchQuery.toLowerCase())).length === 0 && (
                   <div className="text-[10px] text-gray-400 italic text-center py-4">No results found</div>
                 )}
               </div>
@@ -1140,14 +1172,14 @@ function StickerDialog({ onSelect, onClose }: { onSelect: (url: string, type: 's
 }
 
 function UserProfileDialog({ user, lastMessageObj, onClose }: { user: any, lastMessageObj: Message | undefined, onClose: () => void }) {
-  const formatDate = (date: Date) => {
-    const year = date.getFullYear();
-    const month = date.toLocaleString('default', { month: 'long' });
-    const day = date.getDate();
-    const hours = date.getHours().toString().padStart(2, '0');
-    const minutes = date.getMinutes().toString().padStart(2, '0');
-    return `${year} ${month} ${day} ${hours}:${minutes}`;
-  };
+  // const formatDate = (date: Date) => {
+  //   const year = date.getFullYear();
+  //   const month = date.toLocaleString('default', { month: 'long' });
+  //   const day = date.getDate();
+  //   const hours = date.getHours().toString().padStart(2, '0');
+  //   const minutes = date.getMinutes().toString().padStart(2, '0');
+  //   return `${year} ${month} ${day} ${hours}:${minutes}`;
+  // };
 
   return (
     <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-[110] p-4">
@@ -1157,14 +1189,14 @@ function UserProfileDialog({ user, lastMessageObj, onClose }: { user: any, lastM
         exit={{ scale: 0.9, opacity: 0 }}
         className="w-[450px] bg-white border border-[#ACA899] rounded-lg shadow-2xl overflow-hidden flex flex-col"
       >
-        <TitleBar title={`User Profile - ${user.name}`} />
+        <TitleBar title={`User Profile - ${user.username}`} />
         <div className="p-6 flex flex-col gap-6">
           <div className="flex items-center gap-6">
             <div className="w-24 h-24 bg-white border-2 border-[#ACA899] rounded-xl p-1.5 shadow-md shrink-0">
-              <img src={user.avatar} className="w-full h-full object-cover rounded-lg" alt={user.name} />
+              <img src={user.avatar} className="w-full h-full object-cover rounded-lg" alt={user.username} />
             </div>
             <div className="flex flex-col gap-1 overflow-hidden">
-              <h2 className="text-2xl font-bold text-[#3169C6] truncate">{user.name}</h2>
+              <h2 className="text-2xl font-bold text-[#3169C6] truncate">{user.username}</h2>
               <div className="flex items-center gap-2">
                 <div className={`w-3 h-3 rounded-full ${user.status === 'Online' ? 'bg-green-500' :
                   user.status === 'Busy' ? 'bg-red-500' : 'bg-yellow-500'
@@ -1191,7 +1223,7 @@ function UserProfileDialog({ user, lastMessageObj, onClose }: { user: any, lastM
                 <Globe size={16} className="text-[#3169C6]" />
                 <div className="flex flex-col">
                   <span className="text-[10px] font-bold uppercase text-gray-400">IP Address</span>
-                  <span className="text-sm font-medium font-mono">{user.ipAddress}</span>
+                  <span className="text-sm font-medium font-mono">{user.ip}</span>
                 </div>
               </div>
               <div className="flex flex-col gap-2 pt-2 border-t border-[#ACA899]/20">
@@ -1208,7 +1240,7 @@ function UserProfileDialog({ user, lastMessageObj, onClose }: { user: any, lastM
                   <div className="flex items-center gap-3 text-gray-700 ml-7">
                     <Clock size={12} className="text-gray-400" />
                     <span className="text-[11px] text-gray-500">
-                      {formatDate(lastMessageObj.timestamp)}
+                      {/* {formatDate(lastMessageObj.timestamp)} */}
                     </span>
                   </div>
                 )}

@@ -5,7 +5,7 @@ const cors = require("cors");
 
 const { PORT } = require('./config');
 const { validateTextMessage, validateImageMessage } = require('./validation');
-const { getOnlineUsers, getUserByToken, removeUser, addUser } = require('./authManager');
+const { getRegistredUsers, getUserByToken, removeUser, addUser } = require('./authManager');
 
 const app = express();
 app.use(cors());
@@ -38,6 +38,49 @@ function broadcast(message) {
   });
 }
 
+function brodcastUserStates(){
+
+    const allUsers = getRegistredUsers() ; 
+    const  connectedEmails = new Set() ; 
+    clients.forEach(client => {
+
+      if(client.userEmail ){
+        connectedEmails.add(client.userEmail)
+      }
+    })
+
+
+    const online = []
+    const offline = []
+
+    allUsers.forEach(user=>{
+
+        const userData = {
+          email : user.email,
+          username  : user.username , 
+          avatar : user.avatar , 
+          ip : user.ip , 
+          creationDate : user.creationDate
+        }
+
+        if(connectedEmails.has(user.email)){
+          online.push(userData)
+        }else{
+          offline.push(userData)
+        }
+
+    })
+
+
+    broadcast({
+      type : "USER_STATUS_UPDATE" , 
+      online , 
+      offline
+    })
+
+
+}
+
 // ======================
 // HTTP ROUTES
 // ======================
@@ -59,6 +102,7 @@ app.post('/signup', (req, res) => {
   const response = addUser(email, ip , avatar  ,password , username);
 
   if (!response.error) {
+    brodcastUserStates()
     return res.json(response); // contains token, email, color
   }
 
@@ -98,6 +142,7 @@ wss.on('connection', (ws, req) => {
 
         ws.isAuthenticated = true;
         ws.userToken = user.token;
+        ws.userEmail = user.email 
 
         // Send chat history after successful auth
         ws.send(JSON.stringify({
@@ -112,12 +157,14 @@ wss.on('connection', (ws, req) => {
         }));
 
         // Broadcast online users
-        broadcast({
-          type: "ONLINE_USERS",
-          users: getOnlineUsers().map(u => ({
-            email: u.email
-          }))
-        });
+        // broadcast({
+        //   type: "ONLINE_USERS",
+        //   users: getRegistredUsers().map(u => ({
+        //     email: u.email
+        //   }))
+        // });
+
+        brodcastUserStates()
 
         return;
       }
@@ -146,8 +193,8 @@ wss.on('connection', (ws, req) => {
         const messageData = {
           id: Date.now().toString(),
           type: "text",
-          username: user.email, // never trust frontend username
-          color: user.color,
+          email : user.email , 
+          username: user.username, 
           text: sanitizedText,
           timestamp: Date.now()
         };
@@ -184,13 +231,13 @@ wss.on('connection', (ws, req) => {
   ws.on('close', () => {
     clients.delete(ws);
 
-    
-    broadcast({
-      type: "ONLINE_USERS",
-      users: getOnlineUsers().map(u => ({
-        email: u.email
-      }))
-    });
+    brodcastUserStates()
+    // broadcast({
+    //   type: "ONLINE_USERS",
+    //   users: getRegistredUsers().map(u => ({
+    //     email: u.email
+    //   }))
+    // });
 
     console.log("Client disconnected");
   });

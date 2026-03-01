@@ -21,9 +21,9 @@ function addUser(email, ip , avatar  ,password , username) {
   }
 
   // ✅ Check IP uniqueness
-  if (ips.has(ip)) {
-    return {error : "An account has already been created from this network."}
-  }
+  // if (ips.has(ip)) {
+  //   return {error : "An account has already been created from this network."}
+  // }
 
   // ✅ Generate unique token
   let token;
@@ -32,7 +32,7 @@ function addUser(email, ip , avatar  ,password , username) {
   } while (usersByToken.has(token)); // ensure token unique
 
   // Create user object
-  const newUser = { email, ip, token , avatar , password , username , lastActive: Date.now() };
+  const newUser = { email, ip, token , avatar , password , username , creationDate: Date.now() };
 
   // Save
 
@@ -58,7 +58,7 @@ function getUserByToken(token) {
   return usersByToken.get(token);
 }
 
-function getOnlineUsers() {
+function getRegistredUsers() {
   return Array.from(usersByToken.values());
 }
 
@@ -66,4 +66,6 @@ function getOnlineUsers() {
 
 
 
-module.exports = { getOnlineUsers , getUserByToken ,removeUser ,addUser }
+
+
+module.exports = { getRegistredUsers , getUserByToken ,removeUser ,addUser }
