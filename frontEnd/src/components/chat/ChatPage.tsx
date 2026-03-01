@@ -5,13 +5,12 @@ import {
   Gift, ImageIcon, Search, MoreHorizontal,
   Plus, Minus as MinusIcon, X, Reply,
   Calendar, Info, Globe, MessageSquare, Mail, Clock,
-  Newspaper, ExternalLink, TrendingUp, Eye, EyeOff, FileText
+  Newspaper, ExternalLink, TrendingUp, Eye, EyeOff, FileText , Download
 } from 'lucide-react';
 import { motion, useAnimation, AnimatePresence } from 'motion/react';
 import { Message, UserData } from '../../types';
 import { MSN_LOGO_URL, ALL_EMOJIS, AVATARS, STICKERS, GIFS } from '../../constants';
 import { TitleBar } from '../common/TitleBar';
-
 interface ChatPageProps {
   user: UserData;
 }
@@ -23,15 +22,15 @@ const DEFAULT_THEME = {
   fontFamily: 'sans-serif'
 };
 
-export const ChatPage: React.FC<ChatPageProps> = ({ user  ,onLogout}) => {
+export const ChatPage: React.FC<ChatPageProps> = ({ user, onLogout }) => {
   const [currentUser, setCurrentUser] = useState<UserData>(user);
-  const [onlineUsers , setOnlineUsers] = useState([])
-  const [offlineUsers , setOfflineUsers] = useState([])
+  const [onlineUsers, setOnlineUsers] = useState([])
+  const [offlineUsers, setOfflineUsers] = useState([])
 
   const [personalMessage, setPersonalMessage] = useState('Listening to: Linkin Park - In The End');
   const [status, setStatus] = useState<'Online' | 'Busy' | 'Away' | 'Offline'>('Online');
   const [messages, setMessages] = useState<Message[]>([
-    { id: '2', sender: 'them',username: "data.username" , text: "data.message", type: 'text', timestamp: new Date() }
+    { id: '2', sender: 'them', username: "data.username", text: "data.message", type: 'text', timestamp: new Date() }
 
   ]);
 
@@ -41,10 +40,10 @@ export const ChatPage: React.FC<ChatPageProps> = ({ user  ,onLogout}) => {
   const ws = useRef(null);
 
 
-    //       { id: '1', sender: 'them', text: 'you got any plans?', type: 'text', timestamp: new Date() },
-    // { id: '2', sender: 'them', text: 'I miss you ☹️', type: 'text', timestamp: new Date() },
-    // { id: '3', sender: 'me', text: 'You have just sent a Nudge!', type: 'nudge', timestamp: new Date() },
-    // { id: '4', sender: 'them', text: 'Poops says: 🥺🫶', type: 'text', timestamp: new Date() }
+  //       { id: '1', sender: 'them', text: 'you got any plans?', type: 'text', timestamp: new Date() },
+  // { id: '2', sender: 'them', text: 'I miss you ☹️', type: 'text', timestamp: new Date() },
+  // { id: '3', sender: 'me', text: 'You have just sent a Nudge!', type: 'nudge', timestamp: new Date() },
+  // { id: '4', sender: 'them', text: 'Poops says: 🥺🫶', type: 'text', timestamp: new Date() }
 
 
   const [inputText, setInputText] = useState('');
@@ -76,7 +75,7 @@ export const ChatPage: React.FC<ChatPageProps> = ({ user  ,onLogout}) => {
   useEffect(() => {
 
 
-    if(!currentUser?.token )  return 
+    if (!currentUser?.token) return
 
 
     const socket = new WebSocket("ws://localhost:5000");
@@ -90,7 +89,7 @@ export const ChatPage: React.FC<ChatPageProps> = ({ user  ,onLogout}) => {
         token: currentUser.token
       }));
     };
-    
+
     ws.current.onmessage = (event) => {
       const data = JSON.parse(event.data);
 
@@ -100,13 +99,13 @@ export const ChatPage: React.FC<ChatPageProps> = ({ user  ,onLogout}) => {
         setOnlineUsers(data.online);
         setOfflineUsers(data.offline);
       }
-        
+
       if (data.type === "HISTORY") {
         setMessages(data.messages);
         return;
       }
 
-       if (data.type === "AUTH_ERROR") {
+      if (data.type === "AUTH_ERROR") {
         alert("Authentication failed");
         onLogout();
         return;
@@ -120,9 +119,9 @@ export const ChatPage: React.FC<ChatPageProps> = ({ user  ,onLogout}) => {
         ]);
       }
 
-       if (data.type === "image") {
+      if (data.type === "image") {
         setMessages((prev) => [...prev,
-          { sender: 'them',username: data.username , imageUrl: data.imageUrl, type: 'image', timestamp: new Date() }
+        { sender: 'them', username: data.username, imageUrl: data.imageUrl, type: 'image', timestamp: new Date() }
         ]);
       }
     };
@@ -178,8 +177,8 @@ export const ChatPage: React.FC<ChatPageProps> = ({ user  ,onLogout}) => {
       console.error("No token found");
       return;
     }
-    
-    const msgData: Partial<Message> = { text: inputText, type: 'text' ,username: currentUser.email  };
+
+    const msgData: Partial<Message> = { text: inputText, type: 'text', username: currentUser.email };
     if (replyingTo) {
       msgData.replyTo = {
         id: replyingTo.id,
@@ -219,7 +218,7 @@ export const ChatPage: React.FC<ChatPageProps> = ({ user  ,onLogout}) => {
       const reader = new FileReader();
       reader.onload = () => {
         const base64 = reader.result;
-   
+
         setPendingPhotoUrl(base64 as string);
       };
       reader.readAsDataURL(file);
@@ -349,7 +348,7 @@ export const ChatPage: React.FC<ChatPageProps> = ({ user  ,onLogout}) => {
         {showUserProfileDialog && selectedUser && (
           <UserProfileDialog
             user={selectedUser}
-            lastMessageObj={messages.filter(m => m.email  === selectedUser.email ).slice(-1)[0]}
+            lastMessageObj={messages.filter(m => m.email === selectedUser.email).slice(-1)[0]}
             onClose={() => setShowUserProfileDialog(false)}
           />
         )}
@@ -376,12 +375,12 @@ export const ChatPage: React.FC<ChatPageProps> = ({ user  ,onLogout}) => {
             imageUrl={pendingPhotoUrl}
             onClose={() => setPendingPhotoUrl(null)}
             onSend={(url) => {
-                ws.current.send(JSON.stringify({
-                  type: "image",
-                  username : currentUser.email,
-                  imageUrl: url,
-                  timestamp: Date.now()
-                }));
+              ws.current.send(JSON.stringify({
+                type: "image",
+                username: currentUser.email,
+                imageUrl: url,
+                timestamp: Date.now()
+              }));
               setPendingPhotoUrl(null);
             }}
           />
@@ -454,7 +453,7 @@ export const ChatPage: React.FC<ChatPageProps> = ({ user  ,onLogout}) => {
                   </div>
                 ))}
 
-                 {offlineUsers.filter(u => u.username.toLowerCase().includes(userSearchQuery.toLowerCase())).map((onlineUser) => (
+                {offlineUsers.filter(u => u.username.toLowerCase().includes(userSearchQuery.toLowerCase())).map((onlineUser) => (
                   <div
                     key={onlineUser.username}
                     onClick={() => {
@@ -716,47 +715,47 @@ export const ChatPage: React.FC<ChatPageProps> = ({ user  ,onLogout}) => {
             {/* Input Section */}
 
             <div className={`h-28 flex gap-3 ${replyingTo ? 'border-t-0 rounded-t-none' : ''}`}>
-              <div  className="flex flex-1 flex-col shrink-0 "  >
+              <div className="flex flex-1 flex-col shrink-0 "  >
 
-                        <AnimatePresence>
-                        {replyingTo && (
-                          <motion.div
-                            initial={{ height: 0, opacity: 0 }}
-                            animate={{ height: 'auto', opacity: 1 }}
-                            exit={{ height: 0, opacity: 0 }}
-                            className="bg-[#F0F7FF] border-x-2 border-t-2 border-[#ACA899] rounded-t-md p-2 flex items-center justify-between overflow-hidden"
-                          >
-                            <div className="flex flex-col overflow-hidden">
-                              <span className="text-[10px] font-bold text-[#3169C6]">Replying to {replyingTo.sender === 'me' ? 'yourself' : 'Poops'}:</span>
-                              <span className="text-[11px] text-gray-600 truncate italic">
-                                {replyingTo.text || (replyingTo.type === 'image' ? 'Photo' : replyingTo.type === 'voice' ? 'Voice Clip' : 'Gift')}
-                              </span>
-                            </div>
-                            <button
-                              onClick={() => setReplyingTo(null)}
-                              className="p-1 hover:bg-white/50 rounded-full text-gray-400 hover:text-red-500 transition-colors"
-                            >
-                              <X size={14} />
-                            </button>
-                          </motion.div>
-                        )}
-                      </AnimatePresence>
-                      
-                    <textarea
-                    className={`flex-1 bg-white border-2 border-[#ACA899] p-3 focus:outline-none focus:border-[#0055E5] focus:ring-2 focus:ring-[#0055E5]/10 resize-none shadow-inner transition-all text-black ${replyingTo ? 'rounded-b-md border-t-0' : 'rounded-md'}`}
-                    style={{ fontSize: `${fontSize}px` }}
-                    value={inputText}
-                    onChange={(e) => {
-                      setInputText(e.target.value);
-                      setIsTyping(true);
-                      setTimeout(() => setIsTyping(false), 3000);
-                    }}
-                    onKeyDown={handleKeyDown}
-                    placeholder="Type a message..."
-                  />
+                <AnimatePresence>
+                  {replyingTo && (
+                    <motion.div
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: 'auto', opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      className="bg-[#F0F7FF] border-x-2 border-t-2 border-[#ACA899] rounded-t-md p-2 flex items-center justify-between overflow-hidden"
+                    >
+                      <div className="flex flex-col overflow-hidden">
+                        <span className="text-[10px] font-bold text-[#3169C6]">Replying to {replyingTo.sender === 'me' ? 'yourself' : 'Poops'}:</span>
+                        <span className="text-[11px] text-gray-600 truncate italic">
+                          {replyingTo.text || (replyingTo.type === 'image' ? 'Photo' : replyingTo.type === 'voice' ? 'Voice Clip' : 'Gift')}
+                        </span>
+                      </div>
+                      <button
+                        onClick={() => setReplyingTo(null)}
+                        className="p-1 hover:bg-white/50 rounded-full text-gray-400 hover:text-red-500 transition-colors"
+                      >
+                        <X size={14} />
+                      </button>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+
+                <textarea
+                  className={`flex-1 bg-white border-2 border-[#ACA899] p-3 focus:outline-none focus:border-[#0055E5] focus:ring-2 focus:ring-[#0055E5]/10 resize-none shadow-inner transition-all text-black ${replyingTo ? 'rounded-b-md border-t-0' : 'rounded-md'}`}
+                  style={{ fontSize: `${fontSize}px` }}
+                  value={inputText}
+                  onChange={(e) => {
+                    setInputText(e.target.value);
+                    setIsTyping(true);
+                    setTimeout(() => setIsTyping(false), 3000);
+                  }}
+                  onKeyDown={handleKeyDown}
+                  placeholder="Type a message..."
+                />
 
 
-              
+
               </div>
 
               <div className="w-28 flex flex-col gap-2">
@@ -767,8 +766,8 @@ export const ChatPage: React.FC<ChatPageProps> = ({ user  ,onLogout}) => {
                   className="flex-1 bg-gradient-to-b flex justify-center items-center  from-[#F8F8F8] to-[#D6D3C4] border border-[#ACA899] rounded-lg text-[16px] font-bold text-gray-700 shadow-sm hover:brightness-105 active:shadow-inner transition-all"
                 >
                   <span className="flex items-center gap-1 ">
-                        Send
-                       <img src="/assets/icons/up.png" className="w-6 h-6"></img>
+                    Send
+                    <img src="/assets/icons/up.png" className="w-6 h-6"></img>
                   </span>
 
                 </motion.button>
@@ -895,36 +894,40 @@ export const ChatPage: React.FC<ChatPageProps> = ({ user  ,onLogout}) => {
 
 function PendingPhotoDialog({ imageUrl, onClose, onSend }: { imageUrl: string, onClose: () => void, onSend: (url: string) => void }) {
   return (
-    <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-[200] p-4 backdrop-blur-sm">
+    <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-[200] p-4 backdrop-blur-sm">
       <motion.div
-        initial={{ scale: 0.9, opacity: 0 }}
-        animate={{ scale: 1, opacity: 1 }}
-        exit={{ scale: 0.9, opacity: 0 }}
-        className="w-[400px] bg-white border border-[#ACA899] rounded-lg shadow-2xl overflow-hidden flex flex-col"
+        initial={{ scale: 0.9, opacity: 0, y: 20 }}
+        animate={{ scale: 1, opacity: 1, y: 0 }}
+        exit={{ scale: 0.9, opacity: 0, y: 20 }}
+        className="w-[450px] bg-white/80 backdrop-blur-xl border border-white/40 rounded-lg shadow-[0_20px_50px_rgba(0,0,0,0.3)] overflow-hidden flex flex-col"
       >
-        <div className="h-8 bg-gradient-to-b from-[#0058E6] via-[#3C96FF] to-[#0058E6] flex items-center justify-between px-2">
-          <span className="text-white font-bold text-xs">Preview Photo before Sending</span>
-          <button onClick={onClose} className="text-white hover:bg-red-500 p-1 rounded transition-colors">
-            <X size={14} />
-          </button>
-        </div>
-        <div className="p-4 flex flex-col items-center gap-4">
-          <img
-            src={imageUrl}
-            className="max-w-full max-h-[300px] object-contain rounded-md border border-gray-200 shadow-sm"
-            alt="Pending Photo"
-          />
-          <div className="text-sm text-gray-700 font-bold mb-2">Send this photo to Poops?</div>
-          <div className="flex gap-3 w-full">
+        <TitleBar title="Preview Photo - Windows Photo Viewer" variant="live" icon="/assets/icons/user.png" />
+        <div className="p-6 flex flex-col items-center gap-6 relative">
+          <div className="absolute inset-0 bg-gradient-to-b from-white/20 to-transparent pointer-events-none" />
+          <div className="relative group w-full flex justify-center">
+            <div className="absolute -inset-1 bg-white/20 rounded-lg blur-sm opacity-0 group-hover:opacity-100 transition-opacity" />
+            <img
+              src={imageUrl}
+              className="max-w-full max-h-[350px] object-contain rounded-md border border-white/50 shadow-lg relative z-10"
+              alt="Pending Photo"
+            />
+          </div>
+
+          <div className="flex flex-col items-center gap-1 z-10">
+            <div className="text-[15px] text-gray-800 font-semibold drop-shadow-sm">Send this photo to Dot Messenger?</div>
+            <div className="text-[12px] text-gray-500 font-medium italic">Image will be sent as a high-quality attachment</div>
+          </div>
+
+          <div className="flex gap-4 w-full z-10">
             <button
               onClick={() => onSend(imageUrl)}
-              className="flex-1 h-10 bg-gradient-to-b from-[#316AC5] to-[#2B5CAE] text-white rounded-lg text-sm font-bold shadow-sm hover:brightness-110 active:shadow-inner transition-all border border-[#1A3D7A]"
+              className="flex-1 h-11 bg-gradient-to-b from-[#4BA1E8] via-[#3B8ED4] to-[#2B7BC0] text-white rounded-md text-sm font-bold shadow-[0_1px_3px_rgba(0,0,0,0.2),inset_0_1px_0_rgba(255,255,255,0.3)] hover:brightness-110 active:brightness-95 active:shadow-inner transition-all border border-[#1A5485] flex items-center justify-center gap-2"
             >
-              Send
+              <span>Send Photo</span>
             </button>
             <button
               onClick={onClose}
-              className="flex-1 h-10 bg-gradient-to-b from-[#F8F8F8] to-[#D6D3C4] border border-[#ACA899] rounded-lg text-sm font-bold text-gray-700 shadow-sm hover:brightness-105 active:shadow-inner transition-all"
+              className="flex-1 h-11 bg-gradient-to-b from-[#F2F2F2] via-[#E6E6E6] to-[#D9D9D9] border border-[#A6A6A6] rounded-md text-sm font-bold text-gray-700 shadow-[0_1px_2px_rgba(0,0,0,0.1),inset_0_1px_0_rgba(255,255,255,0.5)] hover:from-white hover:to-[#F0F0F0] active:brightness-95 transition-all"
             >
               Cancel
             </button>
@@ -936,7 +939,7 @@ function PendingPhotoDialog({ imageUrl, onClose, onSend }: { imageUrl: string, o
 }
 
 function PhotoPreviewDialog({ imageUrl, onClose }: { imageUrl: string, onClose: () => void }) {
-  const [scale, setScale] = useState(1);
+  const [scale, setScale] = useState(0.9);
 
   const zoomIn = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -949,47 +952,66 @@ function PhotoPreviewDialog({ imageUrl, onClose }: { imageUrl: string, onClose: 
   };
 
   return (
-    <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-[200] p-4 backdrop-blur-sm" onClick={onClose}>
+    <div className="fixed inset-0  flex items-center justify-center z-[200] p-4 " onClick={onClose}>
       <motion.div
-        initial={{ scale: 0.9, opacity: 0 }}
+        initial={{ scale: 0.95, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
-        exit={{ scale: 0.9, opacity: 0 }}
-        className="relative max-w-[90vw] max-h-[90vh] flex flex-col items-center justify-center"
+        exit={{ scale: 0.95, opacity: 0 }}
+        className="relative max-w-[800px] max-h-[600px] h-[85vh] flex flex-col  bg-white/80 backdrop-blur-xl border border-white/40 rounded-lg  shadow-[0_30px_100px_rgba(0,0,0,0.5)] overflow-hidden"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="absolute -top-12 right-0 flex items-center gap-2 z-10">
-          <button
-            onClick={zoomOut}
-            className="p-2 text-white hover:text-gray-300 transition-colors bg-black/50 hover:bg-black/80 rounded-full"
-            title="Zoom Out"
-          >
-            <MinusIcon size={20} />
-          </button>
-          <span className="text-white text-sm font-bold bg-black/50 px-2 rounded-full hidden sm:block">
-            {Math.round(scale * 100)}%
-          </span>
-          <button
-            onClick={zoomIn}
-            className="p-2 text-white hover:text-gray-300 transition-colors bg-black/50 hover:bg-black/80 rounded-full"
-            title="Zoom In"
-          >
-            <Plus size={20} />
-          </button>
+        <TitleBar title="Windows Photo Viewer" variant="live" icon="/assets/icons/image.png" />
+
+        <div className="relative flex-1 flex items-center justify-center  overflow-hidden p-8 min-h-[400px] min-w-[500px]">
+          <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent pointer-events-none" />
+
+          <div className=" max-h-[75vh]  max-w-full rounded-lg  relative z-10 flex items-center justify-center">
+            <motion.img
+              src={imageUrl}
+              animate={{ scale }}
+              transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+              style={{ transformOrigin: 'center' }}
+              className="max-w-full max-h-full object-contain shadow-2xl border border-white/20"
+              alt="Preview"
+            />
+          </div>
+        </div>
+
+        <div className="h-20 bg-gradient-to-b from-[#dadada] to-[#c0c0c0] border-t border-white/10 flex items-center justify-center gap-6 relative px-8">
+          <div className="absolute inset-0   pointer-events-none" />
+
+          <div className="flex items-center gap-4 p-2 rounded-full border border-white/40">
+            <button
+              onClick={zoomOut}
+              className="w-10 h-10 flex items-center justify-center  bg-gradient-to-b from-[#e84b4b] via-[#d43b3b] to-[#c02b2b] text-white hover:bg-white/20 transition-all rounded-full group cursor-pointer"
+              title="Zoom Out"
+            >
+              <MinusIcon size={20} className="group-active:scale-90 transition-transform" />
+            </button>
+            <div className="w-16 text-center">
+              <span className="text-black text-sm font-bold tabular-nums">
+                {Math.round(scale * 100)}%
+              </span>
+            </div>
+            <button
+              onClick={zoomIn}
+              className="w-10 h-10 flex items-center  bg-gradient-to-b from-[#4BA1E8] via-[#3B8ED4] to-[#2B7BC0] justify-center text-white hover:bg-white/20 transition-all rounded-full group"
+              title="Zoom In"
+            >
+              <Plus size={20} className="group-active:scale-110 transition-transform" />
+            </button>
+          </div>
+
+          <div className="h-8 w-px bg-white/40 " />
+
           <button
             onClick={onClose}
-            className="p-2 text-white hover:text-gray-300 transition-colors bg-black/50 hover:bg-black/80 rounded-full ml-4"
-            title="Close Preview"
+            className="px-6 h-13  bg-gradient-to-b from-[#58e84b] via-[#4dd43b] to-[#4ec02b] hover:bg-red-500/80  text-white border border-white/20 rounded-full font-bold text-sm transition-all flex items-center gap-2 group cursor-pointer"
           >
-            <X size={24} />
+            <span>Download Photo</span>
+            <Download size={16}  />
+
           </button>
-        </div>
-        <div className="overflow-auto max-h-[90vh] max-w-[90vw] rounded-lg custom-scrollbar">
-          <img
-            src={imageUrl}
-            style={{ transform: `scale(${scale})`, transformOrigin: 'center' }}
-            className="max-w-full max-h-[90vh] object-contain shadow-2xl border border-white/20 transition-transform duration-200"
-            alt="Preview"
-          />
         </div>
       </motion.div>
     </div>
@@ -1375,55 +1397,54 @@ function ProfileDialog({ user, onClose, onSave }: { user: UserData, onClose: () 
         <TitleBar title="Edit Profile" icon="/assets/icons/user.png" />
         <div className="p-8 flex flex-col gap-6">
           <div className="flex gap-6">
-                    <div className="flex flex-col items-center gap-3 relative"> 
-                  <div className="relative group cursor-pointer" onClick={() => setShowAvatars(!showAvatars)}>
-                    <div className="w-24 h-24 bg-white border-4 border-[#88C057] rounded-xl p-1 shadow-md overflow-hidden flex items-center justify-center">
-                      <img src={avatar} className="w-full h-full object-cover rounded-lg" alt="Avatar" />
-                    </div>
-                    <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center rounded-lg">
-                      <span className="text-white text-[10px] font-bold">Change</span>
-                    </div>
-                  </div>
+            <div className="flex flex-col items-center gap-3 relative">
+              <div className="relative group cursor-pointer" onClick={() => setShowAvatars(!showAvatars)}>
+                <div className="w-24 h-24 bg-white border-4 border-[#88C057] rounded-xl p-1 shadow-md overflow-hidden flex items-center justify-center">
+                  <img src={avatar} className="w-full h-full object-cover rounded-lg" alt="Avatar" />
+                </div>
+                <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center rounded-lg">
+                  <span className="text-white text-[10px] font-bold">Change</span>
+                </div>
+              </div>
 
-            <AnimatePresence>
-              {showAvatars && (
-                <motion.div
-                  initial={{ opacity: 0, scale: 0.9, y: 10 }}
-                  animate={{ opacity: 1, scale: 1, y: 0 }}
-                  exit={{ opacity: 0, scale: 0.9, y: 10 }}
-                  className="absolute top-[90px] mt-4 -left-36 bg-white border border-[#A0A0A0] rounded-xl shadow-2xl z-[110] w-96 overflow-hidden flex flex-col"
-                >
-                  <div className="bg-[#F3F3F3] border-b border-[#E0E0E0] p-3 flex items-center justify-between">
-                    <span className="text-xs font-bold text-gray-700">Choose your dynamic picture</span>
-                    <button onClick={() => setShowAvatars(false)} className="text-gray-400 hover:text-gray-600">
-                      <X size={14} />
-                    </button>
-                  </div>
-                  
-                  <div className="p-3 max-h-64 overflow-y-auto custom-scrollbar">
-                    <div className="grid grid-cols-5 gap-3">
-                      {AVATARS.map((url, idx) => (
-                        <motion.img
-                          key={idx}
-                          whileHover={{ scale: 1.1 }}
-                          whileTap={{ scale: 0.95 }}
-                          src={url}
-                          className={`w-14 h-14 rounded-lg cursor-pointer border-2 transition-all object-cover ${
-                            avatar === url ? 'border-[#88C057] shadow-md' : 'border-transparent hover:border-gray-300'
-                          }`}
-                          onClick={() => {
-                            setAvatar(url); // Fixed name
-                            setShowAvatars(false); // Fixed name
-                          }}
-                          alt={`Avatar ${idx}`}
-                        />
-                      ))}
+              <AnimatePresence>
+                {showAvatars && (
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.9, y: 10 }}
+                    animate={{ opacity: 1, scale: 1, y: 0 }}
+                    exit={{ opacity: 0, scale: 0.9, y: 10 }}
+                    className="absolute top-[90px] mt-4 -left-36 bg-white border border-[#A0A0A0] rounded-xl shadow-2xl z-[110] w-96 overflow-hidden flex flex-col"
+                  >
+                    <div className="bg-[#F3F3F3] border-b border-[#E0E0E0] p-3 flex items-center justify-between">
+                      <span className="text-xs font-bold text-gray-700">Choose your dynamic picture</span>
+                      <button onClick={() => setShowAvatars(false)} className="text-gray-400 hover:text-gray-600">
+                        <X size={14} />
+                      </button>
                     </div>
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </div>
+
+                    <div className="p-3 max-h-64 overflow-y-auto custom-scrollbar">
+                      <div className="grid grid-cols-5 gap-3">
+                        {AVATARS.map((url, idx) => (
+                          <motion.img
+                            key={idx}
+                            whileHover={{ scale: 1.1 }}
+                            whileTap={{ scale: 0.95 }}
+                            src={url}
+                            className={`w-14 h-14 rounded-lg cursor-pointer border-2 transition-all object-cover ${avatar === url ? 'border-[#88C057] shadow-md' : 'border-transparent hover:border-gray-300'
+                              }`}
+                            onClick={() => {
+                              setAvatar(url); // Fixed name
+                              setShowAvatars(false); // Fixed name
+                            }}
+                            alt={`Avatar ${idx}`}
+                          />
+                        ))}
+                      </div>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
             <div className="flex-1 flex flex-col gap-4">
               <div className="space-y-1">
                 <label className="text-[11px] font-bold text-gray-600">Email</label>
@@ -1434,9 +1455,9 @@ function ProfileDialog({ user, onClose, onSave }: { user: UserData, onClose: () 
                   // onChange={(e) => setEmail(e.target.value)}
                   disabled
                 />
-                
+
               </div>
-               <div className="space-y-1">
+              <div className="space-y-1">
                 <label className="text-[11px] font-bold text-gray-600">Display Name </label>
                 <input
                   type="text"
@@ -1444,7 +1465,7 @@ function ProfileDialog({ user, onClose, onSave }: { user: UserData, onClose: () 
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
                 />
-                
+
               </div>
               <div className="space-y-1">
                 <label className="text-[11px] font-bold text-gray-600">New Password</label>
@@ -1453,7 +1474,7 @@ function ProfileDialog({ user, onClose, onSave }: { user: UserData, onClose: () 
                     type={showNewPassword ? 'text' : 'password'}
                     className="w-full h-10 px-3 pr-10 border border-[#ACA899] rounded-md text-sm focus:outline-none focus:border-[#003399]"
                     value={newPassword}
-                    onChange={(e) =>setNewPassword(e.target.value)}
+                    onChange={(e) => setNewPassword(e.target.value)}
                     placeholder="None set"
                   />
                   <button
@@ -1489,7 +1510,7 @@ function ProfileDialog({ user, onClose, onSave }: { user: UserData, onClose: () 
           </div>
           <div className="flex gap-3 mt-4">
             <button
-              onClick={() => onSave({ email : user.email, avatar, password: newPassword || confirmPassword  , token : user.token})}
+              onClick={() => onSave({ email: user.email, avatar, password: newPassword || confirmPassword, token: user.token })}
               className="flex-1 h-10 bg-gradient-to-b from-[#F8F8F8] to-[#E0E0E0] border border-[#ACA899] rounded-lg text-sm font-bold text-gray-700 shadow-sm hover:brightness-105 transition-all"
             >
               Save Changes
@@ -1530,12 +1551,12 @@ function FormatButton({ icon, label, onClick }: { icon: React.ReactNode, label?:
       className={`h-8 px-2 flex items-center gap-2 border border-transparent hover:border-[#ACA899] hover:bg-white/60 rounded-md cursor-pointer transition-all ${label ? 'pr-3' : ''}`}
     >
       <div className="text-[#3169C6] drop-shadow-sm ">{icon}</div>
-      {(label === "Voice Clip" || label === "PDF")  && <span className="text-[12px] font-medium text-gray-700">{label}</span>}
+      {(label === "Voice Clip" || label === "PDF") && <span className="text-[12px] font-medium text-gray-700">{label}</span>}
       {
-        (label === "text" || label==="emoji") && (
+        (label === "text" || label === "emoji") && (
 
-           <div className="w-0 h-0 border-l-[4px] border-l-transparent border-r-[4px] border-r-transparent border-t-[4px] border-t-gray-500 ml-1"></div>
-            
+          <div className="w-0 h-0 border-l-[4px] border-l-transparent border-r-[4px] border-r-transparent border-t-[4px] border-t-gray-500 ml-1"></div>
+
         )
       }
     </div>
