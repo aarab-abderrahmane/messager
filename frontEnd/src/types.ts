@@ -7,9 +7,9 @@ export interface Message {
   id: string;
   token: string;
   username: string;
-  content  : string ; 
+  content: string;
   sender: 'me' | 'them';
-  email : string ; 
+  email: string;
   text?: string;
   imageUrl?: string;
   audioUrl?: string;
@@ -22,8 +22,12 @@ export interface Message {
     id: string;
     text: string;
     username: string;
-    email : string
+    email: string
   };
+  attachments?: {
+    name: string;
+    content: string;
+  }[];
   reactions?: {
     [key: string]: number; // reaction type -> count
   };

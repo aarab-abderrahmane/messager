@@ -101,6 +101,10 @@ export const ChatPage: React.FC<ChatPageProps> = ({ user, onLogout }) => {
   const [reactionMenuId, setReactionMenuId] = useState<string | null>(null);
   const [previewImageUrl, setPreviewImageUrl] = useState<string | null>(null);
   const [pendingPhotoUrl, setPendingPhotoUrl] = useState<string | null>(null);
+  const [pendingPdfs, setPendingPdfs] = useState<File[]>([]);
+  const [showPendingPdfDialog, setShowPendingPdfDialog] = useState(false);
+  const [previewPdf, setPreviewPdf] = useState<{ name: string, content: string } | null>(null);
+  const [showPdfPreviewDialog, setShowPdfPreviewDialog] = useState(false);
 
   const [theme, setTheme] = useState(DEFAULT_THEME);
 
@@ -151,10 +155,10 @@ export const ChatPage: React.FC<ChatPageProps> = ({ user, onLogout }) => {
 
 
 
-      if(data.type ==="text" || data.type=== "image" || data.type==="voice"){
+      if (data.type === "text" || data.type === "image" || data.type === "voice" || data.type === "pdf") {
         setMessages(prev => [
-          ...prev  , 
-          {...data , sender : data.email === currentUser.email ? "me" : "them"}
+          ...prev,
+          { ...data, sender: data.email === currentUser.email ? "me" : "them" }
         ])
       }
 
@@ -189,13 +193,13 @@ export const ChatPage: React.FC<ChatPageProps> = ({ user, onLogout }) => {
   const addMessage = (msg: Partial<Message>) => {
     console.log('add')
     const newMessage: Message = {
-      ...msg , 
-      username : currentUser.username , 
-      email : currentUser.email  , 
-      replyTo : replyingTo? replyingTo : null 
+      ...msg,
+      username: currentUser.username,
+      email: currentUser.email,
+      replyTo: replyingTo ? replyingTo : null
     } as Message;
 
-    console.log("success" , newMessage)
+    console.log("success", newMessage)
 
     ws.current.send(JSON.stringify(newMessage));
   };
@@ -227,8 +231,8 @@ export const ChatPage: React.FC<ChatPageProps> = ({ user, onLogout }) => {
 
     // if (replyingTo) console.log("true reply",msgData)
 
-    addMessage({type : "text" , content : inputText})
-   
+    addMessage({ type: "text", content: inputText })
+
     setInputText('');
     setReplyingTo(null);
   };
@@ -281,10 +285,12 @@ export const ChatPage: React.FC<ChatPageProps> = ({ user, onLogout }) => {
   };
 
   const handlePdfUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const url = URL.createObjectURL(file);
-      addMessage({ text: `File: ${file.name}`, pdfUrl: url, fileName: file.name, type: 'pdf' });
+    const files = Array.from(e.target.files || []);
+    if (files.length > 0) {
+      // Limit to max 3 files as requested
+      const selectedFiles = files.slice(0, 3);
+      setPendingPdfs(selectedFiles);
+      setShowPendingPdfDialog(true);
     }
     if (e.target) e.target.value = '';
   };
@@ -430,8 +436,51 @@ export const ChatPage: React.FC<ChatPageProps> = ({ user, onLogout }) => {
             imageUrl={pendingPhotoUrl}
             onClose={() => setPendingPhotoUrl(null)}
             onSend={(url) => {
-              addMessage({type : "image" , content : url  })
+              addMessage({ type: "image", content: url })
               setPendingPhotoUrl(null);
+            }}
+          />
+        )}
+        {showPendingPdfDialog && (
+          <PendingPdfDialog
+            files={pendingPdfs}
+            onClose={() => setShowPendingPdfDialog(false)}
+            onSend={(filesToSend) => {
+              const attachments: { name: string; content: string }[] = [];
+              let processedCount = 0;
+
+              filesToSend.forEach((file) => {
+                const reader = new FileReader();
+                reader.onload = () => {
+                  attachments.push({
+                    name: file.name,
+                    content: reader.result as string
+                  });
+                  processedCount++;
+
+                  if (processedCount === filesToSend.length) {
+                    addMessage({
+                      text: filesToSend.length > 1
+                        ? `${filesToSend.length} PDF Files: ${filesToSend.map(f => f.name).join(', ')}`
+                        : filesToSend[0].name,
+                      attachments,
+                      type: 'pdf'
+                    });
+                    setShowPendingPdfDialog(false);
+                    setPendingPdfs([]);
+                  }
+                };
+                reader.readAsDataURL(file);
+              });
+            }}
+          />
+        )}
+        {showPdfPreviewDialog && previewPdf && (
+          <PdfPreviewDialog
+            pdf={previewPdf}
+            onClose={() => {
+              setShowPdfPreviewDialog(false);
+              setPreviewPdf(null);
             }}
           />
         )}
@@ -484,15 +533,15 @@ export const ChatPage: React.FC<ChatPageProps> = ({ user, onLogout }) => {
 
               <div className="flex-1 overflow-y-auto p-2 flex flex-col gap-2 scrollbar-thin">
                 {onlineUsers.filter(u => u.username.toLowerCase().includes(userSearchQuery.toLowerCase())).map((onlineUser) => (
-                
-                <div
+
+                  <div
                     key={onlineUser.username}
                     onClick={() => {
-                    if (onlineUser.email === currentUser.email) return; 
+                      if (onlineUser.email === currentUser.email) return;
 
-                    setSelectedUser(onlineUser);
-                    setShowUserProfileDialog(true);
-                  }}
+                      setSelectedUser(onlineUser);
+                      setShowUserProfileDialog(true);
+                    }}
 
                     className="flex items-center gap-2 p-1 hover:bg-[#316AC5]/10 rounded cursor-pointer group transition-colors"
                   >
@@ -591,29 +640,85 @@ export const ChatPage: React.FC<ChatPageProps> = ({ user, onLogout }) => {
                     </div>
                   )}
 
+                  <span className={`font-bold text-[13px] ${msg.sender === 'me' ? 'text-[#3169C6]' : 'text-black'}`}>
+                    {msg.sender === 'me' ? 'You :' : `${msg.username} :`}
+                  </span>
+
                   {msg.replyTo && (
-                    <div className="ml-3 mb-1 p-2 bg-gray-50 border-l-4 border-[#3169C6]/30 rounded-r-md text-[11px] text-gray-500 italic max-w-[80%] truncate">
-                      <span className="font-bold not-italic mr-1">
-                        {msg.replyTo.email  === currentUser.email ? 'You' : msg.replyTo.username}:
-                      </span>
-                      {msg.replyTo.text}
+                    <div className="ml-3 mb-2" style={{ maxWidth: '80%' }}>
+                      <div
+                        style={{
+                          background: 'linear-gradient(180deg, #f8f8f8 0%, #ececec 100%)',
+                          border: '1px solid #c8c8c8',
+                          borderLeft: '3px solid #888888',
+                          borderRadius: '0 5px 5px 0',
+                          padding: '5px 10px',
+                          boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.95), 0 1px 2px rgba(0,0,0,0.10)',
+                          position: 'relative',
+                          overflow: 'hidden',
+                        }}
+                      >
+                        {/* Subtle left watermark stripe */}
+                        <div
+                          style={{
+                            position: 'absolute',
+                            top: 0, left: 0, bottom: 0,
+                            width: 28,
+                            background: 'linear-gradient(90deg, rgba(0,0,0,0.04), transparent)',
+                            pointerEvents: 'none',
+                          }}
+                        />
+
+                        {/* Reply-to label */}
+                        <div className="flex items-center gap-1 mb-0.5">
+                          <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
+                            <path d="M4 2L1 5L4 8M1 5h6a2 2 0 0 1 2 2v1" stroke="#666666" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
+                          </svg>
+                          <span
+                            style={{
+                              fontSize: 11,
+                              fontWeight: 700,
+                              color: '#444444',
+                              fontFamily: 'Segoe UI, Tahoma, sans-serif',
+                              letterSpacing: '0.01em',
+                            }}
+                          >
+                            {msg.replyTo.email === currentUser.email ? 'You' : msg.replyTo.username}
+                          </span>
+                        </div>
+
+                        {/* Reply content */}
+                        <div
+                          style={{
+                            fontSize: 11,
+                            color: '#777777',
+                            fontFamily: 'Segoe UI, Tahoma, sans-serif',
+                            fontStyle: 'italic',
+                            whiteSpace: 'nowrap',
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis',
+                            paddingLeft: 14,
+                          }}
+                        >
+                          {msg.replyTo.type === "text" ? msg.replyTo.content : "nothing"}
+                        </div>
+                      </div>
                     </div>
                   )}
 
                   {msg.type === 'text' && (
                     <div className="flex flex-col gap-0.5">
-                      <span className={`font-bold text-[13px] ${msg.sender === 'me' ? 'text-[#3169C6]' : 'text-black'}`}>
-                        {/* {msg.sender === 'me' ? 'You say:' : 'Poops says:'} */}
+                      {/* <span className={`font-bold text-[13px] ${msg.sender === 'me' ? 'text-[#3169C6]' : 'text-black'}`}>
                         {msg.username}
-                      </span>
+                      </span> */}
                       <span className="text-[14px] ml-3 leading-relaxed">{msg.content}</span>
                     </div>
                   )}
                   {msg.type === 'image' && (
                     <div className="flex flex-col gap-1">
-                      <span className={`font-bold text-[13px] ${msg.sender === 'me' ? 'text-[#3169C6]' : 'text-black'}`}>
+                      {/* <span className={`font-bold text-[13px] ${msg.sender === 'me' ? 'text-[#3169C6]' : 'text-black'}`}>
                         {msg.sender === 'me' ? 'You sent a photo:' : 'Poops sent a photo:'}
-                      </span>
+                      </span> */}
                       <img
                         src={msg.content}
                         className="max-w-[200px] rounded-md border border-gray-200 shadow-sm ml-3 cursor-pointer hover:opacity-90 transition-opacity"
@@ -624,79 +729,79 @@ export const ChatPage: React.FC<ChatPageProps> = ({ user, onLogout }) => {
                   )}
                   {(msg.type === 'sticker' || msg.type === 'gif') && (
                     <div className="flex flex-col gap-1">
-                      <span className={`font-bold text-[13px] ${msg.sender === 'me' ? 'text-[#3169C6]' : 'text-black'}`}>
+                      {/* <span className={`font-bold text-[13px] ${msg.sender === 'me' ? 'text-[#3169C6]' : 'text-black'}`}>
                         {msg.sender === 'me' ? `You sent a ${msg.type}:` : `Poops sent a ${msg.type}:`}
-                      </span>
+                      </span> */}
                       <img src={msg.content} className="max-w-[150px] ml-3" alt={msg.type} />
                     </div>
                   )}
                   {msg.type === 'voice' && (
-  <div className="flex flex-col gap-1">
-    <span className={`font-bold text-[13px] ${msg.sender === 'me' ? 'text-[#3169C6]' : 'text-black'}`}>
-      {msg.sender === 'me' ? 'You sent:' : msg.username}
-    </span>
+                    <div className="flex flex-col gap-1">
+                      {/* <span className={`font-bold text-[13px] ${msg.sender === 'me' ? 'text-[#3169C6]' : 'text-black'}`}>
+                          {msg.sender === 'me' ? 'You sent:' : msg.username}
+                        </span> */}
 
-    <div
-      className="ml-3 flex flex-col gap-2"
-      style={{
-        background: 'linear-gradient(180deg, #f5f9ff 0%, #ddeeff 100%)',
-        border: '1px solid #aac8e8',
-        borderRadius: '6px',
-        padding: '8px 12px',
-        maxWidth: '260px',
-        boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.9), 0 1px 3px rgba(0,0,0,0.1)',
-      }}
-    >
-      {/* Header row */}
-      <div className="flex items-center gap-2">
-        {/* Animated mic icon bubble */}
-        <div
-          style={{
-            width: 32,
-            height: 32,
-            borderRadius: '50%',
-            background: 'linear-gradient(180deg, #5b9bd5 0%, #2a6ab5 100%)',
-            border: '1px solid #1a5aa5',
-            boxShadow: '0 2px 4px rgba(0,0,0,0.2)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            flexShrink: 0,
-          }}
-        >
-          <Mic size={16} color="white" />
-        </div>
+                      <div
+                        className="ml-3 flex flex-col gap-2"
+                        style={{
+                          background: 'linear-gradient(180deg, #f5f9ff 0%, #ddeeff 100%)',
+                          border: '1px solid #aac8e8',
+                          borderRadius: '6px',
+                          padding: '8px 12px',
+                          maxWidth: '260px',
+                          boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.9), 0 1px 3px rgba(0,0,0,0.1)',
+                        }}
+                      >
+                        {/* Header row */}
+                        <div className="flex items-center gap-2">
+                          {/* Animated mic icon bubble */}
+                          <div
+                            style={{
+                              width: 32,
+                              height: 32,
+                              borderRadius: '50%',
+                              background: 'linear-gradient(180deg, #5b9bd5 0%, #2a6ab5 100%)',
+                              border: '1px solid #1a5aa5',
+                              boxShadow: '0 2px 4px rgba(0,0,0,0.2)',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              flexShrink: 0,
+                            }}
+                          >
+                            <Mic size={16} color="white" />
+                          </div>
 
-        <div className="flex flex-col">
-          <span style={{ fontSize: 12, fontWeight: 700, color: '#1a5aa5', fontFamily: 'Segoe UI, Tahoma, sans-serif' }}>
-            Voice Message
-          </span>
-          <span style={{ fontSize: 11, color: '#5a7fa8', fontFamily: 'Segoe UI, Tahoma, sans-serif' }}>
-            {msg.text}
-          </span>
-        </div>
-      </div>
+                          <div className="flex flex-col">
+                            <span style={{ fontSize: 12, fontWeight: 700, color: '#1a5aa5', fontFamily: 'Segoe UI, Tahoma, sans-serif' }}>
+                              Voice Message
+                            </span>
+                            <span style={{ fontSize: 11, color: '#5a7fa8', fontFamily: 'Segoe UI, Tahoma, sans-serif' }}>
+                              {msg.text}
+                            </span>
+                          </div>
+                        </div>
 
-      {/* Divider */}
-      <div style={{ height: 1, background: 'linear-gradient(90deg, transparent, #aac8e8, transparent)' }} />
+                        {/* Divider */}
+                        <div style={{ height: 1, background: 'linear-gradient(90deg, transparent, #aac8e8, transparent)' }} />
 
-      {/* Audio player */}
-      {msg.content && (
-        <div className="flex flex-col gap-1">
-          <audio
-            controls
-            src={msg.content}
-            style={{
-              width: '100%',
-              height: 28,
-              accentColor: '#3169C6',
-            }}
-          />
-        </div>
-      )}
-    </div>
-  </div>
-)}
+                        {/* Audio player */}
+                        {msg.content && (
+                          <div className="flex flex-col gap-1">
+                            <audio
+                              controls
+                              src={msg.content}
+                              style={{
+                                width: '100%',
+                                height: 28,
+                                accentColor: '#3169C6',
+                              }}
+                            />
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
                   {msg.type === 'gift' && (
                     <div className="flex flex-col gap-1">
                       <span className={`font-bold text-[13px] ${msg.sender === 'me' ? 'text-[#3169C6]' : 'text-black'}`}>
@@ -725,6 +830,42 @@ export const ChatPage: React.FC<ChatPageProps> = ({ user, onLogout }) => {
                   {msg.type === 'nudge' && (
                     <div className="py-2 px-6 bg-[#F8F8F8] border-y border-[#ACA899] inline-block mx-auto rounded-md italic text-[#666] text-[13px] shadow-sm">
                       {msg.text}
+                    </div>
+                  )}
+
+                  {msg.type === 'pdf' && (
+                    <div className="flex flex-col gap-2 ml-3 max-w-[320px]">
+                      {(msg.attachments && msg.attachments.length > 0 ? msg.attachments : [{ name: msg.text, content: msg.content }]).map((att, idx) => (
+                        <div
+                          key={idx}
+                          className="flex items-center gap-3 p-3 bg-white border border-[#ACA899] rounded-lg shadow-sm hover:shadow-md transition-shadow"
+                        >
+                          <div className="bg-red-50 p-2 rounded-md shrink-0">
+                            <FileText size={24} className="text-red-500" />
+                          </div>
+                          <div className="flex flex-col overflow-hidden">
+                            <span className="text-[13px] font-bold truncate text-gray-800">{att.name}</span>
+                            <div className="flex items-center gap-3">
+                              <button
+                                onClick={() => {
+                                  setPreviewPdf(att);
+                                  setShowPdfPreviewDialog(true);
+                                }}
+                                className="text-[11px] text-[#3169C6] font-bold hover:underline flex items-center gap-1"
+                              >
+                                <Eye size={12} /> Preview
+                              </button>
+                              <a
+                                href={att.content}
+                                download={att.name}
+                                className="text-[11px] text-[#3169C6] font-bold hover:underline flex items-center gap-1"
+                              >
+                                <Download size={12} /> Download
+                              </a>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
                     </div>
                   )}
 
@@ -895,13 +1036,13 @@ export const ChatPage: React.FC<ChatPageProps> = ({ user, onLogout }) => {
             <div className="flex-1 flex flex-col  bg-white/20 backdrop-blur-md border  border-[#ACA899] rounded-xl  overflow-hidden relative group/sidebar">
               <div className="absolute inset-0 bg-gradient-to-b from-white/40 via-transparent to-white/5 pointer-events-none" />
 
-              <div  style={{ background: 'linear-gradient(to bottom, #ffdd00, transparent)' }} className=" px-3 py-2 flex items-center gap-2  relative z-10">
+              <div style={{ background: 'linear-gradient(to bottom, #ffdd00, transparent)' }} className=" px-3 py-2 flex items-center gap-2  relative z-10">
                 <Newspaper size={14} className="text-white drop-shadow-sm" />
                 <span className="text-[11px] xl:text-[14px] font-bold text-gray-700 uppercase tracking-wider drop-shadow-sm">Breaking News</span>
               </div>
 
               <div className="flex-1 p-3 flex flex-col gap-4 overflow-y-auto scrollbar-thin bg-white/10 relative z-10">
-          
+
                 <motion.button
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
@@ -909,7 +1050,7 @@ export const ChatPage: React.FC<ChatPageProps> = ({ user, onLogout }) => {
                   className="h-10 py-2 bg-gradient-to-b from-[#F8F8F8] to-[#D6D3C4] border border-[#ACA899] rounded-lg text-[12px] font-bold text-gray-700 shadow-sm hover:brightness-105 active:shadow-inner transition-all flex items-center justify-center gap-2 cursor-pointer"
                 >
                   Add New News
-                  <Plus size={14}  />
+                  <Plus size={14} />
                 </motion.button>
 
                 {newsList
@@ -926,7 +1067,7 @@ export const ChatPage: React.FC<ChatPageProps> = ({ user, onLogout }) => {
                       className="flex  gap-1 cursor-pointer group/item py-1 px-2"
                     >
                       <div className="flex items-center gap-2 overflow-hidden">
-                     
+
                         <span className={`text-[12px] xl:text-[13px] font-bold transition-all truncate hover:underline
                           ${news.type === 'breaking' ? 'text-[#8a8b26]' : 'text-[#3169C6]'}`}>
                           {news.headline}
@@ -999,6 +1140,7 @@ export const ChatPage: React.FC<ChatPageProps> = ({ user, onLogout }) => {
         ref={pdfInputRef}
         onChange={handlePdfUpload}
         accept=".pdf"
+        multiple
         className="hidden"
       />
     </div>
@@ -1123,8 +1265,8 @@ function PhotoPreviewDialog({ imageUrl, onClose }: { imageUrl: string, onClose: 
             download="shared-photo.png" // This forces the download
             className="px-6 h-13  bg-gradient-to-b from-[#58e84b] via-[#4dd43b] to-[#4ec02b] hover:bg-red-500/80  text-white border border-white/20 rounded-full font-bold text-sm transition-all flex items-center gap-2 group cursor-pointer"
           >
-               <span>Download Photo</span>
-               <Download size={16} />
+            <span>Download Photo</span>
+            <Download size={16} />
           </a>
 
         </div>
@@ -1207,9 +1349,9 @@ function NewsDialog({ news, onClose }: { news: NewsItem, onClose: () => void }) 
         onClick={(e) => e.stopPropagation()}
       >
         {/* Title Bar */}
-        
 
-         <TitleBar title="Dot Messenger News Reader" variant="live" icon="/assets/icons/image.png" />
+
+        <TitleBar title="Dot Messenger News Reader" variant="live" icon="/assets/icons/image.png" />
 
         <div className="flex-1 overflow-y-auto custom-scrollbar-modern bg-[#F8F9FA]">
           {news.coverImage ? (
@@ -1385,15 +1527,15 @@ function StickerDialog({ onSelect, onClose }: { onSelect: (url: string, type: 's
 
 function UserProfileDialog({ user, lastMessageObj, onClose }: { user: any, lastMessageObj: Message | undefined, onClose: () => void }) {
   const formatDate = (timestamp: number) => {
-  // Create the Date object here!
-    const date = new Date(timestamp); 
+    // Create the Date object here!
+    const date = new Date(timestamp);
 
     const year = date.getFullYear();
     const month = date.toLocaleString('default', { month: 'long' });
     const day = date.getDate();
     const hours = date.getHours().toString().padStart(2, '0');
     const minutes = date.getMinutes().toString().padStart(2, '0');
-    
+
     return `${year} ${month} ${day} ${hours}:${minutes}`;
   };
 
@@ -1456,7 +1598,7 @@ function UserProfileDialog({ user, lastMessageObj, onClose }: { user: any, lastM
                   <div className="flex items-center gap-3 text-gray-700 ml-7">
                     <Clock size={12} className="text-gray-400" />
                     <span className="text-[11px] text-gray-500">
-                      {formatDate(lastMessageObj.timestamp)}
+                      {formatDate(new Date(lastMessageObj.timestamp).getTime())}
                     </span>
                   </div>
                 )}
@@ -1716,6 +1858,44 @@ function ProfileDialog({ user, onClose, onSave }: { user: UserData, onClose: () 
   );
 }
 
+function PdfPreviewDialog({ pdf, onClose }: { pdf: { name: string, content: string }, onClose: () => void }) {
+  return (
+    <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-[250] p-4 backdrop-blur-sm" onClick={onClose}>
+      <motion.div
+        initial={{ scale: 0.9, opacity: 0, y: 20 }}
+        animate={{ scale: 1, opacity: 1, y: 0 }}
+        exit={{ scale: 0.9, opacity: 0, y: 20 }}
+        className="w-[90vw] h-[90vh] bg-white border border-[#ACA899] rounded-lg shadow-2xl overflow-hidden flex flex-col"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <TitleBar title={`PDF Preview - ${pdf.name}`} variant="live" icon="/assets/icons/image.png" onClose={onClose} />
+        <div className="flex-1 bg-gray-100 relative">
+          <iframe
+            src={pdf.content}
+            className="w-full h-full border-none"
+            title={pdf.name}
+          />
+        </div>
+        <div className="h-14 bg-gradient-to-b from-[#f0f0f0] to-[#dcdcdc] border-t border-[#ACA899] flex items-center justify-end px-6 gap-4">
+          <a
+            href={pdf.content}
+            download={pdf.name}
+            className="h-10 px-6 bg-gradient-to-b from-[#4BA1E8] via-[#3B8ED4] to-[#2B7BC0] text-white rounded-md text-sm font-bold shadow-sm hover:brightness-105 active:brightness-95 transition-all border border-[#1A5485] flex items-center justify-center gap-2"
+          >
+            <Download size={16} /> Download
+          </a>
+          <button
+            onClick={onClose}
+            className="h-10 px-6 bg-gradient-to-b from-[#F2F2F2] to-[#D9D9D9] border border-[#A6A6A6] rounded-md text-sm font-bold text-gray-700 shadow-sm hover:from-white hover:to-[#F0F0F0] active:brightness-95 transition-all"
+          >
+            Close
+          </button>
+        </div>
+      </motion.div>
+    </div>
+  );
+}
+
 function ToolbarButton({ icon, label }: { icon: React.ReactNode, label: string }) {
   return (
     <motion.div
@@ -1912,3 +2092,77 @@ function AddNewsDialog({ onClose, onAdd }: { onClose: () => void, onAdd: (news: 
     </div>
   );
 }
+
+function PendingPdfDialog({ files, onClose, onSend }: { files: File[], onClose: () => void, onSend: (files: File[]) => void }) {
+  const [selectedFiles, setSelectedFiles] = useState<File[]>(files);
+
+  const removeFile = (index: number) => {
+    const newFiles = [...selectedFiles];
+    newFiles.splice(index, 1);
+    setSelectedFiles(newFiles);
+    if (newFiles.length === 0) {
+      onClose();
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-[200] p-4 backdrop-blur-sm">
+      <motion.div
+        initial={{ scale: 0.9, opacity: 0, y: 20 }}
+        animate={{ scale: 1, opacity: 1, y: 0 }}
+        exit={{ scale: 0.9, opacity: 0, y: 20 }}
+        className="w-[450px] bg-white border border-[#ACA899] rounded-lg shadow-2xl overflow-hidden flex flex-col"
+      >
+        <TitleBar title="Send PDF Files" variant="live" icon="/assets/icons/user.png" onClose={onClose} />
+        <div className="p-6 flex flex-col gap-6">
+          <div className="flex flex-col gap-1">
+            <div className="text-[15px] text-gray-800 font-semibold">Attached PDF Files</div>
+            <div className="text-[12px] text-gray-500 font-medium italic">You can select up to 3 files at once</div>
+          </div>
+
+          <div className="flex flex-col gap-3 min-h-[100px] max-h-[250px] overflow-y-auto pr-2 scrollbar-thin">
+            {selectedFiles.map((file, index) => (
+              <div
+                key={`${file.name}-${index}`}
+                className="flex items-center justify-between p-3 bg-gray-50 border border-[#ACA899]/30 rounded-lg group hover:border-[#3169C6]/50 transition-colors"
+              >
+                <div className="flex items-center gap-3 overflow-hidden">
+                  <div className="bg-red-50 p-2 rounded-md">
+                    <FileText size={20} className="text-red-500" />
+                  </div>
+                  <div className="flex flex-col overflow-hidden">
+                    <span className="text-[13px] font-bold truncate text-gray-800">{file.name}</span>
+                    <span className="text-[11px] text-gray-500">{(file.size / 1024).toFixed(1)} KB</span>
+                  </div>
+                </div>
+                <button
+                  onClick={() => removeFile(index)}
+                  className="p-1.5 hover:bg-red-50 rounded-full text-gray-400 hover:text-red-500 transition-colors"
+                  title="Remove file"
+                >
+                  <X size={16} />
+                </button>
+              </div>
+            ))}
+          </div>
+
+          <div className="flex gap-4 w-full">
+            <button
+              onClick={() => onSend(selectedFiles)}
+              className="flex-1 h-11 bg-gradient-to-b from-[#4BA1E8] via-[#3B8ED4] to-[#2B7BC0] text-white rounded-md text-sm font-bold shadow-sm hover:brightness-110 active:brightness-95 transition-all border border-[#1A5485] flex items-center justify-center gap-2"
+            >
+              <span>Send {selectedFiles.length} file{selectedFiles.length > 1 ? 's' : ''}</span>
+            </button>
+            <button
+              onClick={onClose}
+              className="flex-1 h-11 bg-gradient-to-b from-[#F2F2F2] to-[#D9D9D9] border border-[#A6A6A6] rounded-md text-sm font-bold text-gray-700 shadow-sm hover:from-white hover:to-[#F0F0F0] active:brightness-95 transition-all"
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      </motion.div>
+    </div>
+  );
+}
+

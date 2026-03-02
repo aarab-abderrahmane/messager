@@ -4,7 +4,7 @@ const WebSocket = require('ws');
 const cors = require("cors");
 
 const { PORT } = require('./config');
-const { validateTextMessage, validateImageMessage ,validateVoiceMessage } = require('./validation');
+const { validateTextMessage, validateImageMessage ,validateVoiceMessage , validatePdfMessage } = require('./validation');
 const { getRegistredUsers, getUserByToken, removeUser, addUser } = require('./authManager');
 
 const app = express();
@@ -256,6 +256,26 @@ wss.on('connection', (ws, req) => {
           text : data.text , 
           username: user.username, 
           content: data.content,
+          timestamp: Date.now() , 
+          replyTo: data.replyTo ? data.replyTo : null
+        };
+
+        addMessage(messageData);
+        broadcast(messageData);
+      }
+
+
+      if (data.type === "pdf") {
+
+        if (!validatePdfMessage(data)) return;
+
+        const messageData = {
+          id: Date.now().toString() + Math.random(),
+          type : "pdf" , 
+          email : user.email , 
+          text : data.text , 
+          username: user.username, 
+          attachments: data.attachments,
           timestamp: Date.now() , 
           replyTo: data.replyTo ? data.replyTo : null
         };

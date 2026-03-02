@@ -3,6 +3,11 @@ const MAX_TEXT_LENGTH = 2000;
 const MAX_IMAGE_SIZE = 5 * 1024 * 1024; // 5MB
 const MAX_VOICE_SIZE = 5 * 1024 * 1024; // 2MB (Voice clips should be smaller)
 
+// Constants
+const MAX_PDF_SIZE = 10 * 1024 * 1024; // 10MB per file
+const MAX_ATTACHMENTS = 3; // Max files allowed
+
+
 /**
  * Sanitize text to prevent HTML / JS injection
  */
@@ -59,8 +64,48 @@ function validateVoiceMessage(data) {
   return true;
 }
 
+
+
+
+
+
+
+function validatePdfMessage(data) {
+  // 1. Check if attachments array exists
+  if (!Array.isArray(data.attachments) || data.attachments.length === 0) {
+    return false;
+  }
+
+  // 2. Limit the number of files (Security check)
+  if (data.attachments.length > MAX_ATTACHMENTS) {
+    return false;
+  }
+
+  // 3. Check every single file in the array
+  for (let file of data.attachments) {
+    // Check if name and content exist
+    if (!file.name || !file.content) return false;
+
+    // Strict Header Check
+    if (!file.content.startsWith("data:application/pdf;base64,")) return false;
+
+    // Size Check
+    const base64Data = file.content.split(',')[1];
+    const fileSize = (base64Data.length * 3) / 4;
+    if (fileSize > MAX_PDF_SIZE) return false;
+
+    // Sanitize Filename (Remove dangerous characters)
+    file.name = file.name.replace(/[^a-zA-Z0-9.\-_]/g, "_");
+  }
+
+  return true;
+}
+
+
+
 module.exports = {
   validateTextMessage,
   validateImageMessage,
-  validateVoiceMessage // Add to exports
+  validateVoiceMessage ,
+  validatePdfMessage
 };
