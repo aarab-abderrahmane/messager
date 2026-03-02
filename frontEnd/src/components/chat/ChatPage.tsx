@@ -35,7 +35,6 @@ export const ChatPage: React.FC<ChatPageProps> = ({ user, onLogout }) => {
   ]);
 
 
-  console.log(messages)
 
   const ws = useRef(null);
 
@@ -157,8 +156,7 @@ export const ChatPage: React.FC<ChatPageProps> = ({ user, onLogout }) => {
 
       if (data.type === "text" || data.type === "image" || data.type === "voice" || data.type === "pdf") {
         setMessages(prev => [
-          ...prev,
-          { ...data, sender: data.email === currentUser.email ? "me" : "them" }
+          ...prev, data 
         ])
       }
 
@@ -181,7 +179,6 @@ export const ChatPage: React.FC<ChatPageProps> = ({ user, onLogout }) => {
         ws.current = null;
       }
     };
-
 
     return () => {
       if (socket.readyState === WebSocket.OPEN || socket.readyState === WebSocket.CONNECTING) {
@@ -718,7 +715,10 @@ export const ChatPage: React.FC<ChatPageProps> = ({ user, onLogout }) => {
                 <span className="text-[#3169C6]">To:</span> Poops
               </div>
 
-              {messages.map((msg) => (
+              {messages.map((msg) => {
+                const isMe = msg.email === currentUser.email;
+
+                return (
                 <div key={msg.id} className={`text-sm group relative my-1 ${msg.type === 'nudge' ? 'text-center my-3' : ''}`}>
                   {msg.type !== 'nudge' && (
                     <div className="absolute -right-2 top-0 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity z-10">
@@ -766,8 +766,8 @@ export const ChatPage: React.FC<ChatPageProps> = ({ user, onLogout }) => {
                     </div>
                   )}
 
-                  <span className={`font-bold text-[13px] ${msg.sender === 'me' ? 'text-[#3169C6]' : 'text-black'}`}>
-                    {msg.sender === 'me' ? 'You :' : `${msg.username} :`}
+                  <span className={`font-bold text-[13px] ${isMe ? 'text-[#3169C6]' : 'text-black'}`}>
+                    {isMe ? 'You :' : `${msg.username} :`}
                   </span>
 
                   {msg.replyTo && (
@@ -834,7 +834,7 @@ export const ChatPage: React.FC<ChatPageProps> = ({ user, onLogout }) => {
 
                   {msg.type === 'text' && (
                     <div className="flex flex-col gap-0.5">
-                      {/* <span className={`font-bold text-[13px] ${msg.sender === 'me' ? 'text-[#3169C6]' : 'text-black'}`}>
+                      {/* <span className={`font-bold text-[13px] ${isMe ? 'text-[#3169C6]' : 'text-black'}`}>
                         {msg.username}
                       </span> */}
                       <span className="text-[14px] ml-3 leading-relaxed">{msg.content}</span>
@@ -842,8 +842,8 @@ export const ChatPage: React.FC<ChatPageProps> = ({ user, onLogout }) => {
                   )}
                   {msg.type === 'image' && (
                     <div className="flex flex-col gap-1">
-                      {/* <span className={`font-bold text-[13px] ${msg.sender === 'me' ? 'text-[#3169C6]' : 'text-black'}`}>
-                        {msg.sender === 'me' ? 'You sent a photo:' : 'Poops sent a photo:'}
+                      {/* <span className={`font-bold text-[13px] ${isMe ? 'text-[#3169C6]' : 'text-black'}`}>
+                        {isMe ? 'You sent a photo:' : 'Poops sent a photo:'}
                       </span> */}
                       <img
                         src={msg.content}
@@ -855,16 +855,16 @@ export const ChatPage: React.FC<ChatPageProps> = ({ user, onLogout }) => {
                   )}
                   {(msg.type === 'sticker' || msg.type === 'gif') && (
                     <div className="flex flex-col gap-1">
-                      {/* <span className={`font-bold text-[13px] ${msg.sender === 'me' ? 'text-[#3169C6]' : 'text-black'}`}>
-                        {msg.sender === 'me' ? `You sent a ${msg.type}:` : `Poops sent a ${msg.type}:`}
+                      {/* <span className={`font-bold text-[13px] ${isMe ? 'text-[#3169C6]' : 'text-black'}`}>
+                        {isMe ? `You sent a ${msg.type}:` : `Poops sent a ${msg.type}:`}
                       </span> */}
                       <img src={msg.content} className="max-w-[150px] ml-3" alt={msg.type} />
                     </div>
                   )}
                   {msg.type === 'voice' && (
                     <div className="flex flex-col gap-1">
-                      {/* <span className={`font-bold text-[13px] ${msg.sender === 'me' ? 'text-[#3169C6]' : 'text-black'}`}>
-                          {msg.sender === 'me' ? 'You sent:' : msg.username}
+                      {/* <span className={`font-bold text-[13px] ${isMe ? 'text-[#3169C6]' : 'text-black'}`}>
+                          {isMe ? 'You sent:' : msg.username}
                         </span> */}
 
                       <div
@@ -930,8 +930,8 @@ export const ChatPage: React.FC<ChatPageProps> = ({ user, onLogout }) => {
                   )}
                   {msg.type === 'gift' && (
                     <div className="flex flex-col gap-1">
-                      <span className={`font-bold text-[13px] ${msg.sender === 'me' ? 'text-[#3169C6]' : 'text-black'}`}>
-                        {msg.sender === 'me' ? 'You sent a gift:' : 'Poops sent a gift:'}
+                      <span className={`font-bold text-[13px] ${isMe ? 'text-[#3169C6]' : 'text-black'}`}>
+                        {isMe ? 'You sent a gift:' : 'Poops sent a gift:'}
                       </span>
                       <div className="ml-3 py-2 px-4 bg-[#FFF0F5] border border-[#E96E4C]/20 rounded-md flex flex-col gap-2">
                         <div className="flex items-center gap-2 text-[#E96E4C] font-bold">
@@ -1112,7 +1112,8 @@ export const ChatPage: React.FC<ChatPageProps> = ({ user, onLogout }) => {
                     </div>
                   )}
                 </div>
-              ))}
+              )})
+             }
               <div ref={chatEndRef} />
             </div>
 

@@ -292,25 +292,31 @@ wss.on('connection', (ws, req) => {
           const user = getUserByToken(token);
           if (!user) return;
 
-          // 1. Find the message in your messages array or DB
           const message = chatHistory.find(m => m.id === messageId);
           if (!message) return;
 
-          // 2. Initialize reactions object if it doesn't exist
           if (!message.reactions) message.reactions = {};
-          if (!message.reactions[emoji]) message.reactions[emoji] = [];
 
-          const userIndex = message.reactions[emoji].indexOf(user.email);
+          const hasThisEmoji = message.reactions[emoji] && message.reactions[emoji].includes(user.email);
 
-          if (userIndex > -1) {
-            // If they already reacted with this emoji, REMOVE it (toggle)
-            message.reactions[emoji].splice(userIndex, 1);
+          if (hasThisEmoji) {
+            // RULE: TOGGLE OFF
+            const index = message.reactions[emoji].indexOf(user.email);
+            message.reactions[emoji].splice(index, 1);
           } else {
-            // Otherwise, ADD their email to the list
+            // RULE: ONLY ONE EMOJI
+            Object.keys(message.reactions).forEach(key => {
+              const otherIndex = message.reactions[key].indexOf(user.email);
+              if (otherIndex > -1) {
+                message.reactions[key].splice(otherIndex, 1);
+              }
+            });
+
+            // Now add the new one
+            if (!message.reactions[emoji]) message.reactions[emoji] = [];
             message.reactions[emoji].push(user.email);
           }
 
-          // 3. Broadcast the UPDATED message to everyone
           broadcast({
             type: "update_message",
             messageId: messageId,
