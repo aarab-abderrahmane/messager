@@ -233,6 +233,7 @@ wss.on('connection', (ws, req) => {
           id: Date.now().toString() + Math.random(),
           type : "image" , 
           email : user.email , 
+          text : data.text , 
           username: user.username, 
           content: data.content,
           timestamp: Date.now() , 

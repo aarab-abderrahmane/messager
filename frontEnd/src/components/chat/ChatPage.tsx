@@ -263,7 +263,7 @@ export const ChatPage: React.FC<ChatPageProps> = ({ user, onLogout }) => {
       reader.onload = () => {
         const base64 = reader.result;
 
-        setPendingPhotoUrl(base64 as string);
+        setPendingPhotoUrl({url : base64, text : "pdf name" });
       };
       reader.readAsDataURL(file);
     }
@@ -433,10 +433,10 @@ export const ChatPage: React.FC<ChatPageProps> = ({ user, onLogout }) => {
         )}
         {pendingPhotoUrl && (
           <PendingPhotoDialog
-            imageUrl={pendingPhotoUrl}
+            imageData={pendingPhotoUrl}
             onClose={() => setPendingPhotoUrl(null)}
-            onSend={(url) => {
-              addMessage({ type: "image", content: url })
+            onSend={(url, text) => {
+              addMessage({ type: "image", content: url , text : text })
               setPendingPhotoUrl(null);
             }}
           />
@@ -726,7 +726,7 @@ export const ChatPage: React.FC<ChatPageProps> = ({ user, onLogout }) => {
                           className="p-1 hover:bg-gray-100 rounded-full text-gray-400 hover:text-[#3169C6]"
                           title="React"
                         >
-                          <Smile size={14} />
+                          <Smile size={17} />
                         </button>
                         <AnimatePresence>
                           {reactionMenuId === msg.id && (
@@ -745,7 +745,7 @@ export const ChatPage: React.FC<ChatPageProps> = ({ user, onLogout }) => {
                                 <button
                                   key={r.type}
                                   onClick={() => handleReaction(msg.id, r.emoji)}
-                                  className="hover:scale-125 transition-transform p-1"
+                                  className="hover:scale-125 transition-transform   p-1"
                                 >
                                   {r.emoji}
                                 </button>
@@ -759,7 +759,7 @@ export const ChatPage: React.FC<ChatPageProps> = ({ user, onLogout }) => {
                         className="p-1 hover:bg-gray-100 rounded-full text-gray-400 hover:text-[#3169C6]"
                         title="Reply"
                       >
-                        <Reply size={14} />
+                        <Reply size={17} />
                       </button>
                     </div>
                   )}
@@ -824,7 +824,7 @@ export const ChatPage: React.FC<ChatPageProps> = ({ user, onLogout }) => {
                             paddingLeft: 14,
                           }}
                         >
-                          {msg.replyTo.type === "text" ? msg.replyTo.content : "nothing"}
+                          {msg.replyTo.type === "text" ? msg.replyTo.content : msg.replyTo.text}
                         </div>
                       </div>
                     </div>
@@ -1193,7 +1193,7 @@ export const ChatPage: React.FC<ChatPageProps> = ({ user, onLogout }) => {
                       <div className="flex flex-col overflow-hidden">
                         <span className="text-[10px] font-bold text-[#3169C6]">Replying to {replyingTo.sender === 'me' ? 'yourself' : 'Poops'}:</span>
                         <span className="text-[11px] text-gray-600 truncate italic">
-                          {replyingTo.text || (replyingTo.type === 'image' ? 'Photo' : replyingTo.type === 'voice' ? 'Voice Clip' : 'Gift')}
+                          {replyingTo.type ==="text" ? replyingTo.content : replyingTo.text}
                         </span>
                       </div>
                       <button
@@ -1366,7 +1366,7 @@ export const ChatPage: React.FC<ChatPageProps> = ({ user, onLogout }) => {
   );
 };
 
-function PendingPhotoDialog({ imageUrl, onClose, onSend }: { imageUrl: string, onClose: () => void, onSend: (url: string) => void }) {
+function PendingPhotoDialog({ imageData, onClose, onSend }: { imageData: { url: string, text: string }, onClose: () => void, onSend: (url: string , text : string) => void }) {
   return (
     <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-[200] p-4 backdrop-blur-sm">
       <motion.div
@@ -1381,7 +1381,7 @@ function PendingPhotoDialog({ imageUrl, onClose, onSend }: { imageUrl: string, o
           <div className="relative group w-full flex justify-center">
             <div className="absolute -inset-1 bg-white/20 rounded-lg blur-sm opacity-0 group-hover:opacity-100 transition-opacity" />
             <img
-              src={imageUrl}
+              src={imageData.url}
               className="max-w-full max-h-[350px] object-contain rounded-md border border-white/50 shadow-lg relative z-10"
               alt="Pending Photo"
             />
@@ -1394,7 +1394,7 @@ function PendingPhotoDialog({ imageUrl, onClose, onSend }: { imageUrl: string, o
 
           <div className="flex gap-4 w-full z-10">
             <button
-              onClick={() => onSend(imageUrl)}
+              onClick={() => onSend(imageData.url, imageData.text)}
               className="flex-1 h-11 bg-gradient-to-b from-[#4BA1E8] via-[#3B8ED4] to-[#2B7BC0] text-white rounded-md text-sm font-bold shadow-[0_1px_3px_rgba(0,0,0,0.2),inset_0_1px_0_rgba(255,255,255,0.3)] hover:brightness-110 active:brightness-95 active:shadow-inner transition-all border border-[#1A5485] flex items-center justify-center gap-2"
             >
               <span>Send Photo</span>
