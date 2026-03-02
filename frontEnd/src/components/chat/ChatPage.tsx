@@ -510,52 +510,145 @@ export const ChatPage: React.FC<ChatPageProps> = ({ user, onLogout }) => {
 
           {/* Left Column (Online Users) */}
           <div className="w-48 xl:w-72 flex flex-col gap-4 shrink-0 overflow-hidden">
-            {/* Online Users List */}
-            <div className="flex-1 flex flex-col bg-white/50 border border-[#ACA899] rounded-md shadow-inner overflow-hidden">
-              <div className="border-b border-[#ACA899] px-2 py-1 flex items-center gap-2" style={{ background: 'linear-gradient(to bottom, #F4F2E8, #D6D3C4)' }}>
-                <User size={14} className="text-[#3169C6]" />
-                <span className="text-[11px] xl:text-[13px] font-bold text-gray-700">People Online</span>
+            <div className="flex-1 flex flex-col border border-[#b0aca0] rounded-md overflow-hidden"
+              style={{ background: 'linear-gradient(180deg, #f2f0ec 0%, #e8e5df 100%)', boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.8), 0 2px 4px rgba(0,0,0,0.1)' }}>
+
+              {/* Header */}
+                <div
+                style={{
+                  background: 'linear-gradient(180deg, #4a85d8 0%, #2a5fb5 100%)',
+                  borderBottom: '1px solid #1e4fa0',
+                  padding: '10px 10px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 7,
+                  flexShrink: 0,
+                }}
+              >
+                <div style={{
+                  width: 20, height: 20,
+                  background: 'linear-gradient(180deg, #7bc8ff 0%, #3a9aee 100%)',
+                  border: '1px solid #1a7acc',
+                  borderRadius: '50%',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.4)',
+                  flexShrink: 0,
+                }}>
+                  <User size={11} color="white" />
+                </div>
+                <span style={{
+                  fontSize: 12, fontWeight: 700, color: '#fff',
+                  fontFamily: 'Segoe UI, Tahoma, sans-serif',
+                  textShadow: '0 1px 2px rgba(0,0,0,0.3)',
+                  flex: 1,
+                }}>
+                  People Online
+                </span>
+                {/* online count badge */}
+                <div style={{
+                  background: 'linear-gradient(180deg, #5ab840 0%, #3a9020 100%)',
+                  border: '1px solid #2a7010',
+                  borderRadius: 10,
+                  padding: '1px 6px',
+                  fontSize: 10, fontWeight: 800, color: '#fff',
+                  fontFamily: 'Segoe UI, Tahoma, sans-serif',
+                  boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.3)',
+                }}>
+                  {onlineUsers.length}
+                </div>
               </div>
 
-              {/* Search Input */}
-              <div className="p-2 border-b border-[#ACA899]/30 bg-white/30">
+              {/* Search */}
+              <div className="px-2 py-2 border-b border-[#b0aca0]/50"
+                style={{ background: 'linear-gradient(180deg, #eeebe5 0%, #e4e1db 100%)' }}>
                 <div className="relative">
                   <input
                     type="text"
                     placeholder="Search people..."
                     value={userSearchQuery}
                     onChange={(e) => setUserSearchQuery(e.target.value)}
-                    className="w-full pl-7 pr-2 py-1 xl:py-3 bg-white border border-[#ACA899] rounded text-[11px] xl:text-[12px] focus:outline-none focus:border-[#3169C6] transition-all placeholder:italic"
+                    style={{
+                      width: '100%',
+                      paddingLeft: 28, paddingRight: 8, paddingTop: 5, paddingBottom: 5,
+                      background: 'linear-gradient(180deg, #ffffff 0%, #f5f3ef 100%)',
+                      border: '1px solid #b0aca0',
+                      borderRadius: 3,
+                      fontSize: 12,
+                      fontFamily: 'Segoe UI, Tahoma, sans-serif',
+                      color: '#3a3830',
+                      boxShadow: 'inset 0 1px 3px rgba(0,0,0,0.08)',
+                      outline: 'none',
+                    }}
+                    onFocus={e => e.currentTarget.style.borderColor = '#7a9abf'}
+                    onBlur={e => e.currentTarget.style.borderColor = '#b0aca0'}
                   />
-                  <Search size={12} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400" />
+                  <Search size={13} style={{ position: 'absolute', left: 9, top: '50%', transform: 'translateY(-50%)', color: '#9a9690' }} />
                 </div>
               </div>
 
-              <div className="flex-1 overflow-y-auto p-2 flex flex-col gap-2 scrollbar-thin">
-                {onlineUsers.filter(u => u.username.toLowerCase().includes(userSearchQuery.toLowerCase())).map((onlineUser) => (
+              {/* User List */}
+              <div className="flex-1 overflow-y-auto flex flex-col gap-1 p-2 scrollbar-thin">
 
+                {/* Online Users */}
+                {onlineUsers.filter(u => u.username.toLowerCase().includes(userSearchQuery.toLowerCase())).map((onlineUser) => (
                   <div
                     key={onlineUser.username}
                     onClick={() => {
                       if (onlineUser.email === currentUser.email) return;
-
                       setSelectedUser(onlineUser);
                       setShowUserProfileDialog(true);
                     }}
-
-                    className="flex items-center gap-2 p-1 hover:bg-[#316AC5]/10 rounded cursor-pointer group transition-colors"
+                    style={{ borderRadius: 4, cursor: 'pointer', transition: 'all 0.1s' }}
+                    className="flex items-center gap-2 px-2 py-1.5 group"
+                    onMouseEnter={e => {
+                      e.currentTarget.style.background = 'linear-gradient(180deg, #deeaf8 0%, #ccddf0 100%)';
+                      e.currentTarget.style.border = '1px solid #9abbd8';
+                      e.currentTarget.style.boxShadow = 'inset 0 1px 0 rgba(255,255,255,0.7)';
+                    }}
+                    onMouseLeave={e => {
+                      e.currentTarget.style.background = 'transparent';
+                      e.currentTarget.style.border = '1px solid transparent';
+                      e.currentTarget.style.boxShadow = 'none';
+                    }}
                   >
-                    <div className="relative">
-                      <img src={onlineUser.avatar} className="w-8 h-8 xl:w-12 xl:h-12 rounded border border-[#ACA899]" alt={onlineUser.username} />
-                      <div className={`absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 xl:w-3 xl:h-3 rounded-full border border-white shadow-sm bg-green-500 `}></div>
+                    <div className="relative shrink-0">
+                      <img
+                        src={onlineUser.avatar}
+                        className="w-9 h-9 xl:w-11 xl:h-11 rounded"
+                        alt={onlineUser.username}
+                        style={{ border: '1px solid #b0aca0', boxShadow: '0 1px 2px rgba(0,0,0,0.15)' }}
+                      />
+                      {/* Online dot */}
+                      <div style={{
+                        position: 'absolute', bottom: -1, right: -1,
+                        width: 11, height: 11,
+                        background: 'linear-gradient(180deg, #60d840 0%, #30a810 100%)',
+                        border: '1.5px solid white',
+                        borderRadius: '50%',
+                        boxShadow: '0 1px 2px rgba(0,0,0,0.2)',
+                      }} />
                     </div>
                     <div className="flex flex-col overflow-hidden">
-                      <span className="text-[11px] xl:text-[13px] font-bold truncate group-hover:text-[#3169C6]">{onlineUser.username}</span>
-                      <span className="text-[9px] xl:text-[11px] opacity-60 leading-none">online</span>
+                      <span style={{
+                        fontSize: 12, fontWeight: 700,
+                        fontFamily: 'Segoe UI, Tahoma, sans-serif',
+                        color: '#2a2820',
+                        overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                      }}
+                        className="group-hover:text-[#1a4a8a]"
+                      >{onlineUser.username}</span>
+                      <span style={{ fontSize: 10, color: '#3a9020', fontFamily: 'Segoe UI, Tahoma, sans-serif', fontWeight: 600 }}>● online</span>
                     </div>
                   </div>
                 ))}
 
+                {/* Divider if both lists have items */}
+                {onlineUsers.filter(u => u.username.toLowerCase().includes(userSearchQuery.toLowerCase())).length > 0 &&
+                  offlineUsers.filter(u => u.username.toLowerCase().includes(userSearchQuery.toLowerCase())).length > 0 && (
+                    <div style={{ height: 1, background: 'linear-gradient(90deg, transparent, #b0aca0, transparent)', margin: '4px 0' }} />
+                  )}
+
+                {/* Offline Users */}
                 {offlineUsers.filter(u => u.username.toLowerCase().includes(userSearchQuery.toLowerCase())).map((onlineUser) => (
                   <div
                     key={onlineUser.username}
@@ -563,23 +656,54 @@ export const ChatPage: React.FC<ChatPageProps> = ({ user, onLogout }) => {
                       setSelectedUser(onlineUser);
                       setShowUserProfileDialog(true);
                     }}
-                    className="flex items-center gap-2 p-1 hover:bg-[#316AC5]/10 rounded cursor-pointer group transition-colors"
+                    style={{ borderRadius: 4, cursor: 'pointer', transition: 'all 0.1s', opacity: 0.75 }}
+                    className="flex items-center gap-2 px-2 py-1.5 group"
+                    onMouseEnter={e => {
+                      e.currentTarget.style.background = 'linear-gradient(180deg, #eeebe5 0%, #e0ddd7 100%)';
+                      e.currentTarget.style.border = '1px solid #c0bdb5';
+                      e.currentTarget.style.opacity = '1';
+                    }}
+                    onMouseLeave={e => {
+                      e.currentTarget.style.background = 'transparent';
+                      e.currentTarget.style.border = '1px solid transparent';
+                      e.currentTarget.style.opacity = '0.75';
+                    }}
                   >
-                    <div className="relative">
-                      <img src={onlineUser.avatar} className="w-8 h-8 xl:w-12 xl:h-12 rounded border border-[#ACA899]" alt={onlineUser.username} />
-                      <div className={`absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 xl:w-3 xl:h-3 rounded-full border border-white shadow-sm bg-red-500
-                        `}></div>
+                    <div className="relative shrink-0">
+                      <img
+                        src={onlineUser.avatar}
+                        className="w-9 h-9 xl:w-11 xl:h-11 rounded"
+                        alt={onlineUser.username}
+                        style={{ border: '1px solid #b0aca0', boxShadow: '0 1px 2px rgba(0,0,0,0.1)', filter: 'grayscale(30%)' }}
+                      />
+                      {/* Offline dot */}
+                      <div style={{
+                        position: 'absolute', bottom: -1, right: -1,
+                        width: 11, height: 11,
+                        background: 'linear-gradient(180deg, #c0bdb5 0%, #909088 100%)',
+                        border: '1.5px solid white',
+                        borderRadius: '50%',
+                        boxShadow: '0 1px 2px rgba(0,0,0,0.2)',
+                      }} />
                     </div>
                     <div className="flex flex-col overflow-hidden">
-                      <span className="text-[11px] xl:text-[13px] font-bold truncate group-hover:text-[#3169C6]">{onlineUser.username}</span>
-                      <span className="text-[9px] xl:text-[11px] opacity-60 leading-none">offline</span>
+                      <span style={{
+                        fontSize: 12, fontWeight: 700,
+                        fontFamily: 'Segoe UI, Tahoma, sans-serif',
+                        color: '#6a6860',
+                        overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                      }}>{onlineUser.username}</span>
+                      <span style={{ fontSize: 10, color: '#9a9890', fontFamily: 'Segoe UI, Tahoma, sans-serif', fontWeight: 600 }}>● offline</span>
                     </div>
                   </div>
                 ))}
 
-                {onlineUsers.filter(u => u.username.toLowerCase().includes(userSearchQuery.toLowerCase())).length === 0 && (
-                  <div className="text-[10px] text-gray-400 italic text-center py-4">No results found</div>
-                )}
+                {onlineUsers.filter(u => u.username.toLowerCase().includes(userSearchQuery.toLowerCase())).length === 0 &&
+                  offlineUsers.filter(u => u.username.toLowerCase().includes(userSearchQuery.toLowerCase())).length === 0 && (
+                    <div style={{ fontSize: 11, color: '#9a9890', fontStyle: 'italic', textAlign: 'center', padding: '16px 0', fontFamily: 'Segoe UI, Tahoma, sans-serif' }}>
+                      No results found
+                    </div>
+                  )}
               </div>
             </div>
           </div>
@@ -593,7 +717,7 @@ export const ChatPage: React.FC<ChatPageProps> = ({ user, onLogout }) => {
               </div>
 
               {messages.map((msg) => (
-                <div key={msg.id} className={`text-sm group relative ${msg.type === 'nudge' ? 'text-center my-3' : ''}`}>
+                <div key={msg.id} className={`text-sm group relative my-1 ${msg.type === 'nudge' ? 'text-center my-3' : ''}`}>
                   {msg.type !== 'nudge' && (
                     <div className="absolute -right-2 top-0 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity z-10">
                       <div className="relative">
@@ -834,33 +958,128 @@ export const ChatPage: React.FC<ChatPageProps> = ({ user, onLogout }) => {
                   )}
 
                   {msg.type === 'pdf' && (
-                    <div className="flex flex-col gap-2 ml-3 max-w-[320px]">
-                      {(msg.attachments && msg.attachments.length > 0 ? msg.attachments : [{ name: msg.text, content: msg.content }]).map((att, idx) => (
+                    <div className="flex flex-col gap-2 ml-3" style={{ maxWidth: 300 }}>
+                      {(msg.attachments && msg.attachments.length > 0
+                        ? msg.attachments
+                        : [{ name: msg.text, content: msg.content }]
+                      ).map((att, idx) => (
                         <div
                           key={idx}
-                          className="flex items-center gap-3 p-3 bg-white border border-[#ACA899] rounded-lg shadow-sm hover:shadow-md transition-shadow"
+                          style={{
+                            background: 'linear-gradient(180deg, #f8f8f8 0%, #e8e8e8 100%)',
+                            border: '1px solid #c0c0c0',
+                            borderRadius: 6,
+                            boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.95), 0 1px 3px rgba(0,0,0,0.12)',
+                            overflow: 'hidden',
+                          }}
                         >
-                          <div className="bg-red-50 p-2 rounded-md shrink-0">
-                            <FileText size={24} className="text-red-500" />
+                          {/* Top header bar - WLM style title bar */}
+                          <div
+                            style={{
+                              background: 'linear-gradient(180deg, #dcdcdc 0%, #c8c8c8 100%)',
+                              borderBottom: '1px solid #b0b0b0',
+                              padding: '4px 8px',
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: 6,
+                            }}
+                          >
+                            {/* PDF icon badge */}
+                            <div
+                              style={{
+                                width: 28,
+                                height: 28,
+                                background: 'linear-gradient(180deg, #e84040 0%, #b82020 100%)',
+                                border: '1px solid #901010',
+                                borderRadius: 4,
+                                boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.3), 0 1px 2px rgba(0,0,0,0.2)',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                flexShrink: 0,
+                              }}
+                            >
+                              <span style={{ color: 'white', fontSize: 9, fontWeight: 900, fontFamily: 'Segoe UI, Tahoma, sans-serif', letterSpacing: '-0.5px' }}>PDF</span>
+                            </div>
+
+                            {/* Filename */}
+                            <span
+                              style={{
+                                fontSize: 12,
+                                fontWeight: 700,
+                                color: '#333',
+                                fontFamily: 'Segoe UI, Tahoma, sans-serif',
+                                overflow: 'hidden',
+                                textOverflow: 'ellipsis',
+                                whiteSpace: 'nowrap',
+                                flex: 1,
+                              }}
+                            >
+                              {att.name}
+                            </span>
                           </div>
-                          <div className="flex flex-col overflow-hidden">
-                            <span className="text-[13px] font-bold truncate text-gray-800">{att.name}</span>
-                            <div className="flex items-center gap-3">
+
+                          {/* Body */}
+                          <div
+                            style={{
+                              padding: '7px 10px',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'space-between',
+                              gap: 8,
+                            }}
+                          >
+                            <span style={{ fontSize: 11, color: '#888', fontFamily: 'Segoe UI, Tahoma, sans-serif', fontStyle: 'italic' }}>
+                              PDF Document
+                            </span>
+
+                            {/* Action buttons - WLM toolbar button style */}
+                            <div style={{ display: 'flex', gap: 5 }}>
                               <button
-                                onClick={() => {
-                                  setPreviewPdf(att);
-                                  setShowPdfPreviewDialog(true);
+                                onClick={() => { setPreviewPdf(att); setShowPdfPreviewDialog(true); }}
+                                style={{
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  gap: 4,
+                                  padding: '3px 8px',
+                                  fontSize: 11,
+                                  fontWeight: 700,
+                                  fontFamily: 'Segoe UI, Tahoma, sans-serif',
+                                  color: '#333',
+                                  background: 'linear-gradient(180deg, #f5f5f5 0%, #dcdcdc 100%)',
+                                  border: '1px solid #aaa',
+                                  borderRadius: 3,
+                                  boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.9)',
+                                  cursor: 'pointer',
                                 }}
-                                className="text-[11px] text-[#3169C6] font-bold hover:underline flex items-center gap-1"
+                                onMouseEnter={e => e.currentTarget.style.background = 'linear-gradient(180deg, #e8f0ff 0%, #ccd8f0 100%)'}
+                                onMouseLeave={e => e.currentTarget.style.background = 'linear-gradient(180deg, #f5f5f5 0%, #dcdcdc 100%)'}
                               >
-                                <Eye size={12} /> Preview
+                                <Eye size={11} /> Preview
                               </button>
+
                               <a
                                 href={att.content}
                                 download={att.name}
-                                className="text-[11px] text-[#3169C6] font-bold hover:underline flex items-center gap-1"
+                                style={{
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  gap: 4,
+                                  padding: '3px 8px',
+                                  fontSize: 11,
+                                  fontWeight: 700,
+                                  fontFamily: 'Segoe UI, Tahoma, sans-serif',
+                                  color: '#333',
+                                  background: 'linear-gradient(180deg, #f5f5f5 0%, #dcdcdc 100%)',
+                                  border: '1px solid #aaa',
+                                  borderRadius: 3,
+                                  boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.9)',
+                                  textDecoration: 'none',
+                                }}
+                                onMouseEnter={e => (e.currentTarget as HTMLAnchorElement).style.background = 'linear-gradient(180deg, #e8f0ff 0%, #ccd8f0 100%)'}
+                                onMouseLeave={e => (e.currentTarget as HTMLAnchorElement).style.background = 'linear-gradient(180deg, #f5f5f5 0%, #dcdcdc 100%)'}
                               >
-                                <Download size={12} /> Download
+                                <Download size={11} /> Save
                               </a>
                             </div>
                           </div>
@@ -868,7 +1087,7 @@ export const ChatPage: React.FC<ChatPageProps> = ({ user, onLogout }) => {
                       ))}
                     </div>
                   )}
-
+                  
                   {msg.reactions && Object.keys(msg.reactions).length > 0 && (
                     <div className="flex flex-wrap gap-1 mt-1 ml-3">
                       {Object.entries(msg.reactions).map(([emoji, count]) => (
@@ -1590,7 +1809,11 @@ function UserProfileDialog({ user, lastMessageObj, onClose }: { user: any, lastM
                   <div className="flex flex-col">
                     <span className="text-[10px] font-bold uppercase text-gray-400">Last Message Sent</span>
                     <span className="text-sm font-medium italic">
-                      "{lastMessageObj?.text || 'No messages yet'}"
+                      "{((lastMessageObj.type==="image" ||
+                        lastMessageObj.type==="pdf" ||
+                        lastMessageObj.type==="voice"  )
+                        ? lastMessageObj.text : lastMessageObj.content) ||  'No messages yet'
+                     }"
                     </span>
                   </div>
                 </div>
@@ -1865,7 +2088,7 @@ function PdfPreviewDialog({ pdf, onClose }: { pdf: { name: string, content: stri
         initial={{ scale: 0.9, opacity: 0, y: 20 }}
         animate={{ scale: 1, opacity: 1, y: 0 }}
         exit={{ scale: 0.9, opacity: 0, y: 20 }}
-        className="w-[90vw] h-[90vh] bg-white border border-[#ACA899] rounded-lg shadow-2xl overflow-hidden flex flex-col"
+        className="w-[90vw]   h-[90vh]  max-w-[1000px] max-h-[700px] bg-white border border-[#ACA899] rounded-lg shadow-2xl overflow-hidden flex flex-col"
         onClick={(e) => e.stopPropagation()}
       >
         <TitleBar title={`PDF Preview - ${pdf.name}`} variant="live" icon="/assets/icons/image.png" onClose={onClose} />
