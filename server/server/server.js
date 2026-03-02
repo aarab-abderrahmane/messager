@@ -214,7 +214,8 @@ wss.on('connection', (ws, req) => {
           email : user.email , 
           username: user.username, 
           text: sanitizedText,
-          timestamp: Date.now()
+          timestamp: Date.now() , 
+          replyTo: data.replyTo ? data.replyTo : null
         };
         
 

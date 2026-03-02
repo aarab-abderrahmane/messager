@@ -20,7 +20,8 @@ export interface Message {
   replyTo?: {
     id: string;
     text: string;
-    sender: 'me' | 'them';
+    username: string;
+    email : string
   };
   reactions?: {
     [key: string]: number; // reaction type -> count

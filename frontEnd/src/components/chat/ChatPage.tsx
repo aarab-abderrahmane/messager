@@ -221,9 +221,12 @@ export const ChatPage: React.FC<ChatPageProps> = ({ user, onLogout }) => {
       msgData.replyTo = {
         id: replyingTo.id,
         text: replyingTo.text || (replyingTo.type === 'image' ? 'Photo' : replyingTo.type === 'voice' ? 'Voice Clip' : 'Gift'),
-        sender: replyingTo.sender
+        username: replyingTo.username , 
+        email : replyingTo.email 
       };
     }
+
+    if (replyingTo) console.log("true reply",msgData)
 
     ws.current.send(JSON.stringify(msgData));
     // addMessage(msgData);
@@ -591,7 +594,7 @@ export const ChatPage: React.FC<ChatPageProps> = ({ user, onLogout }) => {
                   {msg.replyTo && (
                     <div className="ml-3 mb-1 p-2 bg-gray-50 border-l-4 border-[#3169C6]/30 rounded-r-md text-[11px] text-gray-500 italic max-w-[80%] truncate">
                       <span className="font-bold not-italic mr-1">
-                        {msg.replyTo.sender === 'me' ? 'You' : 'Poops'}:
+                        {msg.replyTo.email  === currentUser.email ? 'You' : msg.replyTo.username}:
                       </span>
                       {msg.replyTo.text}
                     </div>
