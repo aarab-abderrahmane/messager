@@ -162,6 +162,17 @@ export const ChatPage: React.FC<ChatPageProps> = ({ user, onLogout }) => {
         ])
       }
 
+
+      if (data.type === "update_message") {
+        setMessages((prevMessages) => 
+          prevMessages.map((msg) => 
+            msg.id === data.messageId 
+              ? { ...msg, reactions: data.reactions } 
+              : msg 
+          )
+        );
+      }
+
     };
 
     ws.current.onclose = (event) => {
@@ -310,25 +321,16 @@ export const ChatPage: React.FC<ChatPageProps> = ({ user, onLogout }) => {
     setShowStickerDialog(false);
   };
 
-  const handleReaction = (messageId: string, reaction: string) => {
-    setMessages(prev => prev.map(msg => {
-      if (msg.id === messageId) {
-        const reactions = { ...(msg.reactions || {}) };
+  const handleReaction = (messageId: string, emoji: string) => {
+    const reactionData = {
+      type: "reaction",
+      messageId: messageId,
+      emoji: emoji,
+      token: currentUser.token // Always send the token for safety!
+    };
 
-        // If the same reaction is already there, remove it (toggle)
-        if (reactions[reaction]) {
-          delete reactions[reaction];
-        } else {
-          // Clear all other reactions and set the new one (only one allowed)
-          Object.keys(reactions).forEach(key => delete reactions[key]);
-          reactions[reaction] = 1;
-        }
-
-        return { ...msg, reactions };
-      }
-      return msg;
-    }));
-    setReactionMenuId(null);
+    ws.current.send(JSON.stringify(reactionData));
+    setReactionMenuId(null); // Close the menu
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -1090,15 +1092,23 @@ export const ChatPage: React.FC<ChatPageProps> = ({ user, onLogout }) => {
                   
                   {msg.reactions && Object.keys(msg.reactions).length > 0 && (
                     <div className="flex flex-wrap gap-1 mt-1 ml-3">
-                      {Object.entries(msg.reactions).map(([emoji, count]) => (
-                        <div
-                          key={emoji}
-                          className="flex items-center gap-1 bg-gray-100 border border-gray-200 rounded-full px-1.5 py-0.5 text-[10px] shadow-sm animate-in zoom-in duration-200"
-                        >
-                          <span>{emoji}</span>
-                          <span className="font-bold text-gray-600">{count}</span>
-                        </div>
-                      ))}
+                      {Object.entries(msg.reactions).map(([emoji, users]) => {
+                        // 1. users is an ARRAY of emails, so we get the length
+                        const count = users.length;
+
+                        // 2. Only show the emoji if at least 1 person clicked it
+                        if (count === 0) return null;
+
+                        return (
+                          <div
+                            key={emoji}
+                            className="flex items-center gap-1 bg-gray-100 border border-gray-200 rounded-full px-1.5 py-0.5 text-[10px] shadow-sm animate-in zoom-in duration-200"
+                          >
+                            <span>{emoji}</span>
+                            <span className="font-bold text-gray-600">{count}</span>
+                          </div>
+                        );
+                      })}
                     </div>
                   )}
                 </div>

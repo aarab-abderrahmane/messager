@@ -286,6 +286,40 @@ wss.on('connection', (ws, req) => {
       }
 
 
+
+      if (data.type === "reaction") {
+          const { messageId, emoji, token } = data;
+          const user = getUserByToken(token);
+          if (!user) return;
+
+          // 1. Find the message in your messages array or DB
+          const message = chatHistory.find(m => m.id === messageId);
+          if (!message) return;
+
+          // 2. Initialize reactions object if it doesn't exist
+          if (!message.reactions) message.reactions = {};
+          if (!message.reactions[emoji]) message.reactions[emoji] = [];
+
+          const userIndex = message.reactions[emoji].indexOf(user.email);
+
+          if (userIndex > -1) {
+            // If they already reacted with this emoji, REMOVE it (toggle)
+            message.reactions[emoji].splice(userIndex, 1);
+          } else {
+            // Otherwise, ADD their email to the list
+            message.reactions[emoji].push(user.email);
+          }
+
+          // 3. Broadcast the UPDATED message to everyone
+          broadcast({
+            type: "update_message",
+            messageId: messageId,
+            reactions: message.reactions
+          });
+        }
+
+
+
     } catch (err) {
       console.error("WS Error:", err);
     }

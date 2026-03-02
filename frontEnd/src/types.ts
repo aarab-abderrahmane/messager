@@ -29,7 +29,7 @@ export interface Message {
     content: string;
   }[];
   reactions?: {
-    [key: string]: number; // reaction type -> count
+    [emoji: string]: string[]; 
   };
 }
 
