@@ -7,6 +7,7 @@ export interface Message {
   id: string;
   token: string;
   username: string;
+  content  : string ; 
   sender: 'me' | 'them';
   email : string ; 
   text?: string;

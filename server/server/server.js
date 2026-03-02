@@ -4,7 +4,7 @@ const WebSocket = require('ws');
 const cors = require("cors");
 
 const { PORT } = require('./config');
-const { validateTextMessage, validateImageMessage } = require('./validation');
+const { validateTextMessage, validateImageMessage ,validateVoiceMessage } = require('./validation');
 const { getRegistredUsers, getUserByToken, removeUser, addUser } = require('./authManager');
 
 const app = express();
@@ -204,16 +204,15 @@ wss.on('connection', (ws, req) => {
       // TEXT MESSAGE
       // ======================
       if (data.type === "text") {
-
         const sanitizedText = validateTextMessage(data);
         if (!sanitizedText) return;
 
         const messageData = {
-          id: Date.now().toString(),
-          type: "text",
+          id: Date.now().toString() + Math.random(),
+          type : "text" , 
           email : user.email , 
           username: user.username, 
-          text: sanitizedText,
+          content: sanitizedText,
           timestamp: Date.now() , 
           replyTo: data.replyTo ? data.replyTo : null
         };
@@ -231,17 +230,40 @@ wss.on('connection', (ws, req) => {
         if (!validateImageMessage(data)) return;
 
         const messageData = {
-          id: Date.now().toString(),
-          type: "image",
-          username: user.email,
-          color: user.color,
-          imageUrl: data.imageUrl,
-          timestamp: Date.now()
+          id: Date.now().toString() + Math.random(),
+          type : "image" , 
+          email : user.email , 
+          username: user.username, 
+          content: data.content,
+          timestamp: Date.now() , 
+          replyTo: data.replyTo ? data.replyTo : null
         };
 
         addMessage(messageData);
         broadcast(messageData);
       }
+
+
+
+       if (data.type === "voice") {
+
+        if (!validateVoiceMessage(data)) return;
+
+        const messageData = {
+          id: Date.now().toString() + Math.random(),
+          type : "voice" , 
+          email : user.email , 
+          text : data.text , 
+          username: user.username, 
+          content: data.content,
+          timestamp: Date.now() , 
+          replyTo: data.replyTo ? data.replyTo : null
+        };
+
+        addMessage(messageData);
+        broadcast(messageData);
+      }
+
 
     } catch (err) {
       console.error("WS Error:", err);

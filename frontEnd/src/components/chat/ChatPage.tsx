@@ -151,17 +151,13 @@ export const ChatPage: React.FC<ChatPageProps> = ({ user, onLogout }) => {
 
 
 
-      if (data.type === "text") {
-        setMessages((prev) => [...prev,
-          {...data , sender: data.email === currentUser.email ? "me" : 'them'}
-        ]);
+      if(data.type ==="text" || data.type=== "image" || data.type==="voice"){
+        setMessages(prev => [
+          ...prev  , 
+          {...data , sender : data.email === currentUser.email ? "me" : "them"}
+        ])
       }
 
-      if (data.type === "image") {
-        setMessages((prev) => [...prev,
-        { sender: 'them', username: data.username, imageUrl: data.imageUrl, type: 'image', timestamp: new Date() }
-        ]);
-      }
     };
 
     ws.current.onclose = (event) => {
@@ -191,14 +187,17 @@ export const ChatPage: React.FC<ChatPageProps> = ({ user, onLogout }) => {
   }, [messages]);
 
   const addMessage = (msg: Partial<Message>) => {
+    console.log('add')
     const newMessage: Message = {
-      id: Date.now().toString(),
-      sender: 'me',
-      timestamp: new Date(),
-      type: 'text',
-      ...msg
+      ...msg , 
+      username : currentUser.username , 
+      email : currentUser.email  , 
+      replyTo : replyingTo? replyingTo : null 
     } as Message;
-    setMessages(prev => [...prev, newMessage]);
+
+    console.log("success" , newMessage)
+
+    ws.current.send(JSON.stringify(newMessage));
   };
 
   const handleSend = () => {
@@ -216,20 +215,20 @@ export const ChatPage: React.FC<ChatPageProps> = ({ user, onLogout }) => {
       return;
     }
 
-    const msgData: Partial<Message> = { text: inputText, type: 'text', username: currentUser.username , email  : currentUser.email  };
-    if (replyingTo) {
-      msgData.replyTo = {
-        id: replyingTo.id,
-        text: replyingTo.text || (replyingTo.type === 'image' ? 'Photo' : replyingTo.type === 'voice' ? 'Voice Clip' : 'Gift'),
-        username: replyingTo.username , 
-        email : replyingTo.email 
-      };
-    }
+    // const msgData: Partial<Message> = { text: inputText, type: 'text', username: currentUser.username , email  : currentUser.email  };
+    // if (replyingTo) {
+    //   msgData.replyTo = {
+    //     id: replyingTo.id,
+    //     text: replyingTo.text || (replyingTo.type === 'image' ? 'Photo' : replyingTo.type === 'voice' ? 'Voice Clip' : 'Gift'),
+    //     username: replyingTo.username , 
+    //     email : replyingTo.email 
+    //   };
+    // }
 
-    if (replyingTo) console.log("true reply",msgData)
+    // if (replyingTo) console.log("true reply",msgData)
 
-    ws.current.send(JSON.stringify(msgData));
-    // addMessage(msgData);
+    addMessage({type : "text" , content : inputText})
+   
     setInputText('');
     setReplyingTo(null);
   };
@@ -268,10 +267,16 @@ export const ChatPage: React.FC<ChatPageProps> = ({ user, onLogout }) => {
   };
 
   const handleVoiceUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    console.log("run")
     const file = e.target.files?.[0];
     if (file) {
-      const url = URL.createObjectURL(file);
-      addMessage({ text: `Voice Clip: ${file.name}`, audioUrl: url, type: 'voice' });
+      const reader = new FileReader();
+      reader.onload = () => {
+        const base64Voice = reader.result as string;
+        addMessage({ text: `Voice Clip: ${file.name}`, content: base64Voice, type: 'voice' });
+
+      };
+      reader.readAsDataURL(file);
     }
   };
 
@@ -425,12 +430,7 @@ export const ChatPage: React.FC<ChatPageProps> = ({ user, onLogout }) => {
             imageUrl={pendingPhotoUrl}
             onClose={() => setPendingPhotoUrl(null)}
             onSend={(url) => {
-              ws.current.send(JSON.stringify({
-                type: "image",
-                username: currentUser.email,
-                imageUrl: url,
-                timestamp: Date.now()
-              }));
+              addMessage({type : "image" , content : url  })
               setPendingPhotoUrl(null);
             }}
           />
@@ -606,7 +606,7 @@ export const ChatPage: React.FC<ChatPageProps> = ({ user, onLogout }) => {
                         {/* {msg.sender === 'me' ? 'You say:' : 'Poops says:'} */}
                         {msg.username}
                       </span>
-                      <span className="text-[14px] ml-3 leading-relaxed">{msg.text}</span>
+                      <span className="text-[14px] ml-3 leading-relaxed">{msg.content}</span>
                     </div>
                   )}
                   {msg.type === 'image' && (
@@ -615,10 +615,10 @@ export const ChatPage: React.FC<ChatPageProps> = ({ user, onLogout }) => {
                         {msg.sender === 'me' ? 'You sent a photo:' : 'Poops sent a photo:'}
                       </span>
                       <img
-                        src={msg.imageUrl}
+                        src={msg.content}
                         className="max-w-[200px] rounded-md border border-gray-200 shadow-sm ml-3 cursor-pointer hover:opacity-90 transition-opacity"
                         alt="Sent photo"
-                        onClick={() => setPreviewImageUrl(msg.imageUrl || null)}
+                        onClick={() => setPreviewImageUrl(msg.content || null)}
                       />
                     </div>
                   )}
@@ -627,25 +627,76 @@ export const ChatPage: React.FC<ChatPageProps> = ({ user, onLogout }) => {
                       <span className={`font-bold text-[13px] ${msg.sender === 'me' ? 'text-[#3169C6]' : 'text-black'}`}>
                         {msg.sender === 'me' ? `You sent a ${msg.type}:` : `Poops sent a ${msg.type}:`}
                       </span>
-                      <img src={msg.imageUrl} className="max-w-[150px] ml-3" alt={msg.type} />
+                      <img src={msg.content} className="max-w-[150px] ml-3" alt={msg.type} />
                     </div>
                   )}
                   {msg.type === 'voice' && (
-                    <div className="flex flex-col gap-1">
-                      <span className={`font-bold text-[13px] ${msg.sender === 'me' ? 'text-[#3169C6]' : 'text-black'}`}>
-                        {msg.sender === 'me' ? 'You sent:' : 'Poops sent:'}
-                      </span>
-                      <div className="ml-3 py-2 px-4 bg-[#F0F7FF] border border-[#3169C6]/20 rounded-md flex flex-col gap-2 text-[#3169C6] font-medium">
-                        <div className="flex items-center gap-2">
-                          <Mic size={16} />
-                          {msg.text}
-                        </div>
-                        {msg.audioUrl && (
-                          <audio controls src={msg.audioUrl} className="h-8 max-w-[200px] mt-1" />
-                        )}
-                      </div>
-                    </div>
-                  )}
+  <div className="flex flex-col gap-1">
+    <span className={`font-bold text-[13px] ${msg.sender === 'me' ? 'text-[#3169C6]' : 'text-black'}`}>
+      {msg.sender === 'me' ? 'You sent:' : msg.username}
+    </span>
+
+    <div
+      className="ml-3 flex flex-col gap-2"
+      style={{
+        background: 'linear-gradient(180deg, #f5f9ff 0%, #ddeeff 100%)',
+        border: '1px solid #aac8e8',
+        borderRadius: '6px',
+        padding: '8px 12px',
+        maxWidth: '260px',
+        boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.9), 0 1px 3px rgba(0,0,0,0.1)',
+      }}
+    >
+      {/* Header row */}
+      <div className="flex items-center gap-2">
+        {/* Animated mic icon bubble */}
+        <div
+          style={{
+            width: 32,
+            height: 32,
+            borderRadius: '50%',
+            background: 'linear-gradient(180deg, #5b9bd5 0%, #2a6ab5 100%)',
+            border: '1px solid #1a5aa5',
+            boxShadow: '0 2px 4px rgba(0,0,0,0.2)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            flexShrink: 0,
+          }}
+        >
+          <Mic size={16} color="white" />
+        </div>
+
+        <div className="flex flex-col">
+          <span style={{ fontSize: 12, fontWeight: 700, color: '#1a5aa5', fontFamily: 'Segoe UI, Tahoma, sans-serif' }}>
+            Voice Message
+          </span>
+          <span style={{ fontSize: 11, color: '#5a7fa8', fontFamily: 'Segoe UI, Tahoma, sans-serif' }}>
+            {msg.text}
+          </span>
+        </div>
+      </div>
+
+      {/* Divider */}
+      <div style={{ height: 1, background: 'linear-gradient(90deg, transparent, #aac8e8, transparent)' }} />
+
+      {/* Audio player */}
+      {msg.content && (
+        <div className="flex flex-col gap-1">
+          <audio
+            controls
+            src={msg.content}
+            style={{
+              width: '100%',
+              height: 28,
+              accentColor: '#3169C6',
+            }}
+          />
+        </div>
+      )}
+    </div>
+  </div>
+)}
                   {msg.type === 'gift' && (
                     <div className="flex flex-col gap-1">
                       <span className={`font-bold text-[13px] ${msg.sender === 'me' ? 'text-[#3169C6]' : 'text-black'}`}>
