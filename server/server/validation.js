@@ -1,10 +1,10 @@
 // Constants
 const MAX_TEXT_LENGTH = 2000;
-const MAX_IMAGE_SIZE = 5 * 1024 * 1024; // 5MB
-const MAX_VOICE_SIZE = 5 * 1024 * 1024; // 2MB (Voice clips should be smaller)
+const MAX_IMAGE_SIZE = 2 * 1024 * 1024; // 2MB
+const MAX_VOICE_SIZE = 1 * 1024 * 1024; // 1MB (Voice clips should be smaller)
 
 // Constants
-const MAX_PDF_SIZE = 10 * 1024 * 1024; // 10MB per file
+const MAX_PDF_SIZE = 2 * 1024 * 1024; // 2MB per file
 const MAX_ATTACHMENTS = 3; // Max files allowed
 
 

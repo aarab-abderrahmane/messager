@@ -6,6 +6,8 @@ import { EXISTING_USERS, AVATARS, MSN_LOGO_URL } from '../../constants';
 import { Toast } from '../common/Toast';
 import { TitleBar } from '../common/TitleBar';
 
+import './signup.css';
+
 interface SignupPageProps {
   onSignup: (data: UserData) => void;
 }
@@ -113,7 +115,7 @@ export const SignupPage: React.FC<SignupPageProps> = ({ onSignup }) => {
   };
 
   return (
-    <div className=" w-full bg-gradient-to-b from-[#C9E0F7] via-[#FFFFFF] to-[#C9E0F7] flex items-center justify-center p-4 font-sans">
+    <div className=" w-full bg-gradient-to-b from-[#C9E0F7] via-[#FFFFFF] to-[#C9E0F7] flex items-center justify-center p-4 font-sans h-screen">
       <AnimatePresence>
         {toast && (
           <Toast
@@ -149,7 +151,7 @@ export const SignupPage: React.FC<SignupPageProps> = ({ onSignup }) => {
                     <label className="text-[11px] font-bold text-gray-500 uppercase tracking-wider ml-1">Server Address</label>
                     <input
                       type="text"
-                      placeholder="http://localhost"
+                      placeholder="http://192.168.206.1"
                       className="w-full h-10 px-3 border border-[#A0A0A0] rounded-lg text-sm focus:outline-none focus:border-[#003399] focus:ring-2 focus:ring-[#003399]/20 transition-all shadow-inner"
                       value={serverLink}
                       onChange={(e) => setServerLink(e.target.value)}
