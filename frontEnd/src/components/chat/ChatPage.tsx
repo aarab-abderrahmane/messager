@@ -192,6 +192,16 @@ export const ChatPage: React.FC<ChatPageProps> = ({ user, onLogout }) => {
   }, [currentUser?.token]);
 
 
+  function cleanIP(ip) {
+    if (ip.includes('::ffff:')) {
+      return ip.split('::ffff:')[1];
+    
+    }
+
+
+
+    return ip;
+  }
 
   const scrollToBottom = () => {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -398,6 +408,7 @@ export const ChatPage: React.FC<ChatPageProps> = ({ user, onLogout }) => {
         {showUserProfileDialog && selectedUser && (
           <UserProfileDialog
             user={selectedUser}
+            IP={cleanIP(selectedUser.ip)}
             lastMessageObj={messages.filter(m => m.email === selectedUser.email).slice(-1)[0]}
             onClose={() => setShowUserProfileDialog(false)}
           />
@@ -1755,7 +1766,7 @@ function StickerDialog({ onSelect, onClose }: { onSelect: (url: string, type: 's
   );
 }
 
-function UserProfileDialog({ user, lastMessageObj, onClose }: { user: any, lastMessageObj: Message | undefined, onClose: () => void }) {
+function UserProfileDialog({ user , IP, lastMessageObj, onClose }: { user: any, IP : string, lastMessageObj: Message | undefined, onClose: () => void }) {
   const formatDate = (timestamp: number) => {
     // Create the Date object here!
     const date = new Date(timestamp);
@@ -1811,7 +1822,7 @@ function UserProfileDialog({ user, lastMessageObj, onClose }: { user: any, lastM
                 <Globe size={16} className="text-[#3169C6]" />
                 <div className="flex flex-col">
                   <span className="text-[10px] font-bold uppercase text-gray-400">IP Address</span>
-                  <span className="text-sm font-medium font-mono">{user.ip}</span>
+                  <span className="text-sm font-medium font-mono">{ IP}</span>
                 </div>
               </div>
               <div className="flex flex-col gap-2 pt-2 border-t border-[#ACA899]/20">
