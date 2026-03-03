@@ -725,693 +725,837 @@ export const ChatPage: React.FC<ChatPageProps> = ({ user, onLogout }) => {
           {/* Center Column (Chat Area) */}
           <div className="flex-1 flex flex-col gap-4 ">
             {/* Conversation Panel */}
-            <div className="flex-1 bg-white border-2 border-[#ACA899] rounded-md shadow-inner overflow-y-auto p-5 flex flex-col gap-3 scrollbar-thin scrollbar-thumb-[#ACA899] scrollbar-track-[#F1F1F1]">
-              <div className="text-[12px] font-bold border-b border-[#F1F1F1] pb-2 mb-2 flex items-center gap-2">
-                <span className="text-[#3169C6]">To:</span> Poops
-              </div>
 
-              {messages.map((msg) => {
-                const isMe = msg.email === currentUser.email;
 
-                return (
-                  <div key={msg.id} className={`text-sm group relative my-1 ${msg.type === 'nudge' ? 'text-center my-3' : ''}`}>
-                 
-                    {msg.type !== 'nudge' && (
-                      <div
-                        className="absolute -right-2 top-0 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity z-10"
-                      >
-                        {/* Toolbar pill */}
-                        <div
-                          style={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: 2,
-                            background: 'linear-gradient(180deg, #f8f8f8 0%, #e8e8e8 100%)',
-                            border: '1px solid #c0c0c0',
-                            borderRadius: 20,
-                            padding: '2px 5px',
-                            boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.95), 0 2px 5px rgba(0,0,0,0.12)',
-                          }}
-                        >
-                          {/* Reaction button */}
-                          <div className="relative">
-                            <button
-                              onClick={() => setReactionMenuId(reactionMenuId === msg.id ? null : msg.id)}
-                              title="React"
-                              style={{
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                width: 24,
-                                height: 24,
-                                borderRadius: '50%',
-                                border: 'none',
-                                background: reactionMenuId === msg.id
-                                  ? 'linear-gradient(180deg, #888 0%, #666 100%)'
-                                  : 'transparent',
-                                color: reactionMenuId === msg.id ? '#fff' : '#999',
-                                cursor: 'pointer',
-                                transition: 'all 0.15s',
-                              }}
-                              onMouseEnter={e => {
-                                if (reactionMenuId !== msg.id) {
-                                  e.currentTarget.style.background = 'linear-gradient(180deg, #ececec 0%, #dcdcdc 100%)';
-                                  e.currentTarget.style.color = '#555';
-                                }
-                              }}
-                              onMouseLeave={e => {
-                                if (reactionMenuId !== msg.id) {
-                                  e.currentTarget.style.background = 'transparent';
-                                  e.currentTarget.style.color = '#999';
-                                }
-                              }}
-                            >
-                              <Smile size={14} />
-                            </button>
 
-                            {/* Reaction picker */}
-                            <AnimatePresence>
-                              {reactionMenuId === msg.id && (
-                                <motion.div
-                                  initial={{ opacity: 0, scale: 0.8, y: 6 }}
-                                  animate={{ opacity: 1, scale: 1, y: 0 }}
-                                  exit={{ opacity: 0, scale: 0.8, y: 6 }}
-                                  transition={{ type: 'spring', stiffness: 300, damping: 22 }}
-                                  style={{
-                                    position: 'absolute',
-                                    bottom: '110%',
-                                    right: 0,
-                                    background: 'linear-gradient(180deg, #f8f8f8 0%, #ececec 100%)',
-                                    border: '1px solid #c0c0c0',
-                                    borderRadius: 20,
-                                    padding: '4px 6px',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    gap: 2,
-                                    boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.95), 0 4px 12px rgba(0,0,0,0.15)',
-                                    whiteSpace: 'nowrap',
-                                    zIndex: 20,
-                                  }}
-                                >
-                                  {/* Pointer arrow */}
-                                  <div style={{
-                                    position: 'absolute',
-                                    bottom: -5,
-                                    right: 10,
-                                    width: 0, height: 0,
-                                    borderLeft: '5px solid transparent',
-                                    borderRight: '5px solid transparent',
-                                    borderTop: '5px solid #c0c0c0',
-                                  }} />
-                                  <div style={{
-                                    position: 'absolute',
-                                    bottom: -4,
-                                    right: 10,
-                                    width: 0, height: 0,
-                                    borderLeft: '5px solid transparent',
-                                    borderRight: '5px solid transparent',
-                                    borderTop: '5px solid #ececec',
-                                  }} />
+              <div
+                className="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-[#c0c0c0] scrollbar-track-[#f0f0f0]"
+                style={{
+                  background: 'linear-gradient(180deg, #ffffff 0%, #f8f8ff 100%)',
+                  border: '1px solid #b0c8e8',
+                  borderRadius: 6,
+                  boxShadow: 'inset 0 2px 6px rgba(49,105,198,0.06)',
+                  display: 'flex',
+                  flexDirection: 'column',
+                }}
+              >
+                {/* "To:" header bar */}
+                <div
+                  style={{
+                    flexShrink: 0,
+                    background: 'linear-gradient(180deg, #f0f6ff 0%, #ddeeff 100%)',
+                    borderBottom: '1px solid #b0c8e8',
+                    padding: '5px 12px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 8,
+                    boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.9)',
+                    position: 'sticky',
+                    top: 0,
+                    zIndex: 5,
+                  }}
+                >
+                  {/* "To:" label badge */}
+                  <div style={{
+                    background: 'linear-gradient(180deg, #4a85d8 0%, #2a5fb5 100%)',
+                    border: '1px solid #1e4fa0',
+                    borderRadius: 3,
+                    padding: '1px 7px',
+                    fontSize: 10,
+                    fontWeight: 800,
+                    fontFamily: 'Segoe UI, Tahoma, sans-serif',
+                    color: '#fff',
+                    letterSpacing: '0.04em',
+                    boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.25)',
+                    flexShrink: 0,
+                  }}>
+                    To:
+                  </div>
 
-                                  {[
-                                    { emoji: '❤️', type: 'love', label: 'Love' },
-                                    { emoji: '👍', type: 'like', label: 'Like' },
-                                    { emoji: '👎', type: 'dislike', label: 'Dislike' },
-                                    { emoji: '😂', type: 'fun', label: 'Funny' },
-                                  ].map(r => (
-                                    <button
-                                      key={r.type}
-                                      onClick={() => handleReaction(msg.id, r.emoji)}
-                                      title={r.label}
+
+                    <span style={{
+                      fontSize: 12,
+                      fontWeight: 700,
+                      fontFamily: 'Segoe UI, Tahoma, sans-serif',
+                      color: '#1a3e7a',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      whiteSpace: 'nowrap',
+                    }}>
+                      all contacts
+                    </span>
+                </div>
+
+                {/* Messages area */}
+                <div
+                  style={{
+                    flex: 1,
+                    padding: '12px 14px',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: 10,
+                    overflowY: 'auto',
+                  }}
+                >
+                  {/* Date separator — shown once per day */}
+                  <div style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 8,
+                    margin: '4px 0',
+                  }}>
+                    <div style={{ flex: 1, height: 1, background: 'linear-gradient(90deg, transparent, #c8d8ee)' }} />
+                    <span style={{
+                      fontSize: 10,
+                      fontWeight: 700,
+                      fontFamily: 'Segoe UI, Tahoma, sans-serif',
+                      color: '#7aaee0',
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.06em',
+                      padding: '1px 8px',
+                      background: 'linear-gradient(180deg, #f0f6ff 0%, #e4eeff 100%)',
+                      border: '1px solid #b0c8e8',
+                      borderRadius: 10,
+                      boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.8)',
+                    }}>
+                      Today
+                    </span>
+                    <div style={{ flex: 1, height: 1, background: 'linear-gradient(90deg, #c8d8ee, transparent)' }} />
+                  </div>
+
+                  {messages.map((msg) => {
+                              const isMe = msg.email === currentUser.email;
+
+                              return (
+                                <div key={msg.id} className={`text-sm group relative my-1 ${msg.type === 'nudge' ? 'text-center my-3' : ''}`}>
+                              
+                                  {msg.type !== 'nudge' && (
+                                    <div
+                                      className="absolute -right-2 top-0 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity z-10"
+                                    >
+                                      {/* Toolbar pill */}
+                                      <div
+                                        style={{
+                                          display: 'flex',
+                                          alignItems: 'center',
+                                          gap: 2,
+                                          background: 'linear-gradient(180deg, #f8f8f8 0%, #e8e8e8 100%)',
+                                          border: '1px solid #c0c0c0',
+                                          borderRadius: 20,
+                                          padding: '2px 5px',
+                                          boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.95), 0 2px 5px rgba(0,0,0,0.12)',
+                                        }}
+                                      >
+                                        {/* Reaction button */}
+                                        <div className="relative">
+                                          <button
+                                            onClick={() => setReactionMenuId(reactionMenuId === msg.id ? null : msg.id)}
+                                            title="React"
+                                            style={{
+                                              display: 'flex',
+                                              alignItems: 'center',
+                                              justifyContent: 'center',
+                                              width: 24,
+                                              height: 24,
+                                              borderRadius: '50%',
+                                              border: 'none',
+                                              background: reactionMenuId === msg.id
+                                                ? 'linear-gradient(180deg, #888 0%, #666 100%)'
+                                                : 'transparent',
+                                              color: reactionMenuId === msg.id ? '#fff' : '#999',
+                                              cursor: 'pointer',
+                                              transition: 'all 0.15s',
+                                            }}
+                                            onMouseEnter={e => {
+                                              if (reactionMenuId !== msg.id) {
+                                                e.currentTarget.style.background = 'linear-gradient(180deg, #ececec 0%, #dcdcdc 100%)';
+                                                e.currentTarget.style.color = '#555';
+                                              }
+                                            }}
+                                            onMouseLeave={e => {
+                                              if (reactionMenuId !== msg.id) {
+                                                e.currentTarget.style.background = 'transparent';
+                                                e.currentTarget.style.color = '#999';
+                                              }
+                                            }}
+                                          >
+                                            <Smile size={14} />
+                                          </button>
+
+                                          {/* Reaction picker */}
+                                          <AnimatePresence>
+                                            {reactionMenuId === msg.id && (
+                                              <motion.div
+                                                initial={{ opacity: 0, scale: 0.8, y: 6 }}
+                                                animate={{ opacity: 1, scale: 1, y: 0 }}
+                                                exit={{ opacity: 0, scale: 0.8, y: 6 }}
+                                                transition={{ type: 'spring', stiffness: 300, damping: 22 }}
+                                                style={{
+                                                  position: 'absolute',
+                                                  bottom: '110%',
+                                                  right: 0,
+                                                  background: 'linear-gradient(180deg, #f8f8f8 0%, #ececec 100%)',
+                                                  border: '1px solid #c0c0c0',
+                                                  borderRadius: 20,
+                                                  padding: '4px 6px',
+                                                  display: 'flex',
+                                                  alignItems: 'center',
+                                                  gap: 2,
+                                                  boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.95), 0 4px 12px rgba(0,0,0,0.15)',
+                                                  whiteSpace: 'nowrap',
+                                                  zIndex: 20,
+                                                }}
+                                              >
+                                                {/* Pointer arrow */}
+                                                <div style={{
+                                                  position: 'absolute',
+                                                  bottom: -5,
+                                                  right: 10,
+                                                  width: 0, height: 0,
+                                                  borderLeft: '5px solid transparent',
+                                                  borderRight: '5px solid transparent',
+                                                  borderTop: '5px solid #c0c0c0',
+                                                }} />
+                                                <div style={{
+                                                  position: 'absolute',
+                                                  bottom: -4,
+                                                  right: 10,
+                                                  width: 0, height: 0,
+                                                  borderLeft: '5px solid transparent',
+                                                  borderRight: '5px solid transparent',
+                                                  borderTop: '5px solid #ececec',
+                                                }} />
+
+                                                {[
+                                                  { emoji: '❤️', type: 'love', label: 'Love' },
+                                                  { emoji: '👍', type: 'like', label: 'Like' },
+                                                  { emoji: '👎', type: 'dislike', label: 'Dislike' },
+                                                  { emoji: '😂', type: 'fun', label: 'Funny' },
+                                                ].map(r => (
+                                                  <button
+                                                    key={r.type}
+                                                    onClick={() => handleReaction(msg.id, r.emoji)}
+                                                    title={r.label}
+                                                    style={{
+                                                      fontSize: 18,
+                                                      width: 32,
+                                                      height: 32,
+                                                      display: 'flex',
+                                                      alignItems: 'center',
+                                                      justifyContent: 'center',
+                                                      borderRadius: '50%',
+                                                      border: '1px solid transparent',
+                                                      background: 'transparent',
+                                                      cursor: 'pointer',
+                                                      transition: 'all 0.12s',
+                                                      lineHeight: 1,
+                                                    }}
+                                                    onMouseEnter={e => {
+                                                      e.currentTarget.style.transform = 'scale(1.35)';
+                                                      e.currentTarget.style.background = 'linear-gradient(180deg, #ececec 0%, #dcdcdc 100%)';
+                                                      e.currentTarget.style.borderColor = '#b0b0b0';
+                                                    }}
+                                                    onMouseLeave={e => {
+                                                      e.currentTarget.style.transform = 'scale(1)';
+                                                      e.currentTarget.style.background = 'transparent';
+                                                      e.currentTarget.style.borderColor = 'transparent';
+                                                    }}
+                                                  >
+                                                    {r.emoji}
+                                                  </button>
+                                                ))}
+                                              </motion.div>
+                                            )}
+                                          </AnimatePresence>
+                                        </div>
+
+                                        {/* Divider */}
+                                        <div style={{
+                                          width: 1, height: 14,
+                                          background: 'linear-gradient(180deg, transparent, #b0b0b0, transparent)',
+                                          margin: '0 2px',
+                                        }} />
+
+                                        {/* Reply button */}
+                                        <button
+                                          onClick={() => setReplyingTo(msg)}
+                                          title="Reply"
+                                          style={{
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            justifyContent: 'center',
+                                            width: 24,
+                                            height: 24,
+                                            borderRadius: '50%',
+                                            border: 'none',
+                                            background: 'transparent',
+                                            color: '#999',
+                                            cursor: 'pointer',
+                                            transition: 'all 0.15s',
+                                          }}
+                                          onMouseEnter={e => {
+                                            e.currentTarget.style.background = 'linear-gradient(180deg, #ececec 0%, #dcdcdc 100%)';
+                                            e.currentTarget.style.color = '#555';
+                                          }}
+                                          onMouseLeave={e => {
+                                            e.currentTarget.style.background = 'transparent';
+                                            e.currentTarget.style.color = '#999';
+                                          }}
+                                        >
+                                          <Reply size={14} />
+                                        </button>
+                                      </div>
+                                    </div>
+                                  )}
+
+                                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 2 }}>
+                                    {/* Avatar */}
+                                    <img
+                                      src={isMe ? currentUser.avatar : msg.avatar}
+                                      alt={isMe ? 'You' : msg.username}
                                       style={{
-                                        fontSize: 18,
-                                        width: 32,
-                                        height: 32,
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        justifyContent: 'center',
-                                        borderRadius: '50%',
-                                        border: '1px solid transparent',
-                                        background: 'transparent',
-                                        cursor: 'pointer',
-                                        transition: 'all 0.12s',
-                                        lineHeight: 1,
+                                        width: 18,
+                                        height: 18,
+                                        borderRadius: 3,
+                                        border: `1px solid ${isMe ? '#7aaee0' : '#c0c0c0'}`,
+                                        boxShadow: '0 1px 2px rgba(0,0,0,0.12)',
+                                        flexShrink: 0,
                                       }}
-                                      onMouseEnter={e => {
-                                        e.currentTarget.style.transform = 'scale(1.35)';
-                                        e.currentTarget.style.background = 'linear-gradient(180deg, #ececec 0%, #dcdcdc 100%)';
-                                        e.currentTarget.style.borderColor = '#b0b0b0';
-                                      }}
-                                      onMouseLeave={e => {
-                                        e.currentTarget.style.transform = 'scale(1)';
-                                        e.currentTarget.style.background = 'transparent';
-                                        e.currentTarget.style.borderColor = 'transparent';
+                                    />
+
+                                    {/* Name */}
+                                    <span
+                                      style={{
+                                        fontSize: 12,
+                                        fontWeight: 800,
+                                        fontFamily: 'Segoe UI, Tahoma, sans-serif',
+                                        color: isMe ? '#2a5fb5' : '#222',
+                                        letterSpacing: '0.01em',
+                                        textShadow: isMe ? '0 1px 0 rgba(255,255,255,0.6)' : 'none',
                                       }}
                                     >
-                                      {r.emoji}
-                                    </button>
-                                  ))}
-                                </motion.div>
-                              )}
-                            </AnimatePresence>
-                          </div>
+                                      {isMe ? 'You' : msg.username}
+                                    </span>
 
-                          {/* Divider */}
-                          <div style={{
-                            width: 1, height: 14,
-                            background: 'linear-gradient(180deg, transparent, #b0b0b0, transparent)',
-                            margin: '0 2px',
-                          }} />
+                                    {/* Em dash */}
+                                    <span style={{
+                                      fontSize: 11,
+                                      color: '#b0b0b0',
+                                      fontFamily: 'Segoe UI, Tahoma, sans-serif',
+                                      fontWeight: 600,
+                                      marginLeft: -3,
+                                    }}>
+                                      —
+                                    </span>
 
-                          {/* Reply button */}
-                          <button
-                            onClick={() => setReplyingTo(msg)}
-                            title="Reply"
-                            style={{
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                              width: 24,
-                              height: 24,
-                              borderRadius: '50%',
-                              border: 'none',
-                              background: 'transparent',
-                              color: '#999',
-                              cursor: 'pointer',
-                              transition: 'all 0.15s',
-                            }}
-                            onMouseEnter={e => {
-                              e.currentTarget.style.background = 'linear-gradient(180deg, #ececec 0%, #dcdcdc 100%)';
-                              e.currentTarget.style.color = '#555';
-                            }}
-                            onMouseLeave={e => {
-                              e.currentTarget.style.background = 'transparent';
-                              e.currentTarget.style.color = '#999';
-                            }}
-                          >
-                            <Reply size={14} />
-                          </button>
-                        </div>
-                      </div>
-                    )}
+                                    {/* Timestamp — right after the dash */}
+                                    <span style={{
+                                      fontSize: 10,
+                                      color: '#aaa',
+                                      fontFamily: 'Segoe UI, Tahoma, sans-serif',
+                                      fontWeight: 600,
+                                      marginLeft: -2,
+                                    }}>
+                                      {new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                    </span>
+                                  </div>
 
-                    <span className={`font-bold text-[13px] ${isMe ? 'text-[#3169C6]' : 'text-black'}`}>
-                      {isMe ? 'You :' : `${msg.username} :`}
-                    </span>
+                                  {msg.replyTo && (
+                                    <div className="ml-3 mb-2" style={{ maxWidth: '80%' }}>
+                                      <div
+                                        style={{
+                                          background: 'linear-gradient(180deg, #f8f8f8 0%, #ececec 100%)',
+                                          border: '1px solid #c8c8c8',
+                                          borderLeft: '3px solid #888888',
+                                          borderRadius: '0 5px 5px 0',
+                                          padding: '5px 10px',
+                                          boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.95), 0 1px 2px rgba(0,0,0,0.10)',
+                                          position: 'relative',
+                                          overflow: 'hidden',
+                                        }}
+                                      >
+                                        {/* Subtle left watermark stripe */}
+                                        <div
+                                          style={{
+                                            position: 'absolute',
+                                            top: 0, left: 0, bottom: 0,
+                                            width: 28,
+                                            background: 'linear-gradient(90deg, rgba(0,0,0,0.04), transparent)',
+                                            pointerEvents: 'none',
+                                          }}
+                                        />
 
-                    {msg.replyTo && (
-                      <div className="ml-3 mb-2" style={{ maxWidth: '80%' }}>
-                        <div
-                          style={{
-                            background: 'linear-gradient(180deg, #f8f8f8 0%, #ececec 100%)',
-                            border: '1px solid #c8c8c8',
-                            borderLeft: '3px solid #888888',
-                            borderRadius: '0 5px 5px 0',
-                            padding: '5px 10px',
-                            boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.95), 0 1px 2px rgba(0,0,0,0.10)',
-                            position: 'relative',
-                            overflow: 'hidden',
-                          }}
-                        >
-                          {/* Subtle left watermark stripe */}
-                          <div
-                            style={{
-                              position: 'absolute',
-                              top: 0, left: 0, bottom: 0,
-                              width: 28,
-                              background: 'linear-gradient(90deg, rgba(0,0,0,0.04), transparent)',
-                              pointerEvents: 'none',
-                            }}
-                          />
+                                        {/* Reply-to label */}
+                                        <div className="flex items-center gap-1 mb-0.5">
+                                          <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
+                                            <path d="M4 2L1 5L4 8M1 5h6a2 2 0 0 1 2 2v1" stroke="#666666" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
+                                          </svg>
+                                          <span
+                                            style={{
+                                              fontSize: 11,
+                                              fontWeight: 700,
+                                              color: '#444444',
+                                              fontFamily: 'Segoe UI, Tahoma, sans-serif',
+                                              letterSpacing: '0.01em',
+                                            }}
+                                          >
+                                            {msg.replyTo.email === currentUser.email ? 'You' : msg.replyTo.username}
+                                          </span>
+                                        </div>
 
-                          {/* Reply-to label */}
-                          <div className="flex items-center gap-1 mb-0.5">
-                            <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
-                              <path d="M4 2L1 5L4 8M1 5h6a2 2 0 0 1 2 2v1" stroke="#666666" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
-                            </svg>
-                            <span
-                              style={{
-                                fontSize: 11,
-                                fontWeight: 700,
-                                color: '#444444',
-                                fontFamily: 'Segoe UI, Tahoma, sans-serif',
-                                letterSpacing: '0.01em',
-                              }}
-                            >
-                              {msg.replyTo.email === currentUser.email ? 'You' : msg.replyTo.username}
-                            </span>
-                          </div>
+                                        {/* Reply content */}
+                                        <div
+                                          style={{
+                                            fontSize: 11,
+                                            color: '#777777',
+                                            fontFamily: 'Segoe UI, Tahoma, sans-serif',
+                                            fontStyle: 'italic',
+                                            whiteSpace: 'nowrap',
+                                            overflow: 'hidden',
+                                            textOverflow: 'ellipsis',
+                                            paddingLeft: 14,
+                                          }}
+                                        >
+                                          {msg.replyTo.type === "text" ?  msg.replyTo.content :  ["image" , "pdf" , "voice"].includes(msg.replyTo.type) ?  msg.replyTo.text : msg.replyTo.type}
+                                        </div>
+                                      </div>
+                                    </div>
+                                  )}
 
-                          {/* Reply content */}
-                          <div
-                            style={{
-                              fontSize: 11,
-                              color: '#777777',
-                              fontFamily: 'Segoe UI, Tahoma, sans-serif',
-                              fontStyle: 'italic',
-                              whiteSpace: 'nowrap',
-                              overflow: 'hidden',
-                              textOverflow: 'ellipsis',
-                              paddingLeft: 14,
-                            }}
-                          >
-                            {msg.replyTo.type === "text" ?  msg.replyTo.content :  ["image" , "pdf" , "voice"].includes(msg.replyTo.type) ?  msg.replyTo.text : msg.replyTo.type}
-                          </div>
-                        </div>
-                      </div>
-                    )}
+                                  {msg.type === 'text' && (
+                                    <div className="flex flex-col gap-0.5">
+                                      {/* <span className={`font-bold text-[13px] ${isMe ? 'text-[#3169C6]' : 'text-black'}`}>
+                                      {msg.username}
+                                    </span> */}
+                                      <span className="text-[14px] ml-3 leading-relaxed">{msg.content}</span>
+                                    </div>
+                                  )}
+                                  {msg.type === 'image' && (
+                                    <div className="flex flex-col gap-1">
+                                      {/* <span className={`font-bold text-[13px] ${isMe ? 'text-[#3169C6]' : 'text-black'}`}>
+                                      {isMe ? 'You sent a photo:' : 'Poops sent a photo:'}
+                                    </span> */}
+                                      <img
+                                        src={msg.content}
+                                        className="max-w-[200px] rounded-md border border-gray-200 shadow-sm ml-3 cursor-pointer hover:opacity-90 transition-opacity"
+                                        alt="Sent photo"
+                                        onClick={() => setPreviewImageUrl(msg.content || null)}
+                                      />
+                                    </div>
+                                  )}
 
-                    {msg.type === 'text' && (
-                      <div className="flex flex-col gap-0.5">
-                        {/* <span className={`font-bold text-[13px] ${isMe ? 'text-[#3169C6]' : 'text-black'}`}>
-                        {msg.username}
-                      </span> */}
-                        <span className="text-[14px] ml-3 leading-relaxed">{msg.content}</span>
-                      </div>
-                    )}
-                    {msg.type === 'image' && (
-                      <div className="flex flex-col gap-1">
-                        {/* <span className={`font-bold text-[13px] ${isMe ? 'text-[#3169C6]' : 'text-black'}`}>
-                        {isMe ? 'You sent a photo:' : 'Poops sent a photo:'}
-                      </span> */}
-                        <img
-                          src={msg.content}
-                          className="max-w-[200px] rounded-md border border-gray-200 shadow-sm ml-3 cursor-pointer hover:opacity-90 transition-opacity"
-                          alt="Sent photo"
-                          onClick={() => setPreviewImageUrl(msg.content || null)}
-                        />
-                      </div>
-                    )}
+                                {(msg.type === 'sticker' || msg.type === 'gif') && (
+                                    <div className="flex flex-col gap-1 w-fit">
+                                      <div
+                                        style={{
+                                          marginLeft: 12,
+                                          display: 'inline-flex',
+                                          flexDirection: 'column',
+                                          gap: 4,
+                                        }}
+                                      >
+                                        {/* Sticker frame */}
+                                        <div
+                                          style={{
+                                            position: 'relative',
+                                            display: 'inline-block',
+                                            padding: 5,
+                                            background: 'linear-gradient(180deg, #f8f8f8 0%, #ececec 100%)',
+                                            border: '1px solid #c0c0c0',
+                                            borderRadius: 8,
+                                            boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.95), 0 2px 6px rgba(0,0,0,0.12)',
+                                          }}
+                                        >
+                                          {/* GIF badge — only for gif type */}
+                                          {msg.type === 'gif' && (
+                                            <div
+                                              style={{
+                                                position: 'absolute',
+                                                top: -7,
+                                                right: -7,
+                                                background: 'linear-gradient(180deg, #4a85d8 0%, #2a5fb5 100%)',
+                                                border: '1px solid #1e4fa0',
+                                                borderRadius: 4,
+                                                padding: '1px 5px',
+                                                fontSize: 9,
+                                                fontWeight: 900,
+                                                color: '#fff',
+                                                fontFamily: 'Segoe UI, Tahoma, sans-serif',
+                                                letterSpacing: '0.05em',
+                                                boxShadow: '0 1px 3px rgba(0,0,0,0.25)',
+                                                zIndex: 1,
+                                              }}
+                                            >
+                                              GIF
+                                            </div>
+                                          )}
 
-                   {(msg.type === 'sticker' || msg.type === 'gif') && (
-                      <div className="flex flex-col gap-1 w-fit">
-                        <div
-                          style={{
-                            marginLeft: 12,
-                            display: 'inline-flex',
-                            flexDirection: 'column',
-                            gap: 4,
-                          }}
-                        >
-                          {/* Sticker frame */}
-                          <div
-                            style={{
-                              position: 'relative',
-                              display: 'inline-block',
-                              padding: 5,
-                              background: 'linear-gradient(180deg, #f8f8f8 0%, #ececec 100%)',
-                              border: '1px solid #c0c0c0',
-                              borderRadius: 8,
-                              boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.95), 0 2px 6px rgba(0,0,0,0.12)',
-                            }}
-                          >
-                            {/* GIF badge — only for gif type */}
-                            {msg.type === 'gif' && (
-                              <div
-                                style={{
-                                  position: 'absolute',
-                                  top: -7,
-                                  right: -7,
-                                  background: 'linear-gradient(180deg, #4a85d8 0%, #2a5fb5 100%)',
-                                  border: '1px solid #1e4fa0',
-                                  borderRadius: 4,
-                                  padding: '1px 5px',
-                                  fontSize: 9,
-                                  fontWeight: 900,
-                                  color: '#fff',
-                                  fontFamily: 'Segoe UI, Tahoma, sans-serif',
-                                  letterSpacing: '0.05em',
-                                  boxShadow: '0 1px 3px rgba(0,0,0,0.25)',
-                                  zIndex: 1,
-                                }}
-                              >
-                                GIF
-                              </div>
-                            )}
+                                          {/* Sticker badge — only for sticker type */}
+                                          {msg.type === 'sticker' && (
+                                            <div
+                                              style={{
+                                                position: 'absolute',
+                                                top: -7,
+                                                right: -7,
+                                                background: 'linear-gradient(180deg, #f0a020 0%, #c07010 100%)',
+                                                border: '1px solid #a06000',
+                                                borderRadius: 4,
+                                                padding: '1px 5px',
+                                                fontSize: 9,
+                                                fontWeight: 900,
+                                                color: '#fff',
+                                                fontFamily: 'Segoe UI, Tahoma, sans-serif',
+                                                letterSpacing: '0.05em',
+                                                boxShadow: '0 1px 3px rgba(0,0,0,0.25)',
+                                                zIndex: 1,
+                                              }}
+                                            >
+                                              ✦ Sticker
+                                            </div>
+                                          )}
 
-                            {/* Sticker badge — only for sticker type */}
-                            {msg.type === 'sticker' && (
-                              <div
-                                style={{
-                                  position: 'absolute',
-                                  top: -7,
-                                  right: -7,
-                                  background: 'linear-gradient(180deg, #f0a020 0%, #c07010 100%)',
-                                  border: '1px solid #a06000',
-                                  borderRadius: 4,
-                                  padding: '1px 5px',
-                                  fontSize: 9,
-                                  fontWeight: 900,
-                                  color: '#fff',
-                                  fontFamily: 'Segoe UI, Tahoma, sans-serif',
-                                  letterSpacing: '0.05em',
-                                  boxShadow: '0 1px 3px rgba(0,0,0,0.25)',
-                                  zIndex: 1,
-                                }}
-                              >
-                                ✦ Sticker
-                              </div>
-                            )}
+                                          {/* Image */}
+                                          <img
+                                            src={msg.content}
+                                            alt={msg.type}
+                                            style={{
+                                              maxWidth: 140,
+                                              maxHeight: 140,
+                                              borderRadius: 5,
+                                              display: 'block',
+                                              filter: 'drop-shadow(0 1px 3px rgba(0,0,0,0.15))',
+                                            }}
+                                          />
 
-                            {/* Image */}
-                            <img
-                              src={msg.content}
-                              alt={msg.type}
-                              style={{
-                                maxWidth: 140,
-                                maxHeight: 140,
-                                borderRadius: 5,
-                                display: 'block',
-                                filter: 'drop-shadow(0 1px 3px rgba(0,0,0,0.15))',
-                              }}
-                            />
+                                          {/* Bottom shine strip */}
+                                          <div
+                                            style={{
+                                              position: 'absolute',
+                                              bottom: 5,
+                                              left: 5,
+                                              right: 5,
+                                              height: 10,
+                                              background: 'linear-gradient(180deg, rgba(255,255,255,0.0) 0%, rgba(255,255,255,0.18) 100%)',
+                                              borderRadius: '0 0 4px 4px',
+                                              pointerEvents: 'none',
+                                            }}
+                                          />
+                                        </div>
+                                      </div>
+                                    </div>
+                                  )}
 
-                            {/* Bottom shine strip */}
-                            <div
-                              style={{
-                                position: 'absolute',
-                                bottom: 5,
-                                left: 5,
-                                right: 5,
-                                height: 10,
-                                background: 'linear-gradient(180deg, rgba(255,255,255,0.0) 0%, rgba(255,255,255,0.18) 100%)',
-                                borderRadius: '0 0 4px 4px',
-                                pointerEvents: 'none',
-                              }}
-                            />
-                          </div>
-                        </div>
-                      </div>
-                    )}
+                                  {msg.type === 'voice' && (
+                                    <div className="flex flex-col gap-1">
+                                      {/* <span className={`font-bold text-[13px] ${isMe ? 'text-[#3169C6]' : 'text-black'}`}>
+                                        {isMe ? 'You sent:' : msg.username}
+                                      </span> */}
 
-                    {msg.type === 'voice' && (
-                      <div className="flex flex-col gap-1">
-                        {/* <span className={`font-bold text-[13px] ${isMe ? 'text-[#3169C6]' : 'text-black'}`}>
-                          {isMe ? 'You sent:' : msg.username}
-                        </span> */}
+                                      <div
+                                        className="ml-3 flex flex-col gap-2"
+                                        style={{
+                                          background: 'linear-gradient(180deg, #f5f9ff 0%, #ddeeff 100%)',
+                                          border: '1px solid #aac8e8',
+                                          borderRadius: '6px',
+                                          padding: '8px 12px',
+                                          maxWidth: '260px',
+                                          boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.9), 0 1px 3px rgba(0,0,0,0.1)',
+                                        }}
+                                      >
+                                        {/* Header row */}
+                                        <div className="flex items-center gap-2">
+                                          {/* Animated mic icon bubble */}
+                                          <div
+                                            style={{
+                                              width: 32,
+                                              height: 32,
+                                              borderRadius: '50%',
+                                              background: 'linear-gradient(180deg, #5b9bd5 0%, #2a6ab5 100%)',
+                                              border: '1px solid #1a5aa5',
+                                              boxShadow: '0 2px 4px rgba(0,0,0,0.2)',
+                                              display: 'flex',
+                                              alignItems: 'center',
+                                              justifyContent: 'center',
+                                              flexShrink: 0,
+                                            }}
+                                          >
+                                            <Mic size={16} color="white" />
+                                          </div>
 
-                        <div
-                          className="ml-3 flex flex-col gap-2"
-                          style={{
-                            background: 'linear-gradient(180deg, #f5f9ff 0%, #ddeeff 100%)',
-                            border: '1px solid #aac8e8',
-                            borderRadius: '6px',
-                            padding: '8px 12px',
-                            maxWidth: '260px',
-                            boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.9), 0 1px 3px rgba(0,0,0,0.1)',
-                          }}
-                        >
-                          {/* Header row */}
-                          <div className="flex items-center gap-2">
-                            {/* Animated mic icon bubble */}
-                            <div
-                              style={{
-                                width: 32,
-                                height: 32,
-                                borderRadius: '50%',
-                                background: 'linear-gradient(180deg, #5b9bd5 0%, #2a6ab5 100%)',
-                                border: '1px solid #1a5aa5',
-                                boxShadow: '0 2px 4px rgba(0,0,0,0.2)',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                flexShrink: 0,
-                              }}
-                            >
-                              <Mic size={16} color="white" />
-                            </div>
+                                          <div className="flex flex-col">
+                                            <span style={{ fontSize: 12, fontWeight: 700, color: '#1a5aa5', fontFamily: 'Segoe UI, Tahoma, sans-serif' }}>
+                                              Voice Message
+                                            </span>
+                                            <span style={{ fontSize: 11, color: '#5a7fa8', fontFamily: 'Segoe UI, Tahoma, sans-serif' }}>
+                                              {msg.text}
+                                            </span>
+                                          </div>
+                                        </div>
 
-                            <div className="flex flex-col">
-                              <span style={{ fontSize: 12, fontWeight: 700, color: '#1a5aa5', fontFamily: 'Segoe UI, Tahoma, sans-serif' }}>
-                                Voice Message
-                              </span>
-                              <span style={{ fontSize: 11, color: '#5a7fa8', fontFamily: 'Segoe UI, Tahoma, sans-serif' }}>
-                                {msg.text}
-                              </span>
-                            </div>
-                          </div>
+                                        {/* Divider */}
+                                        <div style={{ height: 1, background: 'linear-gradient(90deg, transparent, #aac8e8, transparent)' }} />
 
-                          {/* Divider */}
-                          <div style={{ height: 1, background: 'linear-gradient(90deg, transparent, #aac8e8, transparent)' }} />
+                                        {/* Audio player */}
+                                        {msg.content && (
+                                          <div className="flex flex-col gap-1">
+                                            <audio
+                                              controls
+                                              src={msg.content}
+                                              style={{
+                                                width: '100%',
+                                                height: 28,
+                                                accentColor: '#3169C6',
+                                              }}
+                                            />
+                                          </div>
+                                        )}
+                                      </div>
+                                    </div>
+                                  )}
+                                  {msg.type === 'gift' && (
+                                    <div className="flex flex-col gap-1">
+                                      <span className={`font-bold text-[13px] ${isMe ? 'text-[#3169C6]' : 'text-black'}`}>
+                                        {isMe ? 'You sent a gift:' : 'Poops sent a gift:'}
+                                      </span>
+                                      <div className="ml-3 py-2 px-4 bg-[#FFF0F5] border border-[#E96E4C]/20 rounded-md flex flex-col gap-2">
+                                        <div className="flex items-center gap-2 text-[#E96E4C] font-bold">
+                                          <Gift size={16} />
+                                          {msg.isOpened ? 'Gift Opened!' : 'You have a new gift!'}
+                                        </div>
+                                        {msg.isOpened ? (
+                                          <div className="text-sm text-gray-700 italic bg-white/50 p-2 rounded border border-[#E96E4C]/10">
+                                            "{msg.text}"
+                                          </div>
+                                        ) : (
+                                          <button
+                                            onClick={() => handleOpenGift(msg.id)}
+                                            className="text-[11px] font-bold text-white bg-[#E96E4C] px-3 py-1 rounded hover:brightness-110 transition-all self-start shadow-sm"
+                                          >
+                                            View Action
+                                          </button>
+                                        )}
+                                      </div>
+                                    </div>
+                                  )}
+                                  {msg.type === 'nudge' && (
+                                    <div className="py-2 px-6 bg-[#F8F8F8] border-y border-[#ACA899] inline-block mx-auto rounded-md italic text-[#666] text-[13px] shadow-sm">
+                                      {msg.text}
+                                    </div>
+                                  )}
 
-                          {/* Audio player */}
-                          {msg.content && (
-                            <div className="flex flex-col gap-1">
-                              <audio
-                                controls
-                                src={msg.content}
-                                style={{
-                                  width: '100%',
-                                  height: 28,
-                                  accentColor: '#3169C6',
-                                }}
-                              />
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    )}
-                    {msg.type === 'gift' && (
-                      <div className="flex flex-col gap-1">
-                        <span className={`font-bold text-[13px] ${isMe ? 'text-[#3169C6]' : 'text-black'}`}>
-                          {isMe ? 'You sent a gift:' : 'Poops sent a gift:'}
-                        </span>
-                        <div className="ml-3 py-2 px-4 bg-[#FFF0F5] border border-[#E96E4C]/20 rounded-md flex flex-col gap-2">
-                          <div className="flex items-center gap-2 text-[#E96E4C] font-bold">
-                            <Gift size={16} />
-                            {msg.isOpened ? 'Gift Opened!' : 'You have a new gift!'}
-                          </div>
-                          {msg.isOpened ? (
-                            <div className="text-sm text-gray-700 italic bg-white/50 p-2 rounded border border-[#E96E4C]/10">
-                              "{msg.text}"
-                            </div>
-                          ) : (
-                            <button
-                              onClick={() => handleOpenGift(msg.id)}
-                              className="text-[11px] font-bold text-white bg-[#E96E4C] px-3 py-1 rounded hover:brightness-110 transition-all self-start shadow-sm"
-                            >
-                              View Action
-                            </button>
-                          )}
-                        </div>
-                      </div>
-                    )}
-                    {msg.type === 'nudge' && (
-                      <div className="py-2 px-6 bg-[#F8F8F8] border-y border-[#ACA899] inline-block mx-auto rounded-md italic text-[#666] text-[13px] shadow-sm">
-                        {msg.text}
-                      </div>
-                    )}
+                                  {msg.type === 'pdf' && (
+                                    <div className="flex flex-col gap-2 ml-3" style={{ maxWidth: 300 }}>
+                                      {(msg.attachments && msg.attachments.length > 0
+                                        ? msg.attachments
+                                        : [{ name: msg.text, content: msg.content }]
+                                      ).map((att, idx) => (
+                                        <div
+                                          key={idx}
+                                          style={{
+                                            background: 'linear-gradient(180deg, #f8f8f8 0%, #e8e8e8 100%)',
+                                            border: '1px solid #c0c0c0',
+                                            borderRadius: 6,
+                                            boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.95), 0 1px 3px rgba(0,0,0,0.12)',
+                                            overflow: 'hidden',
+                                          }}
+                                        >
+                                          {/* Top header bar - WLM style title bar */}
+                                          <div
+                                            style={{
+                                              background: 'linear-gradient(180deg, #dcdcdc 0%, #c8c8c8 100%)',
+                                              borderBottom: '1px solid #b0b0b0',
+                                              padding: '4px 8px',
+                                              display: 'flex',
+                                              alignItems: 'center',
+                                              gap: 6,
+                                            }}
+                                          >
+                                            {/* PDF icon badge */}
+                                            <div
+                                              style={{
+                                                width: 28,
+                                                height: 28,
+                                                background: 'linear-gradient(180deg, #e84040 0%, #b82020 100%)',
+                                                border: '1px solid #901010',
+                                                borderRadius: 4,
+                                                boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.3), 0 1px 2px rgba(0,0,0,0.2)',
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                justifyContent: 'center',
+                                                flexShrink: 0,
+                                              }}
+                                            >
+                                              <span style={{ color: 'white', fontSize: 9, fontWeight: 900, fontFamily: 'Segoe UI, Tahoma, sans-serif', letterSpacing: '-0.5px' }}>PDF</span>
+                                            </div>
 
-                    {msg.type === 'pdf' && (
-                      <div className="flex flex-col gap-2 ml-3" style={{ maxWidth: 300 }}>
-                        {(msg.attachments && msg.attachments.length > 0
-                          ? msg.attachments
-                          : [{ name: msg.text, content: msg.content }]
-                        ).map((att, idx) => (
-                          <div
-                            key={idx}
-                            style={{
-                              background: 'linear-gradient(180deg, #f8f8f8 0%, #e8e8e8 100%)',
-                              border: '1px solid #c0c0c0',
-                              borderRadius: 6,
-                              boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.95), 0 1px 3px rgba(0,0,0,0.12)',
-                              overflow: 'hidden',
-                            }}
-                          >
-                            {/* Top header bar - WLM style title bar */}
-                            <div
-                              style={{
-                                background: 'linear-gradient(180deg, #dcdcdc 0%, #c8c8c8 100%)',
-                                borderBottom: '1px solid #b0b0b0',
-                                padding: '4px 8px',
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: 6,
-                              }}
-                            >
-                              {/* PDF icon badge */}
-                              <div
-                                style={{
-                                  width: 28,
-                                  height: 28,
-                                  background: 'linear-gradient(180deg, #e84040 0%, #b82020 100%)',
-                                  border: '1px solid #901010',
-                                  borderRadius: 4,
-                                  boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.3), 0 1px 2px rgba(0,0,0,0.2)',
-                                  display: 'flex',
-                                  alignItems: 'center',
-                                  justifyContent: 'center',
-                                  flexShrink: 0,
-                                }}
-                              >
-                                <span style={{ color: 'white', fontSize: 9, fontWeight: 900, fontFamily: 'Segoe UI, Tahoma, sans-serif', letterSpacing: '-0.5px' }}>PDF</span>
-                              </div>
+                                            {/* Filename */}
+                                            <span
+                                              style={{
+                                                fontSize: 12,
+                                                fontWeight: 700,
+                                                color: '#333',
+                                                fontFamily: 'Segoe UI, Tahoma, sans-serif',
+                                                overflow: 'hidden',
+                                                textOverflow: 'ellipsis',
+                                                whiteSpace: 'nowrap',
+                                                flex: 1,
+                                              }}
+                                            >
+                                              {att.name}
+                                            </span>
+                                          </div>
 
-                              {/* Filename */}
-                              <span
-                                style={{
-                                  fontSize: 12,
-                                  fontWeight: 700,
-                                  color: '#333',
-                                  fontFamily: 'Segoe UI, Tahoma, sans-serif',
-                                  overflow: 'hidden',
-                                  textOverflow: 'ellipsis',
-                                  whiteSpace: 'nowrap',
-                                  flex: 1,
-                                }}
-                              >
-                                {att.name}
-                              </span>
-                            </div>
+                                          {/* Body */}
+                                          <div
+                                            style={{
+                                              padding: '7px 10px',
+                                              display: 'flex',
+                                              alignItems: 'center',
+                                              justifyContent: 'space-between',
+                                              gap: 8,
+                                            }}
+                                          >
+                                            <span style={{ fontSize: 11, color: '#888', fontFamily: 'Segoe UI, Tahoma, sans-serif', fontStyle: 'italic' }}>
+                                              PDF Document
+                                            </span>
 
-                            {/* Body */}
-                            <div
-                              style={{
-                                padding: '7px 10px',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'space-between',
-                                gap: 8,
-                              }}
-                            >
-                              <span style={{ fontSize: 11, color: '#888', fontFamily: 'Segoe UI, Tahoma, sans-serif', fontStyle: 'italic' }}>
-                                PDF Document
-                              </span>
+                                            {/* Action buttons - WLM toolbar button style */}
+                                            <div style={{ display: 'flex', gap: 5 }}>
+                                              <button
+                                                onClick={() => { setPreviewPdf(att); setShowPdfPreviewDialog(true); }}
+                                                style={{
+                                                  display: 'flex',
+                                                  alignItems: 'center',
+                                                  gap: 4,
+                                                  padding: '3px 8px',
+                                                  fontSize: 11,
+                                                  fontWeight: 700,
+                                                  fontFamily: 'Segoe UI, Tahoma, sans-serif',
+                                                  color: '#333',
+                                                  background: 'linear-gradient(180deg, #f5f5f5 0%, #dcdcdc 100%)',
+                                                  border: '1px solid #aaa',
+                                                  borderRadius: 3,
+                                                  boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.9)',
+                                                  cursor: 'pointer',
+                                                }}
+                                                onMouseEnter={e => e.currentTarget.style.background = 'linear-gradient(180deg, #e8f0ff 0%, #ccd8f0 100%)'}
+                                                onMouseLeave={e => e.currentTarget.style.background = 'linear-gradient(180deg, #f5f5f5 0%, #dcdcdc 100%)'}
+                                              >
+                                                <Eye size={11} /> Preview
+                                              </button>
 
-                              {/* Action buttons - WLM toolbar button style */}
-                              <div style={{ display: 'flex', gap: 5 }}>
-                                <button
-                                  onClick={() => { setPreviewPdf(att); setShowPdfPreviewDialog(true); }}
-                                  style={{
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    gap: 4,
-                                    padding: '3px 8px',
-                                    fontSize: 11,
-                                    fontWeight: 700,
-                                    fontFamily: 'Segoe UI, Tahoma, sans-serif',
-                                    color: '#333',
-                                    background: 'linear-gradient(180deg, #f5f5f5 0%, #dcdcdc 100%)',
-                                    border: '1px solid #aaa',
-                                    borderRadius: 3,
-                                    boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.9)',
-                                    cursor: 'pointer',
-                                  }}
-                                  onMouseEnter={e => e.currentTarget.style.background = 'linear-gradient(180deg, #e8f0ff 0%, #ccd8f0 100%)'}
-                                  onMouseLeave={e => e.currentTarget.style.background = 'linear-gradient(180deg, #f5f5f5 0%, #dcdcdc 100%)'}
-                                >
-                                  <Eye size={11} /> Preview
-                                </button>
+                                              <a
+                                                href={att.content}
+                                                download={att.name}
+                                                style={{
+                                                  display: 'flex',
+                                                  alignItems: 'center',
+                                                  gap: 4,
+                                                  padding: '3px 8px',
+                                                  fontSize: 11,
+                                                  fontWeight: 700,
+                                                  fontFamily: 'Segoe UI, Tahoma, sans-serif',
+                                                  color: '#333',
+                                                  background: 'linear-gradient(180deg, #f5f5f5 0%, #dcdcdc 100%)',
+                                                  border: '1px solid #aaa',
+                                                  borderRadius: 3,
+                                                  boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.9)',
+                                                  textDecoration: 'none',
+                                                }}
+                                                onMouseEnter={e => (e.currentTarget as HTMLAnchorElement).style.background = 'linear-gradient(180deg, #e8f0ff 0%, #ccd8f0 100%)'}
+                                                onMouseLeave={e => (e.currentTarget as HTMLAnchorElement).style.background = 'linear-gradient(180deg, #f5f5f5 0%, #dcdcdc 100%)'}
+                                              >
+                                                <Download size={11} /> Save
+                                              </a>
+                                            </div>
+                                          </div>
+                                        </div>
+                                      ))}
+                                    </div>
+                                  )}
 
-                                <a
-                                  href={att.content}
-                                  download={att.name}
-                                  style={{
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    gap: 4,
-                                    padding: '3px 8px',
-                                    fontSize: 11,
-                                    fontWeight: 700,
-                                    fontFamily: 'Segoe UI, Tahoma, sans-serif',
-                                    color: '#333',
-                                    background: 'linear-gradient(180deg, #f5f5f5 0%, #dcdcdc 100%)',
-                                    border: '1px solid #aaa',
-                                    borderRadius: 3,
-                                    boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.9)',
-                                    textDecoration: 'none',
-                                  }}
-                                  onMouseEnter={e => (e.currentTarget as HTMLAnchorElement).style.background = 'linear-gradient(180deg, #e8f0ff 0%, #ccd8f0 100%)'}
-                                  onMouseLeave={e => (e.currentTarget as HTMLAnchorElement).style.background = 'linear-gradient(180deg, #f5f5f5 0%, #dcdcdc 100%)'}
-                                >
-                                  <Download size={11} /> Save
-                                </a>
-                              </div>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    )}
+                                  {msg.reactions && Object.keys(msg.reactions).length > 0 && (
+                                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginTop: 4, marginLeft: 12 }}>
+                                      {Object.entries(msg.reactions).map(([emoji, users]) => {
+                                        const count = (users as string[]).length;
+                                        if (count === 0) return null;
 
-                    {msg.reactions && Object.keys(msg.reactions).length > 0 && (
-                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginTop: 4, marginLeft: 12 }}>
-                        {Object.entries(msg.reactions).map(([emoji, users]) => {
-                          const count = (users as string[]).length;
-                          if (count === 0) return null;
+                                        const iMReacted = (users as string[]).includes(currentUser.email);
 
-                          const iMReacted = (users as string[]).includes(currentUser.email);
+                                        return (
+                                          <div
+                                            key={emoji}
+                                            title={`${count} reaction${count > 1 ? 's' : ''}`}
+                                            style={{
+                                              display: 'flex',
+                                              alignItems: 'center',
+                                              gap: 4,
+                                              padding: '6px',
+                                              background: iMReacted
+                                                ? 'linear-gradient(180deg, #ddeeff 0%, #c2d8f5 100%)'
+                                                : 'linear-gradient(180deg, #f8f8f8 0%, #ececec 100%)',
+                                              border: iMReacted ? '1px solid #7aaee0' : '1px solid #c0c0c0',
+                                              borderRadius: 20,
+                                              boxShadow: iMReacted
+                                                ? 'inset 0 1px 0 rgba(255,255,255,0.9), 0 1px 3px rgba(49,105,198,0.15)'
+                                                : 'inset 0 1px 0 rgba(255,255,255,0.95), 0 1px 2px rgba(0,0,0,0.08)',
+                                              cursor: 'pointer',
+                                              transition: 'all 0.12s',
+                                              animation: 'zoomIn 0.2s ease',
+                                            }}
+                                            onMouseEnter={e => {
+                                              e.currentTarget.style.background = iMReacted
+                                                ? 'linear-gradient(180deg, #c8e0ff 0%, #aacef5 100%)'
+                                                : 'linear-gradient(180deg, #ececec 0%, #dcdcdc 100%)';
+                                              e.currentTarget.style.transform = 'scale(1.08)';
+                                            }}
+                                            onMouseLeave={e => {
+                                              e.currentTarget.style.background = iMReacted
+                                                ? 'linear-gradient(180deg, #ddeeff 0%, #c2d8f5 100%)'
+                                                : 'linear-gradient(180deg, #f8f8f8 0%, #ececec 100%)';
+                                              e.currentTarget.style.transform = 'scale(1)';
+                                            }}
+                                          >
+                                            {/* Emoji */}
+                                            <span style={{ fontSize: 13, lineHeight: 1 }}>{emoji}</span>
 
-                          return (
-                            <div
-                              key={emoji}
-                              title={`${count} reaction${count > 1 ? 's' : ''}`}
-                              style={{
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: 4,
-                                padding: '6px',
-                                background: iMReacted
-                                  ? 'linear-gradient(180deg, #ddeeff 0%, #c2d8f5 100%)'
-                                  : 'linear-gradient(180deg, #f8f8f8 0%, #ececec 100%)',
-                                border: iMReacted ? '1px solid #7aaee0' : '1px solid #c0c0c0',
-                                borderRadius: 20,
-                                boxShadow: iMReacted
-                                  ? 'inset 0 1px 0 rgba(255,255,255,0.9), 0 1px 3px rgba(49,105,198,0.15)'
-                                  : 'inset 0 1px 0 rgba(255,255,255,0.95), 0 1px 2px rgba(0,0,0,0.08)',
-                                cursor: 'pointer',
-                                transition: 'all 0.12s',
-                                animation: 'zoomIn 0.2s ease',
-                              }}
-                              onMouseEnter={e => {
-                                e.currentTarget.style.background = iMReacted
-                                  ? 'linear-gradient(180deg, #c8e0ff 0%, #aacef5 100%)'
-                                  : 'linear-gradient(180deg, #ececec 0%, #dcdcdc 100%)';
-                                e.currentTarget.style.transform = 'scale(1.08)';
-                              }}
-                              onMouseLeave={e => {
-                                e.currentTarget.style.background = iMReacted
-                                  ? 'linear-gradient(180deg, #ddeeff 0%, #c2d8f5 100%)'
-                                  : 'linear-gradient(180deg, #f8f8f8 0%, #ececec 100%)';
-                                e.currentTarget.style.transform = 'scale(1)';
-                              }}
-                            >
-                              {/* Emoji */}
-                              <span style={{ fontSize: 13, lineHeight: 1 }}>{emoji}</span>
+                                            {/* Divider */}
+                                            <div style={{
+                                              width: 1,
+                                              height: 10,
+                                              background: iMReacted
+                                                ? 'linear-gradient(180deg, transparent, #7aaee0, transparent)'
+                                                : 'linear-gradient(180deg, transparent, #c0c0c0, transparent)',
+                                            }} />
 
-                              {/* Divider */}
-                              <div style={{
-                                width: 1,
-                                height: 10,
-                                background: iMReacted
-                                  ? 'linear-gradient(180deg, transparent, #7aaee0, transparent)'
-                                  : 'linear-gradient(180deg, transparent, #c0c0c0, transparent)',
-                              }} />
-
-                              {/* Count */}
-                              <span className="" style={{
-                                fontSize: 11,
-                                fontWeight: 800,
-                                fontFamily: 'Segoe UI, Tahoma, sans-serif',
-                                color: iMReacted ? '#1a4fa0' : '#666',
-                                lineHeight: 1,
-                                minWidth: 8,
-                                textAlign: 'center',
-                              }}>
-                                {count}
-                              </span>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    )}
+                                            {/* Count */}
+                                            <span className="" style={{
+                                              fontSize: 11,
+                                              fontWeight: 800,
+                                              fontFamily: 'Segoe UI, Tahoma, sans-serif',
+                                              color: iMReacted ? '#1a4fa0' : '#666',
+                                              lineHeight: 1,
+                                              minWidth: 8,
+                                              textAlign: 'center',
+                                            }}>
+                                              {count}
+                                            </span>
+                                          </div>
+                                        );
+                                      })}
+                                    </div>
+                                  )}
 
 
-                  </div>
-                )
-              })
-              }
-              <div ref={chatEndRef} />
-            </div>
+                                </div>
+                              )
+                            })
+                            }
+
+                  <div ref={chatEndRef} />
+                </div>
+              </div>
+
 
             {/* Formatting Toolbar */}
             <div

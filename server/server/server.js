@@ -260,6 +260,7 @@ wss.on('connection', (ws, req) => {
           id: Date.now().toString() + Math.random(),
           type : "text" , 
           email : user.email , 
+          avatar : user.avatar,
           username: user.username, 
           content: sanitizedText,
           timestamp: Date.now() , 
@@ -284,6 +285,7 @@ wss.on('connection', (ws, req) => {
           email : user.email , 
           text : data.text , 
           username: user.username, 
+          avatar : user.avatar,
           content: data.content,
           timestamp: Date.now() , 
           replyTo: data.replyTo ? data.replyTo : null
@@ -305,6 +307,7 @@ wss.on('connection', (ws, req) => {
           email : user.email , 
           text : data.text , 
           username: user.username, 
+          avatar : user.avatar,
           content: data.content,
           timestamp: Date.now() , 
           replyTo: data.replyTo ? data.replyTo : null
@@ -320,6 +323,8 @@ wss.on('connection', (ws, req) => {
             type : data.type , 
             email : user.email , 
             content : data.content , 
+          avatar : user.avatar,
+
             username: user.username, 
             timestamp: Date.now() , 
             replyTo: data.replyTo ? data.replyTo : null
@@ -340,6 +345,8 @@ wss.on('connection', (ws, req) => {
           email : user.email , 
           text : data.text , 
           username: user.username, 
+          avatar : user.avatar,
+
           attachments: data.attachments,
           timestamp: Date.now() , 
           replyTo: data.replyTo ? data.replyTo : null
