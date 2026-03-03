@@ -6,7 +6,6 @@ import { EXISTING_USERS, AVATARS, MSN_LOGO_URL } from '../../constants';
 import { Toast } from '../common/Toast';
 import { TitleBar } from '../common/TitleBar';
 
-import './signup.css';
 
 interface SignupPageProps {
   onSignup: (data: UserData) => void;
@@ -115,7 +114,7 @@ export const SignupPage: React.FC<SignupPageProps> = ({ onSignup }) => {
   };
 
   return (
-    <div className=" w-full bg-gradient-to-b from-[#C9E0F7] via-[#FFFFFF] to-[#C9E0F7] flex items-center justify-center p-4 font-sans h-screen">
+    <div className=" w-full bg-gradient-to-b from-[#C9E0F7] via-[#FFFFFF] to-[#C9E0F7] flex items-center justify-center p-4 font-sans 2xl:h-[100vh]">
       <AnimatePresence>
         {toast && (
           <Toast

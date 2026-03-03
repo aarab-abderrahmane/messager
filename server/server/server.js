@@ -151,30 +151,24 @@ wss.on('connection', (ws, req) => {
 
   ws.on('message', (raw) => {
 
-    const now = Date.now();
-  
-    if (!canSend(ws)) {
-      // Calculate how many seconds are left in the penalty
-      const secondsLeft = Math.ceil((ws.lockUntil - now) / 1000);
-      
-      return ws.send(JSON.stringify({ 
-        type: "error", 
-        message: `Limit reached! Please wait ${secondsLeft} seconds.` 
-      }));
-    }
 
     try {
 
-      if (!canSend(ws)) {
-      // You MUST use 'return' here to stop the code!
-        return ws.send(JSON.stringify({ 
-          type: "error", 
-          message: "Slow down! You can only send 5 messages per minute." 
-        }));
-      }
 
 
       const data = JSON.parse(raw);
+
+
+      if (data.type !== "AUTH") {
+        if (!canSend(ws)) {
+          const now = Date.now();
+          const secondsLeft = Math.ceil((ws.lockUntil - now) / 1000);
+          return ws.send(JSON.stringify({ 
+            type: "error", 
+            message: `Limit reached! Please wait ${secondsLeft} seconds.` 
+          }));
+        }
+      }
 
       // ======================
       // AUTH HANDSHAKE
@@ -208,18 +202,18 @@ wss.on('connection', (ws, req) => {
           email: user.email,
         }));
 
-        // Broadcast online users
-        // broadcast({
-        //   type: "ONLINE_USERS",
-        //   users: getRegistredUsers().map(u => ({
-        //     email: u.email
-        //   }))
-        // });
 
         brodcastUserStates()
 
         return;
       }
+      
+
+      if (!ws.isAuthenticated) {
+        return ws.send(JSON.stringify({ type: "AUTH_REQUIRED" }));
+      }
+
+
 
       // ======================
       // BLOCK UNAUTHENTICATED

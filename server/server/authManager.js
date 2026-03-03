@@ -15,17 +15,14 @@ const ips = new Set();    // track unique IPs
 const { v4: uuidv4 } = require('uuid');
 
 function addUser(email, ip , avatar  ,password , username) {
-  // ✅ Check email uniqueness
   if (usersByEmail.has(email)) {
     return {error : 'Email already in use'};
   }
 
-  // ✅ Check IP uniqueness
-  if (ips.has(ip)) {
-    return {error : "An account has already been created from this network."}
-  }
+  // if (ips.has(ip)) {
+  //   return {error : "An account has already been created from this network."}
+  // }
 
-  // ✅ Generate unique token
   let token;
   do {
     token = uuidv4();
