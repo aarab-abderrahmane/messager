@@ -86,9 +86,15 @@ function brodcastUserStates(){
 // HTTP ROUTES
 // ======================
 
-app.get("/test", (req, res) => {
-  res.json({ message: "hello" });
+app.get('/', (req, res) => {
+  res.status(200).json({
+    message: "Welcome to Dot Messenger!",
+    status: "Online",
+    timestamp: new Date().toISOString()
+  });
 });
+
+
 
 app.post('/signup', (req, res) => {
   const { email ,avatar , password , username } = req.body;

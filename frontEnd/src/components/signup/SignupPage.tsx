@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { HelpCircle } from 'lucide-react';
+import { HelpCircle, Settings, CheckCircle2, XCircle, Loader2, X } from 'lucide-react';
 import { UserData } from '../../types';
 import { EXISTING_USERS, AVATARS, MSN_LOGO_URL } from '../../constants';
 import { Toast } from '../common/Toast';
@@ -19,9 +19,49 @@ export const SignupPage: React.FC<SignupPageProps> = ({ onSignup }) => {
   const [showAvatarList, setShowAvatarList] = useState(false);
   const [toast, setToast] = useState<{ message: string, type: 'success' | 'error' } | null>(null);
   const [isSignIn, setIsSignIn] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
+  const [serverLink, setServerLink] = useState(() => localStorage.getItem('server_link') || 'http://localhost');
+  const [serverPort, setServerPort] = useState(() => localStorage.getItem('server_port') || '5000');
+  const [isTestingConnection, setIsTestingConnection] = useState(false);
+  const [connectionStatus, setConnectionStatus] = useState<'idle' | 'success' | 'error'>('idle');
+
+  const testConnection = async () => {
+    setIsTestingConnection(true);
+    setConnectionStatus('idle');
+    try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 5000);
+
+      const response = await fetch(`${serverLink}:${serverPort}/`, {
+        method: 'GET',
+        signal: controller.signal
+      });
+
+      clearTimeout(timeoutId);
+
+      if (response.ok) {
+        const data = await response.json();
+        if (data.status === "Online") {
+          setConnectionStatus('success');
+          localStorage.setItem('server_link', serverLink);
+          localStorage.setItem('server_port', serverPort);
+          setToast({ message: 'Messenger Server is Online!', type: 'success' });
+        } else {
+          throw new Error('Invalid server response');
+        }
+      } else {
+        throw new Error('Server returned error');
+      }
+    } catch (err) {
+      setConnectionStatus('error');
+      setToast({ message: 'Could not reach server. Check link and port.', type: 'error' });
+    } finally {
+      setIsTestingConnection(false);
+      // Removed the auto-close of settings dialog to allow user to see the status
+    }
+  };
 
 
-  console.log(selectedAvatar)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -47,12 +87,12 @@ export const SignupPage: React.FC<SignupPageProps> = ({ onSignup }) => {
 
       console.log(selectedAvatar)
 
-      const res = await fetch("http://localhost:5000/signup", {
+      const res = await fetch(`${serverLink}:${serverPort}/signup`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json"
         },
-        body: JSON.stringify({ email ,avatar :  selectedAvatar , password , username })
+        body: JSON.stringify({ email, avatar: selectedAvatar, password, username })
       });
 
       const data = await res.json();
@@ -64,7 +104,7 @@ export const SignupPage: React.FC<SignupPageProps> = ({ onSignup }) => {
 
       localStorage.setItem("chat_token", data.token);
       localStorage.setItem("chat_email", data.email);
-      localStorage.setItem("chat_username", data.username); 
+      localStorage.setItem("chat_username", data.username);
       localStorage.setItem("chat_avatar", data.avatar);
 
       onSignup(data);
@@ -82,6 +122,93 @@ export const SignupPage: React.FC<SignupPageProps> = ({ onSignup }) => {
             onClose={() => setToast(null)}
           />
         )}
+        {showSettings && (
+          <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              className="w-full max-w-md bg-white border border-[#A0A0A0] rounded-xl shadow-2xl overflow-hidden flex flex-col"
+            >
+              <div className="bg-[#F3F3F3] border-b border-[#E0E0E0] p-4 flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Settings size={18} className="text-[#003399]" />
+                  <span className="text-sm font-bold text-gray-700">Server Configuration</span>
+                </div>
+                <button
+                  onClick={() => setShowSettings(false)}
+                  className="text-gray-400 hover:text-gray-600 transition-colors"
+                >
+                  <X size={20} />
+                </button>
+              </div>
+
+              <div className="p-6 flex flex-col gap-5">
+                <div className="space-y-4">
+                  <div className="space-y-1.5">
+                    <label className="text-[11px] font-bold text-gray-500 uppercase tracking-wider ml-1">Server Address</label>
+                    <input
+                      type="text"
+                      placeholder="http://localhost"
+                      className="w-full h-10 px-3 border border-[#A0A0A0] rounded-lg text-sm focus:outline-none focus:border-[#003399] focus:ring-2 focus:ring-[#003399]/20 transition-all shadow-inner"
+                      value={serverLink}
+                      onChange={(e) => setServerLink(e.target.value)}
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="text-[11px] font-bold text-gray-500 uppercase tracking-wider ml-1">Port</label>
+                    <input
+                      type="text"
+                      placeholder="5000"
+                      className="w-full h-10 px-3 border border-[#A0A0A0] rounded-lg text-sm focus:outline-none focus:border-[#003399] focus:ring-2 focus:ring-[#003399]/20 transition-all shadow-inner"
+                      value={serverPort}
+                      onChange={(e) => setServerPort(e.target.value)}
+                    />
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-3 pt-2">
+                  <button
+                    type="button"
+                    onClick={testConnection}
+                    disabled={isTestingConnection}
+                    className="flex-1 h-10 bg-gradient-to-b from-[#F8F8F8] to-[#E0E0E0] border border-[#A0A0A0] rounded-lg text-sm font-bold text-gray-700 shadow-sm hover:brightness-105 active:shadow-inner transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {isTestingConnection ? (
+                      <>
+                        <Loader2 size={16} className="animate-spin" />
+                        Testing Connection...
+                      </>
+                    ) : (
+                      'Test Connection'
+                    )}
+                  </button>
+                  {connectionStatus === 'success' && (
+                    <div className="flex items-center gap-1.5 text-green-600 font-bold text-xs bg-green-50 px-3 py-2 rounded-lg border border-green-100">
+                      <CheckCircle2 size={16} />
+                      Connected
+                    </div>
+                  )}
+                  {connectionStatus === 'error' && (
+                    <div className="flex items-center gap-1.5 text-red-600 font-bold text-xs bg-red-50 px-3 py-2 rounded-lg border border-red-100">
+                      <XCircle size={16} />
+                      Failed
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <div className="bg-[#FBFBFB] border-t border-[#E0E0E0] p-4 flex justify-end">
+                <button
+                  onClick={() => setShowSettings(false)}
+                  className="px-6 h-9 bg-[#003399] text-white rounded-lg text-sm font-bold hover:bg-[#002266] transition-colors shadow-lg shadow-[#003399]/20"
+                >
+                  Close
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
       </AnimatePresence>
 
       <div className="w-[640px] bg-white border border-[#A0A0A0] rounded-lg shadow-2xl overflow-hidden flex flex-col">
@@ -98,66 +225,76 @@ export const SignupPage: React.FC<SignupPageProps> = ({ onSignup }) => {
             {
               !isSignIn && (
                 <div className="flex flex-col items-center gap-4">
-              <div className="relative">
-                <div
-                  className="w-36 h-36 bg-white border-4 border-[#88C057] rounded-2xl p-1 shadow-lg overflow-hidden flex items-center justify-center group cursor-pointer transition-transform hover:scale-105"
-                  onClick={() => setShowAvatarList(!showAvatarList)}
-                >
-                  <img src={selectedAvatar} className="w-full h-full object-cover rounded-xl" alt="Selected Avatar" />
-                  <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center rounded-xl">
-                    <span className="text-white text-sm font-bold drop-shadow-md">Change Picture</span>
+                  <div className="relative">
+                    <div
+                      className="w-36 h-36 bg-white border-4 border-[#88C057] rounded-2xl p-1 shadow-lg overflow-hidden flex items-center justify-center group cursor-pointer transition-transform hover:scale-105"
+                      onClick={() => setShowAvatarList(!showAvatarList)}
+                    >
+                      <img src={selectedAvatar} className="w-full h-full object-cover rounded-xl" alt="Selected Avatar" />
+                      <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center rounded-xl">
+                        <span className="text-white text-sm font-bold drop-shadow-md">Change Picture</span>
+                      </div>
+                    </div>
+
+                    <AnimatePresence>
+                      {showAvatarList && (
+                        <motion.div
+                          initial={{ opacity: 0, scale: 0.9, y: 10 }}
+                          animate={{ opacity: 1, scale: 1, y: 0 }}
+                          exit={{ opacity: 0, scale: 0.9, y: 10 }}
+                          className="absolute top-full mt-4 left-0 bg-white border border-[#A0A0A0] rounded-xl shadow-2xl z-20 w-96 overflow-hidden flex flex-col"
+                        >
+                          <div className="bg-[#F3F3F3] border-b border-[#E0E0E0] p-3 flex items-center justify-between">
+                            <span className="text-xs font-bold text-gray-700">Choose your dynamic picture</span>
+                            <button
+                              onClick={() => setShowAvatarList(false)}
+                              className="text-gray-400 hover:text-gray-600 transition-colors"
+                            >
+                              <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M1 1L11 11M1 11L11 1" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                              </svg>
+                            </button>
+                          </div>
+
+                          <div className="p-3 max-h-64 overflow-y-auto custom-scrollbar">
+                            <div className="grid grid-cols-5 gap-3">
+                              {AVATARS.map((url, idx) => (
+                                <motion.img
+                                  key={idx}
+                                  whileHover={{ scale: 1.1, zIndex: 10 }}
+                                  whileTap={{ scale: 0.95 }}
+                                  src={url}
+                                  className={`w-14 h-14 rounded-lg cursor-pointer border-2 transition-all object-cover ${selectedAvatar === url ? 'border-[#88C057] shadow-md ring-2 ring-[#88C057]/20' : 'border-transparent hover:border-gray-300'
+                                    }`}
+                                  onClick={() => {
+                                    setSelectedAvatar(url);
+                                    setShowAvatarList(false);
+                                  }}
+                                  alt={`Avatar ${idx}`}
+                                />
+                              ))}
+                            </div>
+                          </div>
+
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </div>
+                  <div className="flex flex-col items-center gap-3">
+                    <div className="flex items-center gap-2 text-[#003399] cursor-pointer hover:underline">
+                      <HelpCircle size={18} />
+                      <span className="text-xs font-medium">Need help?</span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setShowSettings(true)}
+                      className="flex items-center gap-2 text-[11px] font-bold text-[#003399] hover:underline"
+                    >
+                      <Settings size={14} />
+                      Server Settings
+                    </button>
                   </div>
                 </div>
-
-                <AnimatePresence>
-                  {showAvatarList && (
-                    <motion.div
-                      initial={{ opacity: 0, scale: 0.9, y: 10 }}
-                      animate={{ opacity: 1, scale: 1, y: 0 }}
-                      exit={{ opacity: 0, scale: 0.9, y: 10 }}
-                      className="absolute top-full mt-4 left-0 bg-white border border-[#A0A0A0] rounded-xl shadow-2xl z-20 w-96 overflow-hidden flex flex-col"
-                    >
-                      <div className="bg-[#F3F3F3] border-b border-[#E0E0E0] p-3 flex items-center justify-between">
-                        <span className="text-xs font-bold text-gray-700">Choose your dynamic picture</span>
-                        <button 
-                          onClick={() => setShowAvatarList(false)}
-                          className="text-gray-400 hover:text-gray-600 transition-colors"
-                        >
-                          <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M1 1L11 11M1 11L11 1" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-                          </svg>
-                        </button>
-                      </div>
-                      
-                      <div className="p-3 max-h-64 overflow-y-auto custom-scrollbar">
-                        <div className="grid grid-cols-5 gap-3">
-                          {AVATARS.map((url, idx) => (
-                            <motion.img
-                              key={idx}
-                              whileHover={{ scale: 1.1, zIndex: 10 }}
-                              whileTap={{ scale: 0.95 }}
-                              src={url}
-                              className={`w-14 h-14 rounded-lg cursor-pointer border-2 transition-all object-cover ${selectedAvatar === url ? 'border-[#88C057] shadow-md ring-2 ring-[#88C057]/20' : 'border-transparent hover:border-gray-300'
-                                }`}
-                              onClick={() => {
-                                setSelectedAvatar(url);
-                                setShowAvatarList(false);
-                              }}
-                              alt={`Avatar ${idx}`}
-                            />
-                          ))}
-                        </div>
-                      </div>
-
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </div>
-              <div className="flex items-center gap-2 text-[#003399] cursor-pointer hover:underline">
-                <HelpCircle size={18} />
-                <span className="text-xs font-medium">Need help?</span>
-              </div>
-            </div>
               )
             }
 
@@ -213,12 +350,8 @@ export const SignupPage: React.FC<SignupPageProps> = ({ onSignup }) => {
                   <input type="checkbox" id="remember" className="w-4 h-4 rounded border-gray-300 text-[#003399] focus:ring-[#003399]" />
                   <label htmlFor="remember" className="text-xs text-gray-600 cursor-pointer group-hover:text-black transition-colors">Remember my ID and password</label>
                 </div>
-                {/* <div className="flex items-center gap-3 group cursor-pointer">
-                  <input type="checkbox" id="auto" className="w-4 h-4 rounded border-gray-300 text-[#003399] focus:ring-[#003399]" />
-                  <label htmlFor="auto" className="text-xs text-gray-600 cursor-pointer group-hover:text-black transition-colors">Sign me in automatically</label>
-                  <span className="text-xs text-[#003399] font-medium cursor-pointer hover:underline ml-auto">Options</span>
-                </div> */}
               </div>
+
 
               <div className="flex gap-4 mt-4">
                 <motion.button

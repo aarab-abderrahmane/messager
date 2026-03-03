@@ -21,9 +21,9 @@ function addUser(email, ip , avatar  ,password , username) {
   }
 
   // ✅ Check IP uniqueness
-  // if (ips.has(ip)) {
-  //   return {error : "An account has already been created from this network."}
-  // }
+  if (ips.has(ip)) {
+    return {error : "An account has already been created from this network."}
+  }
 
   // ✅ Generate unique token
   let token;

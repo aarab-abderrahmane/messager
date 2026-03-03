@@ -39,10 +39,6 @@ export const ChatPage: React.FC<ChatPageProps> = ({ user, onLogout }) => {
   const ws = useRef(null);
 
 
-  //       { id: '1', sender: 'them', text: 'you got any plans?', type: 'text', timestamp: new Date() },
-  // { id: '2', sender: 'them', text: 'I miss you ☹️', type: 'text', timestamp: new Date() },
-  // { id: '3', sender: 'me', text: 'You have just sent a Nudge!', type: 'nudge', timestamp: new Date() },
-  // { id: '4', sender: 'them', text: 'Poops says: 🥺🫶', type: 'text', timestamp: new Date() }
 
 
   const [inputText, setInputText] = useState('');
@@ -119,12 +115,16 @@ export const ChatPage: React.FC<ChatPageProps> = ({ user, onLogout }) => {
     if (!currentUser?.token) return
 
 
-    const socket = new WebSocket("ws://localhost:5000");
+    const storedLink = localStorage.getItem('server_link') || 'http://localhost';
+    const storedPort = localStorage.getItem('server_port') || '5000';
+    // Convert http/https to ws/wss and use the host:port
+    const wsProtocol = storedLink.startsWith('https') ? 'wss' : 'ws';
+    const host = storedLink.replace(/^https?:\/\//, '');
+    const socket = new WebSocket(`${wsProtocol}://${host}:${storedPort}`);
     ws.current = socket;
 
 
     ws.current.onopen = () => {
-      console.log("Connected to server");
       ws.current?.send(JSON.stringify({
         type: "AUTH",
         token: currentUser.token
@@ -136,7 +136,6 @@ export const ChatPage: React.FC<ChatPageProps> = ({ user, onLogout }) => {
 
       if (data.type === "USER_STATUS_UPDATE") {
 
-        console.log(data)
         setOnlineUsers(data.online);
         setOfflineUsers(data.offline);
       }
@@ -152,7 +151,7 @@ export const ChatPage: React.FC<ChatPageProps> = ({ user, onLogout }) => {
         return;
       }
 
-      if(data.type ==="error"){
+      if (data.type === "error") {
         alert(data.message);
 
       }
@@ -161,17 +160,17 @@ export const ChatPage: React.FC<ChatPageProps> = ({ user, onLogout }) => {
 
       if (data.type === "text" || data.type === "image" || data.type === "voice" || data.type === "pdf") {
         setMessages(prev => [
-          ...prev, data 
+          ...prev, data
         ])
       }
 
 
       if (data.type === "update_message") {
-        setMessages((prevMessages) => 
-          prevMessages.map((msg) => 
-            msg.id === data.messageId 
-              ? { ...msg, reactions: data.reactions } 
-              : msg 
+        setMessages((prevMessages) =>
+          prevMessages.map((msg) =>
+            msg.id === data.messageId
+              ? { ...msg, reactions: data.reactions }
+              : msg
           )
         );
       }
@@ -179,7 +178,6 @@ export const ChatPage: React.FC<ChatPageProps> = ({ user, onLogout }) => {
     };
 
     ws.current.onclose = (event) => {
-      console.log("Disconnected", event.reason);
       if (ws.current === socket) {
         ws.current = null;
       }
@@ -204,7 +202,6 @@ export const ChatPage: React.FC<ChatPageProps> = ({ user, onLogout }) => {
   }, [messages]);
 
   const addMessage = (msg: Partial<Message>) => {
-    console.log('add')
     const newMessage: Message = {
       ...msg,
       username: currentUser.username,
@@ -212,7 +209,6 @@ export const ChatPage: React.FC<ChatPageProps> = ({ user, onLogout }) => {
       replyTo: replyingTo ? replyingTo : null
     } as Message;
 
-    console.log("success", newMessage)
 
     ws.current.send(JSON.stringify(newMessage));
   };
@@ -242,7 +238,6 @@ export const ChatPage: React.FC<ChatPageProps> = ({ user, onLogout }) => {
     //   };
     // }
 
-    // if (replyingTo) console.log("true reply",msgData)
 
     addMessage({ type: "text", content: inputText })
 
@@ -276,7 +271,7 @@ export const ChatPage: React.FC<ChatPageProps> = ({ user, onLogout }) => {
       reader.onload = () => {
         const base64 = reader.result;
 
-        setPendingPhotoUrl({url : base64, text : "pdf name" });
+        setPendingPhotoUrl({ url: base64, text: "pdf name" });
       };
       reader.readAsDataURL(file);
     }
@@ -284,7 +279,6 @@ export const ChatPage: React.FC<ChatPageProps> = ({ user, onLogout }) => {
   };
 
   const handleVoiceUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    console.log("run")
     const file = e.target.files?.[0];
     if (file) {
       const reader = new FileReader();
@@ -440,7 +434,7 @@ export const ChatPage: React.FC<ChatPageProps> = ({ user, onLogout }) => {
             imageData={pendingPhotoUrl}
             onClose={() => setPendingPhotoUrl(null)}
             onSend={(url, text) => {
-              addMessage({ type: "image", content: url , text : text })
+              addMessage({ type: "image", content: url, text: text })
               setPendingPhotoUrl(null);
             }}
           />
@@ -518,7 +512,7 @@ export const ChatPage: React.FC<ChatPageProps> = ({ user, onLogout }) => {
               style={{ background: 'linear-gradient(180deg, #f2f0ec 0%, #e8e5df 100%)', boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.8), 0 2px 4px rgba(0,0,0,0.1)' }}>
 
               {/* Header */}
-                <div
+              <div
                 style={{
                   background: 'linear-gradient(180deg, #4a85d8 0%, #2a5fb5 100%)',
                   borderBottom: '1px solid #1e4fa0',
@@ -724,401 +718,402 @@ export const ChatPage: React.FC<ChatPageProps> = ({ user, onLogout }) => {
                 const isMe = msg.email === currentUser.email;
 
                 return (
-                <div key={msg.id} className={`text-sm group relative my-1 ${msg.type === 'nudge' ? 'text-center my-3' : ''}`}>
-                  {msg.type !== 'nudge' && (
-                    <div className="absolute -right-2 top-0 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity z-10">
-                      <div className="relative">
+                  <div key={msg.id} className={`text-sm group relative my-1 ${msg.type === 'nudge' ? 'text-center my-3' : ''}`}>
+                    {msg.type !== 'nudge' && (
+                      <div className="absolute -right-2 top-0 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity z-10">
+                        <div className="relative">
+                          <button
+                            onClick={() => setReactionMenuId(reactionMenuId === msg.id ? null : msg.id)}
+                            className="p-1 hover:bg-gray-100 rounded-full text-gray-400 hover:text-[#3169C6]"
+                            title="React"
+                          >
+                            <Smile size={17} />
+                          </button>
+                          <AnimatePresence>
+                            {reactionMenuId === msg.id && (
+                              <motion.div
+                                initial={{ opacity: 0, scale: 0.8, y: 5 }}
+                                animate={{ opacity: 1, scale: 1, y: 0 }}
+                                exit={{ opacity: 0, scale: 0.8, y: 5 }}
+                                className="absolute bottom-full mb-1 right-0 bg-white border border-[#ACA899] rounded-full shadow-lg p-1 flex items-center gap-1 z-20"
+                              >
+                                {[
+                                  { emoji: '❤️', type: 'love' },
+                                  { emoji: '👍', type: 'like' },
+                                  { emoji: '👎', type: 'dislike' },
+                                  { emoji: '😂', type: 'fun' }
+                                ].map(r => (
+                                  <button
+                                    key={r.type}
+                                    onClick={() => handleReaction(msg.id, r.emoji)}
+                                    className="hover:scale-125 transition-transform   p-1"
+                                  >
+                                    {r.emoji}
+                                  </button>
+                                ))}
+                              </motion.div>
+                            )}
+                          </AnimatePresence>
+                        </div>
                         <button
-                          onClick={() => setReactionMenuId(reactionMenuId === msg.id ? null : msg.id)}
+                          onClick={() => setReplyingTo(msg)}
                           className="p-1 hover:bg-gray-100 rounded-full text-gray-400 hover:text-[#3169C6]"
-                          title="React"
+                          title="Reply"
                         >
-                          <Smile size={17} />
+                          <Reply size={17} />
                         </button>
-                        <AnimatePresence>
-                          {reactionMenuId === msg.id && (
-                            <motion.div
-                              initial={{ opacity: 0, scale: 0.8, y: 5 }}
-                              animate={{ opacity: 1, scale: 1, y: 0 }}
-                              exit={{ opacity: 0, scale: 0.8, y: 5 }}
-                              className="absolute bottom-full mb-1 right-0 bg-white border border-[#ACA899] rounded-full shadow-lg p-1 flex items-center gap-1 z-20"
-                            >
-                              {[
-                                { emoji: '❤️', type: 'love' },
-                                { emoji: '👍', type: 'like' },
-                                { emoji: '👎', type: 'dislike' },
-                                { emoji: '😂', type: 'fun' }
-                              ].map(r => (
-                                <button
-                                  key={r.type}
-                                  onClick={() => handleReaction(msg.id, r.emoji)}
-                                  className="hover:scale-125 transition-transform   p-1"
-                                >
-                                  {r.emoji}
-                                </button>
-                              ))}
-                            </motion.div>
-                          )}
-                        </AnimatePresence>
                       </div>
-                      <button
-                        onClick={() => setReplyingTo(msg)}
-                        className="p-1 hover:bg-gray-100 rounded-full text-gray-400 hover:text-[#3169C6]"
-                        title="Reply"
-                      >
-                        <Reply size={17} />
-                      </button>
-                    </div>
-                  )}
+                    )}
 
-                  <span className={`font-bold text-[13px] ${isMe ? 'text-[#3169C6]' : 'text-black'}`}>
-                    {isMe ? 'You :' : `${msg.username} :`}
-                  </span>
+                    <span className={`font-bold text-[13px] ${isMe ? 'text-[#3169C6]' : 'text-black'}`}>
+                      {isMe ? 'You :' : `${msg.username} :`}
+                    </span>
 
-                  {msg.replyTo && (
-                    <div className="ml-3 mb-2" style={{ maxWidth: '80%' }}>
-                      <div
-                        style={{
-                          background: 'linear-gradient(180deg, #f8f8f8 0%, #ececec 100%)',
-                          border: '1px solid #c8c8c8',
-                          borderLeft: '3px solid #888888',
-                          borderRadius: '0 5px 5px 0',
-                          padding: '5px 10px',
-                          boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.95), 0 1px 2px rgba(0,0,0,0.10)',
-                          position: 'relative',
-                          overflow: 'hidden',
-                        }}
-                      >
-                        {/* Subtle left watermark stripe */}
+                    {msg.replyTo && (
+                      <div className="ml-3 mb-2" style={{ maxWidth: '80%' }}>
                         <div
                           style={{
-                            position: 'absolute',
-                            top: 0, left: 0, bottom: 0,
-                            width: 28,
-                            background: 'linear-gradient(90deg, rgba(0,0,0,0.04), transparent)',
-                            pointerEvents: 'none',
+                            background: 'linear-gradient(180deg, #f8f8f8 0%, #ececec 100%)',
+                            border: '1px solid #c8c8c8',
+                            borderLeft: '3px solid #888888',
+                            borderRadius: '0 5px 5px 0',
+                            padding: '5px 10px',
+                            boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.95), 0 1px 2px rgba(0,0,0,0.10)',
+                            position: 'relative',
+                            overflow: 'hidden',
                           }}
-                        />
+                        >
+                          {/* Subtle left watermark stripe */}
+                          <div
+                            style={{
+                              position: 'absolute',
+                              top: 0, left: 0, bottom: 0,
+                              width: 28,
+                              background: 'linear-gradient(90deg, rgba(0,0,0,0.04), transparent)',
+                              pointerEvents: 'none',
+                            }}
+                          />
 
-                        {/* Reply-to label */}
-                        <div className="flex items-center gap-1 mb-0.5">
-                          <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
-                            <path d="M4 2L1 5L4 8M1 5h6a2 2 0 0 1 2 2v1" stroke="#666666" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
-                          </svg>
-                          <span
+                          {/* Reply-to label */}
+                          <div className="flex items-center gap-1 mb-0.5">
+                            <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
+                              <path d="M4 2L1 5L4 8M1 5h6a2 2 0 0 1 2 2v1" stroke="#666666" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
+                            </svg>
+                            <span
+                              style={{
+                                fontSize: 11,
+                                fontWeight: 700,
+                                color: '#444444',
+                                fontFamily: 'Segoe UI, Tahoma, sans-serif',
+                                letterSpacing: '0.01em',
+                              }}
+                            >
+                              {msg.replyTo.email === currentUser.email ? 'You' : msg.replyTo.username}
+                            </span>
+                          </div>
+
+                          {/* Reply content */}
+                          <div
                             style={{
                               fontSize: 11,
-                              fontWeight: 700,
-                              color: '#444444',
+                              color: '#777777',
                               fontFamily: 'Segoe UI, Tahoma, sans-serif',
-                              letterSpacing: '0.01em',
+                              fontStyle: 'italic',
+                              whiteSpace: 'nowrap',
+                              overflow: 'hidden',
+                              textOverflow: 'ellipsis',
+                              paddingLeft: 14,
                             }}
                           >
-                            {msg.replyTo.email === currentUser.email ? 'You' : msg.replyTo.username}
-                          </span>
-                        </div>
-
-                        {/* Reply content */}
-                        <div
-                          style={{
-                            fontSize: 11,
-                            color: '#777777',
-                            fontFamily: 'Segoe UI, Tahoma, sans-serif',
-                            fontStyle: 'italic',
-                            whiteSpace: 'nowrap',
-                            overflow: 'hidden',
-                            textOverflow: 'ellipsis',
-                            paddingLeft: 14,
-                          }}
-                        >
-                          {msg.replyTo.type === "text" ? msg.replyTo.content : msg.replyTo.text}
+                            {msg.replyTo.type === "text" ? msg.replyTo.content : msg.replyTo.text}
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  )}
+                    )}
 
-                  {msg.type === 'text' && (
-                    <div className="flex flex-col gap-0.5">
-                      {/* <span className={`font-bold text-[13px] ${isMe ? 'text-[#3169C6]' : 'text-black'}`}>
+                    {msg.type === 'text' && (
+                      <div className="flex flex-col gap-0.5">
+                        {/* <span className={`font-bold text-[13px] ${isMe ? 'text-[#3169C6]' : 'text-black'}`}>
                         {msg.username}
                       </span> */}
-                      <span className="text-[14px] ml-3 leading-relaxed">{msg.content}</span>
-                    </div>
-                  )}
-                  {msg.type === 'image' && (
-                    <div className="flex flex-col gap-1">
-                      {/* <span className={`font-bold text-[13px] ${isMe ? 'text-[#3169C6]' : 'text-black'}`}>
+                        <span className="text-[14px] ml-3 leading-relaxed">{msg.content}</span>
+                      </div>
+                    )}
+                    {msg.type === 'image' && (
+                      <div className="flex flex-col gap-1">
+                        {/* <span className={`font-bold text-[13px] ${isMe ? 'text-[#3169C6]' : 'text-black'}`}>
                         {isMe ? 'You sent a photo:' : 'Poops sent a photo:'}
                       </span> */}
-                      <img
-                        src={msg.content}
-                        className="max-w-[200px] rounded-md border border-gray-200 shadow-sm ml-3 cursor-pointer hover:opacity-90 transition-opacity"
-                        alt="Sent photo"
-                        onClick={() => setPreviewImageUrl(msg.content || null)}
-                      />
-                    </div>
-                  )}
-                  {(msg.type === 'sticker' || msg.type === 'gif') && (
-                    <div className="flex flex-col gap-1">
-                      {/* <span className={`font-bold text-[13px] ${isMe ? 'text-[#3169C6]' : 'text-black'}`}>
+                        <img
+                          src={msg.content}
+                          className="max-w-[200px] rounded-md border border-gray-200 shadow-sm ml-3 cursor-pointer hover:opacity-90 transition-opacity"
+                          alt="Sent photo"
+                          onClick={() => setPreviewImageUrl(msg.content || null)}
+                        />
+                      </div>
+                    )}
+                    {(msg.type === 'sticker' || msg.type === 'gif') && (
+                      <div className="flex flex-col gap-1">
+                        {/* <span className={`font-bold text-[13px] ${isMe ? 'text-[#3169C6]' : 'text-black'}`}>
                         {isMe ? `You sent a ${msg.type}:` : `Poops sent a ${msg.type}:`}
                       </span> */}
-                      <img src={msg.content} className="max-w-[150px] ml-3" alt={msg.type} />
-                    </div>
-                  )}
-                  {msg.type === 'voice' && (
-                    <div className="flex flex-col gap-1">
-                      {/* <span className={`font-bold text-[13px] ${isMe ? 'text-[#3169C6]' : 'text-black'}`}>
+                        <img src={msg.content} className="max-w-[150px] ml-3" alt={msg.type} />
+                      </div>
+                    )}
+                    {msg.type === 'voice' && (
+                      <div className="flex flex-col gap-1">
+                        {/* <span className={`font-bold text-[13px] ${isMe ? 'text-[#3169C6]' : 'text-black'}`}>
                           {isMe ? 'You sent:' : msg.username}
                         </span> */}
 
-                      <div
-                        className="ml-3 flex flex-col gap-2"
-                        style={{
-                          background: 'linear-gradient(180deg, #f5f9ff 0%, #ddeeff 100%)',
-                          border: '1px solid #aac8e8',
-                          borderRadius: '6px',
-                          padding: '8px 12px',
-                          maxWidth: '260px',
-                          boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.9), 0 1px 3px rgba(0,0,0,0.1)',
-                        }}
-                      >
-                        {/* Header row */}
-                        <div className="flex items-center gap-2">
-                          {/* Animated mic icon bubble */}
-                          <div
-                            style={{
-                              width: 32,
-                              height: 32,
-                              borderRadius: '50%',
-                              background: 'linear-gradient(180deg, #5b9bd5 0%, #2a6ab5 100%)',
-                              border: '1px solid #1a5aa5',
-                              boxShadow: '0 2px 4px rgba(0,0,0,0.2)',
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                              flexShrink: 0,
-                            }}
-                          >
-                            <Mic size={16} color="white" />
-                          </div>
-
-                          <div className="flex flex-col">
-                            <span style={{ fontSize: 12, fontWeight: 700, color: '#1a5aa5', fontFamily: 'Segoe UI, Tahoma, sans-serif' }}>
-                              Voice Message
-                            </span>
-                            <span style={{ fontSize: 11, color: '#5a7fa8', fontFamily: 'Segoe UI, Tahoma, sans-serif' }}>
-                              {msg.text}
-                            </span>
-                          </div>
-                        </div>
-
-                        {/* Divider */}
-                        <div style={{ height: 1, background: 'linear-gradient(90deg, transparent, #aac8e8, transparent)' }} />
-
-                        {/* Audio player */}
-                        {msg.content && (
-                          <div className="flex flex-col gap-1">
-                            <audio
-                              controls
-                              src={msg.content}
-                              style={{
-                                width: '100%',
-                                height: 28,
-                                accentColor: '#3169C6',
-                              }}
-                            />
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  )}
-                  {msg.type === 'gift' && (
-                    <div className="flex flex-col gap-1">
-                      <span className={`font-bold text-[13px] ${isMe ? 'text-[#3169C6]' : 'text-black'}`}>
-                        {isMe ? 'You sent a gift:' : 'Poops sent a gift:'}
-                      </span>
-                      <div className="ml-3 py-2 px-4 bg-[#FFF0F5] border border-[#E96E4C]/20 rounded-md flex flex-col gap-2">
-                        <div className="flex items-center gap-2 text-[#E96E4C] font-bold">
-                          <Gift size={16} />
-                          {msg.isOpened ? 'Gift Opened!' : 'You have a new gift!'}
-                        </div>
-                        {msg.isOpened ? (
-                          <div className="text-sm text-gray-700 italic bg-white/50 p-2 rounded border border-[#E96E4C]/10">
-                            "{msg.text}"
-                          </div>
-                        ) : (
-                          <button
-                            onClick={() => handleOpenGift(msg.id)}
-                            className="text-[11px] font-bold text-white bg-[#E96E4C] px-3 py-1 rounded hover:brightness-110 transition-all self-start shadow-sm"
-                          >
-                            View Action
-                          </button>
-                        )}
-                      </div>
-                    </div>
-                  )}
-                  {msg.type === 'nudge' && (
-                    <div className="py-2 px-6 bg-[#F8F8F8] border-y border-[#ACA899] inline-block mx-auto rounded-md italic text-[#666] text-[13px] shadow-sm">
-                      {msg.text}
-                    </div>
-                  )}
-
-                  {msg.type === 'pdf' && (
-                    <div className="flex flex-col gap-2 ml-3" style={{ maxWidth: 300 }}>
-                      {(msg.attachments && msg.attachments.length > 0
-                        ? msg.attachments
-                        : [{ name: msg.text, content: msg.content }]
-                      ).map((att, idx) => (
                         <div
-                          key={idx}
+                          className="ml-3 flex flex-col gap-2"
                           style={{
-                            background: 'linear-gradient(180deg, #f8f8f8 0%, #e8e8e8 100%)',
-                            border: '1px solid #c0c0c0',
-                            borderRadius: 6,
-                            boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.95), 0 1px 3px rgba(0,0,0,0.12)',
-                            overflow: 'hidden',
+                            background: 'linear-gradient(180deg, #f5f9ff 0%, #ddeeff 100%)',
+                            border: '1px solid #aac8e8',
+                            borderRadius: '6px',
+                            padding: '8px 12px',
+                            maxWidth: '260px',
+                            boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.9), 0 1px 3px rgba(0,0,0,0.1)',
                           }}
                         >
-                          {/* Top header bar - WLM style title bar */}
-                          <div
-                            style={{
-                              background: 'linear-gradient(180deg, #dcdcdc 0%, #c8c8c8 100%)',
-                              borderBottom: '1px solid #b0b0b0',
-                              padding: '4px 8px',
-                              display: 'flex',
-                              alignItems: 'center',
-                              gap: 6,
-                            }}
-                          >
-                            {/* PDF icon badge */}
+                          {/* Header row */}
+                          <div className="flex items-center gap-2">
+                            {/* Animated mic icon bubble */}
                             <div
                               style={{
-                                width: 28,
-                                height: 28,
-                                background: 'linear-gradient(180deg, #e84040 0%, #b82020 100%)',
-                                border: '1px solid #901010',
-                                borderRadius: 4,
-                                boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.3), 0 1px 2px rgba(0,0,0,0.2)',
+                                width: 32,
+                                height: 32,
+                                borderRadius: '50%',
+                                background: 'linear-gradient(180deg, #5b9bd5 0%, #2a6ab5 100%)',
+                                border: '1px solid #1a5aa5',
+                                boxShadow: '0 2px 4px rgba(0,0,0,0.2)',
                                 display: 'flex',
                                 alignItems: 'center',
                                 justifyContent: 'center',
                                 flexShrink: 0,
                               }}
                             >
-                              <span style={{ color: 'white', fontSize: 9, fontWeight: 900, fontFamily: 'Segoe UI, Tahoma, sans-serif', letterSpacing: '-0.5px' }}>PDF</span>
+                              <Mic size={16} color="white" />
                             </div>
 
-                            {/* Filename */}
-                            <span
-                              style={{
-                                fontSize: 12,
-                                fontWeight: 700,
-                                color: '#333',
-                                fontFamily: 'Segoe UI, Tahoma, sans-serif',
-                                overflow: 'hidden',
-                                textOverflow: 'ellipsis',
-                                whiteSpace: 'nowrap',
-                                flex: 1,
-                              }}
-                            >
-                              {att.name}
-                            </span>
+                            <div className="flex flex-col">
+                              <span style={{ fontSize: 12, fontWeight: 700, color: '#1a5aa5', fontFamily: 'Segoe UI, Tahoma, sans-serif' }}>
+                                Voice Message
+                              </span>
+                              <span style={{ fontSize: 11, color: '#5a7fa8', fontFamily: 'Segoe UI, Tahoma, sans-serif' }}>
+                                {msg.text}
+                              </span>
+                            </div>
                           </div>
 
-                          {/* Body */}
+                          {/* Divider */}
+                          <div style={{ height: 1, background: 'linear-gradient(90deg, transparent, #aac8e8, transparent)' }} />
+
+                          {/* Audio player */}
+                          {msg.content && (
+                            <div className="flex flex-col gap-1">
+                              <audio
+                                controls
+                                src={msg.content}
+                                style={{
+                                  width: '100%',
+                                  height: 28,
+                                  accentColor: '#3169C6',
+                                }}
+                              />
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )}
+                    {msg.type === 'gift' && (
+                      <div className="flex flex-col gap-1">
+                        <span className={`font-bold text-[13px] ${isMe ? 'text-[#3169C6]' : 'text-black'}`}>
+                          {isMe ? 'You sent a gift:' : 'Poops sent a gift:'}
+                        </span>
+                        <div className="ml-3 py-2 px-4 bg-[#FFF0F5] border border-[#E96E4C]/20 rounded-md flex flex-col gap-2">
+                          <div className="flex items-center gap-2 text-[#E96E4C] font-bold">
+                            <Gift size={16} />
+                            {msg.isOpened ? 'Gift Opened!' : 'You have a new gift!'}
+                          </div>
+                          {msg.isOpened ? (
+                            <div className="text-sm text-gray-700 italic bg-white/50 p-2 rounded border border-[#E96E4C]/10">
+                              "{msg.text}"
+                            </div>
+                          ) : (
+                            <button
+                              onClick={() => handleOpenGift(msg.id)}
+                              className="text-[11px] font-bold text-white bg-[#E96E4C] px-3 py-1 rounded hover:brightness-110 transition-all self-start shadow-sm"
+                            >
+                              View Action
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    )}
+                    {msg.type === 'nudge' && (
+                      <div className="py-2 px-6 bg-[#F8F8F8] border-y border-[#ACA899] inline-block mx-auto rounded-md italic text-[#666] text-[13px] shadow-sm">
+                        {msg.text}
+                      </div>
+                    )}
+
+                    {msg.type === 'pdf' && (
+                      <div className="flex flex-col gap-2 ml-3" style={{ maxWidth: 300 }}>
+                        {(msg.attachments && msg.attachments.length > 0
+                          ? msg.attachments
+                          : [{ name: msg.text, content: msg.content }]
+                        ).map((att, idx) => (
                           <div
+                            key={idx}
                             style={{
-                              padding: '7px 10px',
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'space-between',
-                              gap: 8,
+                              background: 'linear-gradient(180deg, #f8f8f8 0%, #e8e8e8 100%)',
+                              border: '1px solid #c0c0c0',
+                              borderRadius: 6,
+                              boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.95), 0 1px 3px rgba(0,0,0,0.12)',
+                              overflow: 'hidden',
                             }}
                           >
-                            <span style={{ fontSize: 11, color: '#888', fontFamily: 'Segoe UI, Tahoma, sans-serif', fontStyle: 'italic' }}>
-                              PDF Document
-                            </span>
-
-                            {/* Action buttons - WLM toolbar button style */}
-                            <div style={{ display: 'flex', gap: 5 }}>
-                              <button
-                                onClick={() => { setPreviewPdf(att); setShowPdfPreviewDialog(true); }}
+                            {/* Top header bar - WLM style title bar */}
+                            <div
+                              style={{
+                                background: 'linear-gradient(180deg, #dcdcdc 0%, #c8c8c8 100%)',
+                                borderBottom: '1px solid #b0b0b0',
+                                padding: '4px 8px',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: 6,
+                              }}
+                            >
+                              {/* PDF icon badge */}
+                              <div
                                 style={{
+                                  width: 28,
+                                  height: 28,
+                                  background: 'linear-gradient(180deg, #e84040 0%, #b82020 100%)',
+                                  border: '1px solid #901010',
+                                  borderRadius: 4,
+                                  boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.3), 0 1px 2px rgba(0,0,0,0.2)',
                                   display: 'flex',
                                   alignItems: 'center',
-                                  gap: 4,
-                                  padding: '3px 8px',
-                                  fontSize: 11,
-                                  fontWeight: 700,
-                                  fontFamily: 'Segoe UI, Tahoma, sans-serif',
-                                  color: '#333',
-                                  background: 'linear-gradient(180deg, #f5f5f5 0%, #dcdcdc 100%)',
-                                  border: '1px solid #aaa',
-                                  borderRadius: 3,
-                                  boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.9)',
-                                  cursor: 'pointer',
+                                  justifyContent: 'center',
+                                  flexShrink: 0,
                                 }}
-                                onMouseEnter={e => e.currentTarget.style.background = 'linear-gradient(180deg, #e8f0ff 0%, #ccd8f0 100%)'}
-                                onMouseLeave={e => e.currentTarget.style.background = 'linear-gradient(180deg, #f5f5f5 0%, #dcdcdc 100%)'}
                               >
-                                <Eye size={11} /> Preview
-                              </button>
+                                <span style={{ color: 'white', fontSize: 9, fontWeight: 900, fontFamily: 'Segoe UI, Tahoma, sans-serif', letterSpacing: '-0.5px' }}>PDF</span>
+                              </div>
 
-                              <a
-                                href={att.content}
-                                download={att.name}
+                              {/* Filename */}
+                              <span
                                 style={{
-                                  display: 'flex',
-                                  alignItems: 'center',
-                                  gap: 4,
-                                  padding: '3px 8px',
-                                  fontSize: 11,
+                                  fontSize: 12,
                                   fontWeight: 700,
-                                  fontFamily: 'Segoe UI, Tahoma, sans-serif',
                                   color: '#333',
-                                  background: 'linear-gradient(180deg, #f5f5f5 0%, #dcdcdc 100%)',
-                                  border: '1px solid #aaa',
-                                  borderRadius: 3,
-                                  boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.9)',
-                                  textDecoration: 'none',
+                                  fontFamily: 'Segoe UI, Tahoma, sans-serif',
+                                  overflow: 'hidden',
+                                  textOverflow: 'ellipsis',
+                                  whiteSpace: 'nowrap',
+                                  flex: 1,
                                 }}
-                                onMouseEnter={e => (e.currentTarget as HTMLAnchorElement).style.background = 'linear-gradient(180deg, #e8f0ff 0%, #ccd8f0 100%)'}
-                                onMouseLeave={e => (e.currentTarget as HTMLAnchorElement).style.background = 'linear-gradient(180deg, #f5f5f5 0%, #dcdcdc 100%)'}
                               >
-                                <Download size={11} /> Save
-                              </a>
+                                {att.name}
+                              </span>
+                            </div>
+
+                            {/* Body */}
+                            <div
+                              style={{
+                                padding: '7px 10px',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'space-between',
+                                gap: 8,
+                              }}
+                            >
+                              <span style={{ fontSize: 11, color: '#888', fontFamily: 'Segoe UI, Tahoma, sans-serif', fontStyle: 'italic' }}>
+                                PDF Document
+                              </span>
+
+                              {/* Action buttons - WLM toolbar button style */}
+                              <div style={{ display: 'flex', gap: 5 }}>
+                                <button
+                                  onClick={() => { setPreviewPdf(att); setShowPdfPreviewDialog(true); }}
+                                  style={{
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: 4,
+                                    padding: '3px 8px',
+                                    fontSize: 11,
+                                    fontWeight: 700,
+                                    fontFamily: 'Segoe UI, Tahoma, sans-serif',
+                                    color: '#333',
+                                    background: 'linear-gradient(180deg, #f5f5f5 0%, #dcdcdc 100%)',
+                                    border: '1px solid #aaa',
+                                    borderRadius: 3,
+                                    boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.9)',
+                                    cursor: 'pointer',
+                                  }}
+                                  onMouseEnter={e => e.currentTarget.style.background = 'linear-gradient(180deg, #e8f0ff 0%, #ccd8f0 100%)'}
+                                  onMouseLeave={e => e.currentTarget.style.background = 'linear-gradient(180deg, #f5f5f5 0%, #dcdcdc 100%)'}
+                                >
+                                  <Eye size={11} /> Preview
+                                </button>
+
+                                <a
+                                  href={att.content}
+                                  download={att.name}
+                                  style={{
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: 4,
+                                    padding: '3px 8px',
+                                    fontSize: 11,
+                                    fontWeight: 700,
+                                    fontFamily: 'Segoe UI, Tahoma, sans-serif',
+                                    color: '#333',
+                                    background: 'linear-gradient(180deg, #f5f5f5 0%, #dcdcdc 100%)',
+                                    border: '1px solid #aaa',
+                                    borderRadius: 3,
+                                    boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.9)',
+                                    textDecoration: 'none',
+                                  }}
+                                  onMouseEnter={e => (e.currentTarget as HTMLAnchorElement).style.background = 'linear-gradient(180deg, #e8f0ff 0%, #ccd8f0 100%)'}
+                                  onMouseLeave={e => (e.currentTarget as HTMLAnchorElement).style.background = 'linear-gradient(180deg, #f5f5f5 0%, #dcdcdc 100%)'}
+                                >
+                                  <Download size={11} /> Save
+                                </a>
+                              </div>
                             </div>
                           </div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                  
-                  {msg.reactions && Object.keys(msg.reactions).length > 0 && (
-                    <div className="flex flex-wrap gap-1 mt-1 ml-3">
-                      {Object.entries(msg.reactions).map(([emoji, users]) => {
-                        // 1. users is an ARRAY of emails, so we get the length
-                        const count = users.length;
+                        ))}
+                      </div>
+                    )}
 
-                        // 2. Only show the emoji if at least 1 person clicked it
-                        if (count === 0) return null;
+                    {msg.reactions && Object.keys(msg.reactions).length > 0 && (
+                      <div className="flex flex-wrap gap-1 mt-1 ml-3">
+                        {Object.entries(msg.reactions).map(([emoji, users]) => {
+                          // 1. users is an ARRAY of emails, so we get the length
+                          const count = users.length;
 
-                        return (
-                          <div
-                            key={emoji}
-                            className="flex items-center gap-1 bg-gray-100 border border-gray-200 rounded-full px-1.5 py-0.5 text-[10px] shadow-sm animate-in zoom-in duration-200"
-                          >
-                            <span>{emoji}</span>
-                            <span className="font-bold text-gray-600">{count}</span>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  )}
-                </div>
-              )})
-             }
+                          // 2. Only show the emoji if at least 1 person clicked it
+                          if (count === 0) return null;
+
+                          return (
+                            <div
+                              key={emoji}
+                              className="flex items-center gap-1 bg-gray-100 border border-gray-200 rounded-full px-1.5 py-0.5 text-[10px] shadow-sm animate-in zoom-in duration-200"
+                            >
+                              <span>{emoji}</span>
+                              <span className="font-bold text-gray-600">{count}</span>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
+                )
+              })
+              }
               <div ref={chatEndRef} />
             </div>
 
@@ -1209,7 +1204,7 @@ export const ChatPage: React.FC<ChatPageProps> = ({ user, onLogout }) => {
                       <div className="flex flex-col overflow-hidden">
                         <span className="text-[10px] font-bold text-[#3169C6]">Replying to {replyingTo.sender === 'me' ? 'yourself' : 'Poops'}:</span>
                         <span className="text-[11px] text-gray-600 truncate italic">
-                          {replyingTo.type ==="text" ? replyingTo.content : replyingTo.text}
+                          {replyingTo.type === "text" ? replyingTo.content : replyingTo.text}
                         </span>
                       </div>
                       <button
@@ -1382,7 +1377,7 @@ export const ChatPage: React.FC<ChatPageProps> = ({ user, onLogout }) => {
   );
 };
 
-function PendingPhotoDialog({ imageData, onClose, onSend }: { imageData: { url: string, text: string }, onClose: () => void, onSend: (url: string , text : string) => void }) {
+function PendingPhotoDialog({ imageData, onClose, onSend }: { imageData: { url: string, text: string }, onClose: () => void, onSend: (url: string, text: string) => void }) {
   return (
     <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-[200] p-4 backdrop-blur-sm">
       <motion.div
@@ -1825,11 +1820,8 @@ function UserProfileDialog({ user, lastMessageObj, onClose }: { user: any, lastM
                   <div className="flex flex-col">
                     <span className="text-[10px] font-bold uppercase text-gray-400">Last Message Sent</span>
                     <span className="text-sm font-medium italic">
-                      "{((lastMessageObj.type==="image" ||
-                        lastMessageObj.type==="pdf" ||
-                        lastMessageObj.type==="voice"  )
-                        ? lastMessageObj.text : lastMessageObj.content) ||  'No messages yet'
-                     }"
+
+                      {!lastMessageObj ? 'No messages yet'  :  lastMessageObj.type==="text" ? lastMessageObj.content : lastMessageObj.text }
                     </span>
                   </div>
                 </div>
