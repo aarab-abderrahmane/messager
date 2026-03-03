@@ -95,6 +95,27 @@ app.get('/', (req, res) => {
 });
 
 
+app.get('/get-gif', async (req, res) => {
+  const limit = req.query.limit || 'funny';
+  const apiKey = "TgZ5diIcSJNyckOOrv8jwVFdFRKeVL4D";
+  const query = req.query.q || 'funny';
+
+  try {
+    const response = await fetch(`https://api.giphy.com/v1/gifs/search?api_key=${apiKey}&q=${query}&limit=${limit}`);
+    const data = await response.json();
+    
+    if (data.data && data.data.length > 0) {
+      res.json(data.data);
+    } else {
+      res.json([]); 
+    }
+
+  } catch (error) {
+    res.status(500).json({ error: "Could not fetch GIF" });
+  }
+});
+
+
 
 app.post('/signup', (req, res) => {
   const { email ,avatar , password , username } = req.body;
@@ -293,6 +314,21 @@ wss.on('connection', (ws, req) => {
         broadcast(messageData);
       }
 
+      if (data.type ==="sticker" || data.type==="gif"){
+          const messageData = {
+            id: Date.now().toString() + Math.random(),
+            type : data.type , 
+            email : user.email , 
+            content : data.content , 
+            username: user.username, 
+            timestamp: Date.now() , 
+            replyTo: data.replyTo ? data.replyTo : null
+          };
+
+          addMessage(messageData);
+          broadcast(messageData);
+      }
+
 
       if (data.type === "pdf") {
 
@@ -363,12 +399,6 @@ wss.on('connection', (ws, req) => {
     clients.delete(ws);
 
     brodcastUserStates()
-    // broadcast({
-    //   type: "ONLINE_USERS",
-    //   users: getRegistredUsers().map(u => ({
-    //     email: u.email
-    //   }))
-    // });
 
     console.log("Client disconnected");
   });

@@ -109,6 +109,8 @@ export const ChatPage: React.FC<ChatPageProps> = ({ user, onLogout }) => {
   const voiceInputRef = useRef<HTMLInputElement>(null);
   const pdfInputRef = useRef<HTMLInputElement>(null);
 
+  console.log(replyingTo)
+
   useEffect(() => {
 
 
@@ -158,7 +160,7 @@ export const ChatPage: React.FC<ChatPageProps> = ({ user, onLogout }) => {
 
 
 
-      if (data.type === "text" || data.type === "image" || data.type === "voice" || data.type === "pdf") {
+      if (["text", "image", "voice", "pdf" , "sticker" , "gif"].includes(data.type)) {
         setMessages(prev => [
           ...prev, data
         ])
@@ -203,6 +205,8 @@ export const ChatPage: React.FC<ChatPageProps> = ({ user, onLogout }) => {
     return ip;
   }
 
+  console.log(messages)
+
   const scrollToBottom = () => {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
@@ -238,15 +242,6 @@ export const ChatPage: React.FC<ChatPageProps> = ({ user, onLogout }) => {
       return;
     }
 
-    // const msgData: Partial<Message> = { text: inputText, type: 'text', username: currentUser.username , email  : currentUser.email  };
-    // if (replyingTo) {
-    //   msgData.replyTo = {
-    //     id: replyingTo.id,
-    //     text: replyingTo.text || (replyingTo.type === 'image' ? 'Photo' : replyingTo.type === 'voice' ? 'Voice Clip' : 'Gift'),
-    //     username: replyingTo.username , 
-    //     email : replyingTo.email 
-    //   };
-    // }
 
 
     addMessage({ type: "text", content: inputText })
@@ -255,10 +250,6 @@ export const ChatPage: React.FC<ChatPageProps> = ({ user, onLogout }) => {
     setReplyingTo(null);
   };
 
-  // const sendMessage = (msg) => {
-  //   if (!msg) return;
-  //   ws.current.send(JSON.stringify({ type: "CHAT", username: "Tester", message: msg }));
-  // };
 
 
   const handleNudge = () => {
@@ -312,9 +303,6 @@ export const ChatPage: React.FC<ChatPageProps> = ({ user, onLogout }) => {
     if (e.target) e.target.value = '';
   };
 
-  const handleGift = () => {
-    setShowGiftDialog(true);
-  };
 
   const handleOpenGift = (id: string) => {
     setMessages(prev => prev.map(msg =>
@@ -323,7 +311,7 @@ export const ChatPage: React.FC<ChatPageProps> = ({ user, onLogout }) => {
   };
 
   const handleSendSticker = (url: string, type: 'sticker' | 'gif') => {
-    addMessage({ imageUrl: url, type: type });
+    addMessage({ content: url, type: type });
     setShowStickerDialog(false);
   };
 
@@ -345,6 +333,23 @@ export const ChatPage: React.FC<ChatPageProps> = ({ user, onLogout }) => {
       handleSend();
     }
   };
+
+  const fetchRandomGif = async (query) => {
+    try {
+      // Call your own server
+      const response = await fetch(`http://localhost:5000/get-gif?q=${query}&limit=10`);
+      const data = await response.json();
+      
+      console.log("Here is your GIF:", data);
+
+      return data 
+    } catch (error) {
+      console.error("Error fetching GIF:", error);
+      return []
+    }
+  };
+
+
 
   return (
     <div
@@ -372,19 +377,18 @@ export const ChatPage: React.FC<ChatPageProps> = ({ user, onLogout }) => {
       />
 
       <AnimatePresence>
-        {showGiftDialog && (
+        {/* {showGiftDialog && (
           <GiftDialog
             onClose={() => setShowGiftDialog(false)}
             onSend={(msg, count) => {
               addMessage({
                 text: msg,
                 type: 'gift',
-                isOpened: false
               });
               setShowGiftDialog(false);
             }}
           />
-        )}
+        )} */}
         {showProfileDialog && (
           <ProfileDialog
             user={currentUser}
@@ -432,6 +436,7 @@ export const ChatPage: React.FC<ChatPageProps> = ({ user, onLogout }) => {
           <StickerDialog
             onSelect={handleSendSticker}
             onClose={() => setShowStickerDialog(false)}
+            fetchRandomGif = {fetchRandomGif}
           />
         )}
         {previewImageUrl && (
@@ -499,7 +504,7 @@ export const ChatPage: React.FC<ChatPageProps> = ({ user, onLogout }) => {
         animate={windowControls}
         className="flex-1 flex flex-col overflow-hidden"
       >
-        <TitleBar title={`Conversation - (${currentUser.username})`} />
+        <TitleBar  title={`Conversation - (${currentUser.username})`} />
 
         {/* Menu Bar */}
         <div className="h-7 border-b border-[#ACA899] flex items-center px-2 gap-5 text-[11px] select-none shrink-0" style={{ backgroundColor: theme.bgColor }}>
@@ -604,7 +609,7 @@ export const ChatPage: React.FC<ChatPageProps> = ({ user, onLogout }) => {
                     key={onlineUser.username}
                     onClick={() => {
                       if (onlineUser.email === currentUser.email) return;
-                      setSelectedUser(onlineUser);
+                      setSelectedUser({...onlineUser , status: "online"});
                       setShowUserProfileDialog(true);
                     }}
                     style={{ borderRadius: 4, cursor: 'pointer', transition: 'all 0.1s' }}
@@ -658,11 +663,11 @@ export const ChatPage: React.FC<ChatPageProps> = ({ user, onLogout }) => {
                   )}
 
                 {/* Offline Users */}
-                {offlineUsers.filter(u => u.username.toLowerCase().includes(userSearchQuery.toLowerCase())).map((onlineUser) => (
+                {offlineUsers.filter(u => u.username.toLowerCase().includes(userSearchQuery.toLowerCase())).map((offlineUser) => (
                   <div
-                    key={onlineUser.username}
+                    key={offlineUser.username}
                     onClick={() => {
-                      setSelectedUser(onlineUser);
+                      setSelectedUser({...offlineUser , status : "offline"});
                       setShowUserProfileDialog(true);
                     }}
                     style={{ borderRadius: 4, cursor: 'pointer', transition: 'all 0.1s', opacity: 0.75 }}
@@ -680,9 +685,9 @@ export const ChatPage: React.FC<ChatPageProps> = ({ user, onLogout }) => {
                   >
                     <div className="relative shrink-0">
                       <img
-                        src={onlineUser.avatar}
+                        src={offlineUser.avatar}
                         className="w-9 h-9 xl:w-11 xl:h-11 rounded"
-                        alt={onlineUser.username}
+                        alt={offlineUser.username}
                         style={{ border: '1px solid #b0aca0', boxShadow: '0 1px 2px rgba(0,0,0,0.1)', filter: 'grayscale(30%)' }}
                       />
                       {/* Offline dot */}
@@ -701,7 +706,7 @@ export const ChatPage: React.FC<ChatPageProps> = ({ user, onLogout }) => {
                         fontFamily: 'Segoe UI, Tahoma, sans-serif',
                         color: '#6a6860',
                         overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-                      }}>{onlineUser.username}</span>
+                      }}>{offlineUser.username}</span>
                       <span style={{ fontSize: 10, color: '#9a9890', fontFamily: 'Segoe UI, Tahoma, sans-serif', fontWeight: 600 }}>● offline</span>
                     </div>
                   </div>
@@ -730,49 +735,183 @@ export const ChatPage: React.FC<ChatPageProps> = ({ user, onLogout }) => {
 
                 return (
                   <div key={msg.id} className={`text-sm group relative my-1 ${msg.type === 'nudge' ? 'text-center my-3' : ''}`}>
+                 
                     {msg.type !== 'nudge' && (
-                      <div className="absolute -right-2 top-0 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity z-10">
-                        <div className="relative">
-                          <button
-                            onClick={() => setReactionMenuId(reactionMenuId === msg.id ? null : msg.id)}
-                            className="p-1 hover:bg-gray-100 rounded-full text-gray-400 hover:text-[#3169C6]"
-                            title="React"
-                          >
-                            <Smile size={17} />
-                          </button>
-                          <AnimatePresence>
-                            {reactionMenuId === msg.id && (
-                              <motion.div
-                                initial={{ opacity: 0, scale: 0.8, y: 5 }}
-                                animate={{ opacity: 1, scale: 1, y: 0 }}
-                                exit={{ opacity: 0, scale: 0.8, y: 5 }}
-                                className="absolute bottom-full mb-1 right-0 bg-white border border-[#ACA899] rounded-full shadow-lg p-1 flex items-center gap-1 z-20"
-                              >
-                                {[
-                                  { emoji: '❤️', type: 'love' },
-                                  { emoji: '👍', type: 'like' },
-                                  { emoji: '👎', type: 'dislike' },
-                                  { emoji: '😂', type: 'fun' }
-                                ].map(r => (
-                                  <button
-                                    key={r.type}
-                                    onClick={() => handleReaction(msg.id, r.emoji)}
-                                    className="hover:scale-125 transition-transform   p-1"
-                                  >
-                                    {r.emoji}
-                                  </button>
-                                ))}
-                              </motion.div>
-                            )}
-                          </AnimatePresence>
-                        </div>
-                        <button
-                          onClick={() => setReplyingTo(msg)}
-                          className="p-1 hover:bg-gray-100 rounded-full text-gray-400 hover:text-[#3169C6]"
-                          title="Reply"
+                      <div
+                        className="absolute -right-2 top-0 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity z-10"
+                      >
+                        {/* Toolbar pill */}
+                        <div
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: 2,
+                            background: 'linear-gradient(180deg, #f8f8f8 0%, #e8e8e8 100%)',
+                            border: '1px solid #c0c0c0',
+                            borderRadius: 20,
+                            padding: '2px 5px',
+                            boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.95), 0 2px 5px rgba(0,0,0,0.12)',
+                          }}
                         >
-                          <Reply size={17} />
-                        </button>
+                          {/* Reaction button */}
+                          <div className="relative">
+                            <button
+                              onClick={() => setReactionMenuId(reactionMenuId === msg.id ? null : msg.id)}
+                              title="React"
+                              style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                width: 24,
+                                height: 24,
+                                borderRadius: '50%',
+                                border: 'none',
+                                background: reactionMenuId === msg.id
+                                  ? 'linear-gradient(180deg, #888 0%, #666 100%)'
+                                  : 'transparent',
+                                color: reactionMenuId === msg.id ? '#fff' : '#999',
+                                cursor: 'pointer',
+                                transition: 'all 0.15s',
+                              }}
+                              onMouseEnter={e => {
+                                if (reactionMenuId !== msg.id) {
+                                  e.currentTarget.style.background = 'linear-gradient(180deg, #ececec 0%, #dcdcdc 100%)';
+                                  e.currentTarget.style.color = '#555';
+                                }
+                              }}
+                              onMouseLeave={e => {
+                                if (reactionMenuId !== msg.id) {
+                                  e.currentTarget.style.background = 'transparent';
+                                  e.currentTarget.style.color = '#999';
+                                }
+                              }}
+                            >
+                              <Smile size={14} />
+                            </button>
+
+                            {/* Reaction picker */}
+                            <AnimatePresence>
+                              {reactionMenuId === msg.id && (
+                                <motion.div
+                                  initial={{ opacity: 0, scale: 0.8, y: 6 }}
+                                  animate={{ opacity: 1, scale: 1, y: 0 }}
+                                  exit={{ opacity: 0, scale: 0.8, y: 6 }}
+                                  transition={{ type: 'spring', stiffness: 300, damping: 22 }}
+                                  style={{
+                                    position: 'absolute',
+                                    bottom: '110%',
+                                    right: 0,
+                                    background: 'linear-gradient(180deg, #f8f8f8 0%, #ececec 100%)',
+                                    border: '1px solid #c0c0c0',
+                                    borderRadius: 20,
+                                    padding: '4px 6px',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: 2,
+                                    boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.95), 0 4px 12px rgba(0,0,0,0.15)',
+                                    whiteSpace: 'nowrap',
+                                    zIndex: 20,
+                                  }}
+                                >
+                                  {/* Pointer arrow */}
+                                  <div style={{
+                                    position: 'absolute',
+                                    bottom: -5,
+                                    right: 10,
+                                    width: 0, height: 0,
+                                    borderLeft: '5px solid transparent',
+                                    borderRight: '5px solid transparent',
+                                    borderTop: '5px solid #c0c0c0',
+                                  }} />
+                                  <div style={{
+                                    position: 'absolute',
+                                    bottom: -4,
+                                    right: 10,
+                                    width: 0, height: 0,
+                                    borderLeft: '5px solid transparent',
+                                    borderRight: '5px solid transparent',
+                                    borderTop: '5px solid #ececec',
+                                  }} />
+
+                                  {[
+                                    { emoji: '❤️', type: 'love', label: 'Love' },
+                                    { emoji: '👍', type: 'like', label: 'Like' },
+                                    { emoji: '👎', type: 'dislike', label: 'Dislike' },
+                                    { emoji: '😂', type: 'fun', label: 'Funny' },
+                                  ].map(r => (
+                                    <button
+                                      key={r.type}
+                                      onClick={() => handleReaction(msg.id, r.emoji)}
+                                      title={r.label}
+                                      style={{
+                                        fontSize: 18,
+                                        width: 32,
+                                        height: 32,
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        borderRadius: '50%',
+                                        border: '1px solid transparent',
+                                        background: 'transparent',
+                                        cursor: 'pointer',
+                                        transition: 'all 0.12s',
+                                        lineHeight: 1,
+                                      }}
+                                      onMouseEnter={e => {
+                                        e.currentTarget.style.transform = 'scale(1.35)';
+                                        e.currentTarget.style.background = 'linear-gradient(180deg, #ececec 0%, #dcdcdc 100%)';
+                                        e.currentTarget.style.borderColor = '#b0b0b0';
+                                      }}
+                                      onMouseLeave={e => {
+                                        e.currentTarget.style.transform = 'scale(1)';
+                                        e.currentTarget.style.background = 'transparent';
+                                        e.currentTarget.style.borderColor = 'transparent';
+                                      }}
+                                    >
+                                      {r.emoji}
+                                    </button>
+                                  ))}
+                                </motion.div>
+                              )}
+                            </AnimatePresence>
+                          </div>
+
+                          {/* Divider */}
+                          <div style={{
+                            width: 1, height: 14,
+                            background: 'linear-gradient(180deg, transparent, #b0b0b0, transparent)',
+                            margin: '0 2px',
+                          }} />
+
+                          {/* Reply button */}
+                          <button
+                            onClick={() => setReplyingTo(msg)}
+                            title="Reply"
+                            style={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              width: 24,
+                              height: 24,
+                              borderRadius: '50%',
+                              border: 'none',
+                              background: 'transparent',
+                              color: '#999',
+                              cursor: 'pointer',
+                              transition: 'all 0.15s',
+                            }}
+                            onMouseEnter={e => {
+                              e.currentTarget.style.background = 'linear-gradient(180deg, #ececec 0%, #dcdcdc 100%)';
+                              e.currentTarget.style.color = '#555';
+                            }}
+                            onMouseLeave={e => {
+                              e.currentTarget.style.background = 'transparent';
+                              e.currentTarget.style.color = '#999';
+                            }}
+                          >
+                            <Reply size={14} />
+                          </button>
+                        </div>
                       </div>
                     )}
 
@@ -836,7 +975,7 @@ export const ChatPage: React.FC<ChatPageProps> = ({ user, onLogout }) => {
                               paddingLeft: 14,
                             }}
                           >
-                            {msg.replyTo.type === "text" ? msg.replyTo.content : msg.replyTo.text}
+                            {msg.replyTo.type === "text" ?  msg.replyTo.content :  ["image" , "pdf" , "voice"].includes(msg.replyTo.type) ?  msg.replyTo.text : msg.replyTo.type}
                           </div>
                         </div>
                       </div>
@@ -863,14 +1002,108 @@ export const ChatPage: React.FC<ChatPageProps> = ({ user, onLogout }) => {
                         />
                       </div>
                     )}
-                    {(msg.type === 'sticker' || msg.type === 'gif') && (
-                      <div className="flex flex-col gap-1">
-                        {/* <span className={`font-bold text-[13px] ${isMe ? 'text-[#3169C6]' : 'text-black'}`}>
-                        {isMe ? `You sent a ${msg.type}:` : `Poops sent a ${msg.type}:`}
-                      </span> */}
-                        <img src={msg.content} className="max-w-[150px] ml-3" alt={msg.type} />
+
+                   {(msg.type === 'sticker' || msg.type === 'gif') && (
+                      <div className="flex flex-col gap-1 w-fit">
+                        <div
+                          style={{
+                            marginLeft: 12,
+                            display: 'inline-flex',
+                            flexDirection: 'column',
+                            gap: 4,
+                          }}
+                        >
+                          {/* Sticker frame */}
+                          <div
+                            style={{
+                              position: 'relative',
+                              display: 'inline-block',
+                              padding: 5,
+                              background: 'linear-gradient(180deg, #f8f8f8 0%, #ececec 100%)',
+                              border: '1px solid #c0c0c0',
+                              borderRadius: 8,
+                              boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.95), 0 2px 6px rgba(0,0,0,0.12)',
+                            }}
+                          >
+                            {/* GIF badge — only for gif type */}
+                            {msg.type === 'gif' && (
+                              <div
+                                style={{
+                                  position: 'absolute',
+                                  top: -7,
+                                  right: -7,
+                                  background: 'linear-gradient(180deg, #4a85d8 0%, #2a5fb5 100%)',
+                                  border: '1px solid #1e4fa0',
+                                  borderRadius: 4,
+                                  padding: '1px 5px',
+                                  fontSize: 9,
+                                  fontWeight: 900,
+                                  color: '#fff',
+                                  fontFamily: 'Segoe UI, Tahoma, sans-serif',
+                                  letterSpacing: '0.05em',
+                                  boxShadow: '0 1px 3px rgba(0,0,0,0.25)',
+                                  zIndex: 1,
+                                }}
+                              >
+                                GIF
+                              </div>
+                            )}
+
+                            {/* Sticker badge — only for sticker type */}
+                            {msg.type === 'sticker' && (
+                              <div
+                                style={{
+                                  position: 'absolute',
+                                  top: -7,
+                                  right: -7,
+                                  background: 'linear-gradient(180deg, #f0a020 0%, #c07010 100%)',
+                                  border: '1px solid #a06000',
+                                  borderRadius: 4,
+                                  padding: '1px 5px',
+                                  fontSize: 9,
+                                  fontWeight: 900,
+                                  color: '#fff',
+                                  fontFamily: 'Segoe UI, Tahoma, sans-serif',
+                                  letterSpacing: '0.05em',
+                                  boxShadow: '0 1px 3px rgba(0,0,0,0.25)',
+                                  zIndex: 1,
+                                }}
+                              >
+                                ✦ Sticker
+                              </div>
+                            )}
+
+                            {/* Image */}
+                            <img
+                              src={msg.content}
+                              alt={msg.type}
+                              style={{
+                                maxWidth: 140,
+                                maxHeight: 140,
+                                borderRadius: 5,
+                                display: 'block',
+                                filter: 'drop-shadow(0 1px 3px rgba(0,0,0,0.15))',
+                              }}
+                            />
+
+                            {/* Bottom shine strip */}
+                            <div
+                              style={{
+                                position: 'absolute',
+                                bottom: 5,
+                                left: 5,
+                                right: 5,
+                                height: 10,
+                                background: 'linear-gradient(180deg, rgba(255,255,255,0.0) 0%, rgba(255,255,255,0.18) 100%)',
+                                borderRadius: '0 0 4px 4px',
+                                pointerEvents: 'none',
+                              }}
+                            />
+                          </div>
+                        </div>
                       </div>
                     )}
+
                     {msg.type === 'voice' && (
                       <div className="flex flex-col gap-1">
                         {/* <span className={`font-bold text-[13px] ${isMe ? 'text-[#3169C6]' : 'text-black'}`}>
@@ -1101,26 +1334,78 @@ export const ChatPage: React.FC<ChatPageProps> = ({ user, onLogout }) => {
                     )}
 
                     {msg.reactions && Object.keys(msg.reactions).length > 0 && (
-                      <div className="flex flex-wrap gap-1 mt-1 ml-3">
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginTop: 4, marginLeft: 12 }}>
                         {Object.entries(msg.reactions).map(([emoji, users]) => {
-                          // 1. users is an ARRAY of emails, so we get the length
-                          const count = users.length;
-
-                          // 2. Only show the emoji if at least 1 person clicked it
+                          const count = (users as string[]).length;
                           if (count === 0) return null;
+
+                          const iMReacted = (users as string[]).includes(currentUser.email);
 
                           return (
                             <div
                               key={emoji}
-                              className="flex items-center gap-1 bg-gray-100 border border-gray-200 rounded-full px-1.5 py-0.5 text-[10px] shadow-sm animate-in zoom-in duration-200"
+                              title={`${count} reaction${count > 1 ? 's' : ''}`}
+                              style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: 4,
+                                padding: '6px',
+                                background: iMReacted
+                                  ? 'linear-gradient(180deg, #ddeeff 0%, #c2d8f5 100%)'
+                                  : 'linear-gradient(180deg, #f8f8f8 0%, #ececec 100%)',
+                                border: iMReacted ? '1px solid #7aaee0' : '1px solid #c0c0c0',
+                                borderRadius: 20,
+                                boxShadow: iMReacted
+                                  ? 'inset 0 1px 0 rgba(255,255,255,0.9), 0 1px 3px rgba(49,105,198,0.15)'
+                                  : 'inset 0 1px 0 rgba(255,255,255,0.95), 0 1px 2px rgba(0,0,0,0.08)',
+                                cursor: 'pointer',
+                                transition: 'all 0.12s',
+                                animation: 'zoomIn 0.2s ease',
+                              }}
+                              onMouseEnter={e => {
+                                e.currentTarget.style.background = iMReacted
+                                  ? 'linear-gradient(180deg, #c8e0ff 0%, #aacef5 100%)'
+                                  : 'linear-gradient(180deg, #ececec 0%, #dcdcdc 100%)';
+                                e.currentTarget.style.transform = 'scale(1.08)';
+                              }}
+                              onMouseLeave={e => {
+                                e.currentTarget.style.background = iMReacted
+                                  ? 'linear-gradient(180deg, #ddeeff 0%, #c2d8f5 100%)'
+                                  : 'linear-gradient(180deg, #f8f8f8 0%, #ececec 100%)';
+                                e.currentTarget.style.transform = 'scale(1)';
+                              }}
                             >
-                              <span>{emoji}</span>
-                              <span className="font-bold text-gray-600">{count}</span>
+                              {/* Emoji */}
+                              <span style={{ fontSize: 13, lineHeight: 1 }}>{emoji}</span>
+
+                              {/* Divider */}
+                              <div style={{
+                                width: 1,
+                                height: 10,
+                                background: iMReacted
+                                  ? 'linear-gradient(180deg, transparent, #7aaee0, transparent)'
+                                  : 'linear-gradient(180deg, transparent, #c0c0c0, transparent)',
+                              }} />
+
+                              {/* Count */}
+                              <span className="" style={{
+                                fontSize: 11,
+                                fontWeight: 800,
+                                fontFamily: 'Segoe UI, Tahoma, sans-serif',
+                                color: iMReacted ? '#1a4fa0' : '#666',
+                                lineHeight: 1,
+                                minWidth: 8,
+                                textAlign: 'center',
+                              }}>
+                                {count}
+                              </span>
                             </div>
                           );
                         })}
                       </div>
                     )}
+
+
                   </div>
                 )
               })
@@ -1129,59 +1414,165 @@ export const ChatPage: React.FC<ChatPageProps> = ({ user, onLogout }) => {
             </div>
 
             {/* Formatting Toolbar */}
-            <div className="h-10 flex items-center px-2 gap-2 select-none shrink-0 rounded-md relative" style={{ backgroundColor: 'rgba(244, 242, 232, 0.4)' }}>
+            <div
+              style={{
+                height: 40,
+                display: 'flex',
+                alignItems: 'center',
+                paddingLeft: 8,
+                paddingRight: 8,
+                gap: 3,
+                flexShrink: 0,
+                borderRadius: '6px 6px 0 0',
+                background: 'linear-gradient(180deg, #f0f0f0 0%, #d8d8d8 100%)',
+                borderBottom: '1px solid #b0b0b0',
+                boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.9)',
+                userSelect: 'none',
+                position: 'relative',
+              }}
+            >
+              {/* Font button */}
               <div className="relative">
                 <FormatButton
-                  icon={<Type size={18} />}
-                  label='text'
+                  icon={<Type size={17} />}
+                  label="text"
+                  active={activeDropdown === 'font'}
                   onClick={() => setActiveDropdown(activeDropdown === 'font' ? null : 'font')}
                 />
                 <AnimatePresence>
                   {activeDropdown === 'font' && (
                     <motion.div
-                      initial={{ opacity: 0, y: -10 }}
+                      initial={{ opacity: 0, y: -8 }}
                       animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: -10 }}
-                      className="absolute bottom-full mb-2 left-0 bg-white border border-[#ACA899] rounded-md shadow-xl p-1 flex flex-col gap-1 z-30 w-32"
+                      exit={{ opacity: 0, y: -8 }}
+                      transition={{ duration: 0.12 }}
+                      style={{
+                        position: 'absolute',
+                        bottom: '110%',
+                        left: 0,
+                        background: 'linear-gradient(180deg, #f8f8f8 0%, #ececec 100%)',
+                        border: '1px solid #c0c0c0',
+                        borderRadius: 4,
+                        boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.95), 0 4px 12px rgba(0,0,0,0.15)',
+                        padding: 3,
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: 1,
+                        zIndex: 30,
+                        minWidth: 130,
+                      }}
                     >
-                      <button
-                        onClick={() => { setFontSize(prev => Math.min(prev + 2, 24)); setActiveDropdown(null); }}
-                        className="flex items-center gap-2 px-3 py-1.5 hover:bg-[#316AC5] hover:text-white text-[11px] font-bold transition-colors rounded-sm"
-                      >
-                        <Plus size={12} /> Enlarge Text
-                      </button>
-                      <button
-                        onClick={() => { setFontSize(prev => Math.max(prev - 2, 10)); setActiveDropdown(null); }}
-                        className="flex items-center gap-2 px-3 py-1.5 hover:bg-[#316AC5] hover:text-white text-[11px] font-bold transition-colors rounded-sm"
-                      >
-                        <MinusIcon size={12} /> Reduce Text
-                      </button>
+                      {[
+                        { label: 'Enlarge Text', icon: <Plus size={11} />, action: () => { setFontSize(prev => Math.min(prev + 2, 24)); setActiveDropdown(null); } },
+                        { label: 'Reduce Text', icon: <MinusIcon size={11} />, action: () => { setFontSize(prev => Math.max(prev - 2, 10)); setActiveDropdown(null); } },
+                      ].map(item => (
+                        <button
+                          key={item.label}
+                          onClick={item.action}
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: 7,
+                            padding: '5px 10px',
+                            fontSize: 13,
+                            fontWeight: 700,
+                            fontFamily: 'Segoe UI, Tahoma, sans-serif',
+                            color: '#333',
+                            background: 'transparent',
+                            border: 'none',
+                            borderRadius: 3,
+                            cursor: 'pointer',
+                            textAlign: 'left',
+                            transition: 'all 0.1s',
+                          }}
+                          onMouseEnter={e => {
+                            e.currentTarget.style.background = 'linear-gradient(180deg, #4a85d8 0%, #2a5fb5 100%)';
+                            e.currentTarget.style.color = '#fff';
+                          }}
+                          onMouseLeave={e => {
+                            e.currentTarget.style.background = 'transparent';
+                            e.currentTarget.style.color = '#333';
+                          }}
+                        >
+                          {item.icon} {item.label}
+                        </button>
+                      ))}
                     </motion.div>
                   )}
                 </AnimatePresence>
               </div>
 
+              {/* Emoji button */}
               <div className="relative">
                 <FormatButton
-                  icon={<Smile size={18} />}
-                  label='emoji'
+                  icon={<Smile size={17} />}
+                  label="emoji"
+                  active={activeDropdown === 'emoji'}
                   onClick={() => setActiveDropdown(activeDropdown === 'emoji' ? null : 'emoji')}
                 />
                 <AnimatePresence>
                   {activeDropdown === 'emoji' && (
                     <motion.div
-                      initial={{ opacity: 0, y: -10 }}
+                      initial={{ opacity: 0, y: -8 }}
                       animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: -10 }}
-                      className="absolute bottom-full mb-2 left-0 bg-white border border-[#ACA899] rounded-md shadow-xl p-2 z-30 w-48"
+                      exit={{ opacity: 0, y: -8 }}
+                      transition={{ duration: 0.12 }}
+                      style={{
+                        position: 'absolute',
+                        bottom: '110%',
+                        left: 0,
+                        background: 'linear-gradient(180deg, #f8f8f8 0%, #ececec 100%)',
+                        border: '1px solid #c0c0c0',
+                        borderRadius: 4,
+                        boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.95), 0 4px 12px rgba(0,0,0,0.15)',
+                        padding: 6,
+                        zIndex: 30,
+                        width: 192,
+                      }}
                     >
-                      <div className="text-[10px] font-bold text-gray-500 mb-2 border-b pb-1">Show all emojis</div>
-                      <div className="grid grid-cols-6 gap-1">
+                      {/* Header */}
+                      <div style={{
+                        fontSize: 10,
+                        fontWeight: 700,
+                        fontFamily: 'Segoe UI, Tahoma, sans-serif',
+                        color: '#888',
+                        marginBottom: 5,
+                        paddingBottom: 4,
+                        borderBottom: '1px solid #d0d0d0',
+                        letterSpacing: '0.05em',
+                        textTransform: 'uppercase',
+                      }}>
+                        Emoticons
+                      </div>
+
+                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 2 }}>
                         {ALL_EMOJIS.map(emoji => (
                           <button
                             key={emoji}
                             onClick={() => handleEmoji(emoji)}
-                            className="text-lg hover:bg-gray-100 rounded p-1 transition-colors"
+                            style={{
+                              fontSize: 18,
+                              width: 32,
+                              height: 32,
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              borderRadius: 3,
+                              border: '1px solid transparent',
+                              background: 'transparent',
+                              cursor: 'pointer',
+                              transition: 'all 0.1s',
+                            }}
+                            onMouseEnter={e => {
+                              e.currentTarget.style.background = 'linear-gradient(180deg, #ececec 0%, #dcdcdc 100%)';
+                              e.currentTarget.style.borderColor = '#c0c0c0';
+                              e.currentTarget.style.transform = 'scale(1.2)';
+                            }}
+                            onMouseLeave={e => {
+                              e.currentTarget.style.background = 'transparent';
+                              e.currentTarget.style.borderColor = 'transparent';
+                              e.currentTarget.style.transform = 'scale(1)';
+                            }}
                           >
                             {emoji}
                           </button>
@@ -1192,79 +1583,221 @@ export const ChatPage: React.FC<ChatPageProps> = ({ user, onLogout }) => {
                 </AnimatePresence>
               </div>
 
-              <div className="h-5 w-[1px] bg-[#ACA899] mx-1"></div>
-              <FormatButton icon={<Mic size={18} />} label="Voice Clip" onClick={() => voiceInputRef.current?.click()} />
-              <FormatButton icon={<FileText size={18} />} label="PDF" onClick={() => pdfInputRef.current?.click()} />
-              <FormatButton icon={<ImageIcon size={18} />} onClick={() => fileInputRef.current?.click()} />
-              <FormatButton icon={<Gift size={18} />} onClick={() => setShowGiftDialog(true)} />
+              {/* Divider */}
+              <div style={{
+                width: 2, height: 20, margin: '0 3px',
+                background: 'linear-gradient(180deg, transparent, #b0b0b0, transparent)',
+              }} />
+
+              {/* Action buttons */}
+              <FormatButton icon={<Mic size={17} />} label="Voice Clip" onClick={() => voiceInputRef.current?.click()} />
+              <FormatButton icon={<FileText size={17} />} label="PDF" onClick={() => pdfInputRef.current?.click()} />
+
+              {/* Divider */}
+              <div style={{
+                width: 1, height: 20, margin: '0 3px',
+                background: 'linear-gradient(180deg, transparent, #b0b0b0, transparent)',
+              }} />
+
+              <FormatButton icon={<ImageIcon size={17} />} onClick={() => fileInputRef.current?.click()} />
+              <FormatButton icon={<Gift size={17} />} onClick={() => setShowGiftDialog(true)} />
             </div>
 
             {/* Input Section */}
 
-            <div className={`h-28 flex gap-3 ${replyingTo ? 'border-t-0 rounded-t-none' : ''}`}>
-              <div className="flex flex-1 flex-col shrink-0 "  >
+          <div className={`flex gap-3 ${replyingTo ? 'border-t-0 rounded-t-none' : ''}`} style={{ minHeight: 112 }}>
+              <div className="flex flex-1 flex-col shrink-0">
 
+                {/* Reply banner */}
                 <AnimatePresence>
                   {replyingTo && (
                     <motion.div
                       initial={{ height: 0, opacity: 0 }}
                       animate={{ height: 'auto', opacity: 1 }}
                       exit={{ height: 0, opacity: 0 }}
-                      className="bg-[#F0F7FF] border-x-2 border-t-2 border-[#ACA899] rounded-t-md p-2 flex items-center justify-between overflow-hidden"
+                      style={{
+                        background: 'linear-gradient(180deg, #e8f2ff 0%, #d8eaff 100%)',
+                        border: '1px solid #7aaee0',
+                        borderBottom: 'none',
+                        borderRadius: '8px 8px 0 0',
+                        padding: '5px 10px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        overflow: 'hidden',
+                        boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.8)',
+                      }}
                     >
-                      <div className="flex flex-col overflow-hidden">
-                        <span className="text-[10px] font-bold text-[#3169C6]">Replying to {replyingTo.sender === 'me' ? 'yourself' : 'Poops'}:</span>
-                        <span className="text-[11px] text-gray-600 truncate italic">
-                          {replyingTo.type === "text" ? replyingTo.content : replyingTo.text}
-                        </span>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 7, overflow: 'hidden', flex: 1 }}>
+                        {/* Reply icon */}
+                        <div style={{
+                          width: 18, height: 18, flexShrink: 0,
+                          background: 'linear-gradient(180deg, #4a85d8 0%, #2a5fb5 100%)',
+                          border: '1px solid #1e4fa0',
+                          borderRadius: 3,
+                          display: 'flex', alignItems: 'center', justifyContent: 'center',
+                          boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.3)',
+                        }}>
+                          <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
+                            <path d="M4 2L1 5L4 8M1 5h6a2 2 0 0 1 2 2v1" stroke="white" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/>
+                          </svg>
+                        </div>
+
+                        <div style={{ display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+                          <span style={{
+                            fontSize: 10, fontWeight: 700, color: '#2a5fb5',
+                            fontFamily: 'Segoe UI, Tahoma, sans-serif',
+                          }}>
+                            Replying to {replyingTo.email === currentUser.email ? 'yourself' : replyingTo.username}
+                          </span>
+                          <span style={{
+                            fontSize: 11, color: '#5a7fa8',
+                            fontFamily: 'Segoe UI, Tahoma, sans-serif',
+                            fontStyle: 'italic',
+                            overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                          }}>
+                          {replyingTo.type === "text" ?  replyingTo.content :  ["image" , "pdf" , "voice"].includes(replyingTo.type) ?  replyingTo.text : replyingTo.type}
+
+                          </span>
+                        </div>
                       </div>
+
+                      {/* Close button */}
                       <button
                         onClick={() => setReplyingTo(null)}
-                        className="p-1 hover:bg-white/50 rounded-full text-gray-400 hover:text-red-500 transition-colors"
+                        style={{
+                          width: 18, height: 18, flexShrink: 0,
+                          display: 'flex', alignItems: 'center', justifyContent: 'center',
+                          borderRadius: '50%',
+                          border: '1px solid transparent',
+                          background: 'transparent',
+                          color: '#7aaee0',
+                          cursor: 'pointer',
+                          transition: 'all 0.1s',
+                          marginLeft: 6,
+                        }}
+                        onMouseEnter={e => {
+                          e.currentTarget.style.background = 'linear-gradient(180deg, #ffecec 0%, #ffd8d8 100%)';
+                          e.currentTarget.style.borderColor = '#e08080';
+                          e.currentTarget.style.color = '#cc3333';
+                        }}
+                        onMouseLeave={e => {
+                          e.currentTarget.style.background = 'transparent';
+                          e.currentTarget.style.borderColor = 'transparent';
+                          e.currentTarget.style.color = '#7aaee0';
+                        }}
                       >
-                        <X size={14} />
+                        <X size={11} />
                       </button>
                     </motion.div>
                   )}
                 </AnimatePresence>
 
+                {/* Textarea */}
                 <textarea
-                  className={`flex-1 bg-white border-2 border-[#ACA899] p-3 focus:outline-none focus:border-[#0055E5] focus:ring-2 focus:ring-[#0055E5]/10 resize-none shadow-inner transition-all text-black ${replyingTo ? 'rounded-b-md border-t-0' : 'rounded-md'}`}
-                  style={{ fontSize: `${fontSize}px` }}
+                  style={{
+                    flex: 1,
+                    background: 'linear-gradient(180deg, #ffffff 0%, #f8f8ff 100%)',
+                    border: '1px solid #b0c8e8',
+                    borderTop: replyingTo ? 'none' : '1px solid #b0c8e8',
+                    borderRadius: replyingTo ? '0 0 8px 8px' : '8px',
+                    padding: '10px 12px',
+                    fontSize: `${fontSize}px`,
+                    fontFamily: 'Segoe UI, Tahoma, sans-serif',
+                    color: '#222',
+                    resize: 'none',
+                    outline: 'none',
+                    boxShadow: 'inset 0 2px 4px rgba(49,105,198,0.06)',
+                    transition: 'border-color 0.15s, box-shadow 0.15s',
+                  }}
                   value={inputText}
                   onChange={(e) => {
                     setInputText(e.target.value);
                     setIsTyping(true);
                     setTimeout(() => setIsTyping(false), 3000);
                   }}
+                  onFocus={e => {
+                    e.currentTarget.style.borderColor = '#4a85d8';
+                    e.currentTarget.style.boxShadow = 'inset 0 2px 4px rgba(49,105,198,0.08), 0 0 0 2px rgba(74,133,216,0.12)';
+                  }}
+                  onBlur={e => {
+                    e.currentTarget.style.borderColor = '#b0c8e8';
+                    e.currentTarget.style.boxShadow = 'inset 0 2px 4px rgba(49,105,198,0.06)';
+                  }}
                   onKeyDown={handleKeyDown}
                   placeholder="Type a message..."
                 />
-
-
-
               </div>
 
-              <div className="w-28 flex flex-col gap-2">
-                <motion.button
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                  onClick={handleSend}
-                  className="flex-1 bg-gradient-to-b flex justify-center items-center  from-[#F8F8F8] to-[#D6D3C4] border border-[#ACA899] rounded-lg text-[16px] font-bold text-gray-700 shadow-sm hover:brightness-105 active:shadow-inner transition-all"
-                >
-                  <span className="flex items-center gap-1 ">
-                    Send
-                    <img src="/assets/icons/up.png" className="w-6 h-6"></img>
-                  </span>
+              {/* Right buttons */}
+              <div style={{ width: 110, display: 'flex', flexDirection: 'column', gap: 6 }}>
 
-                </motion.button>
+                {/* Send button */}
                 <motion.button
                   whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                  onClick={() => setShowStickerDialog(true)}
-                  className="h-10 bg-gradient-to-b from-[#F8F8F8] to-[#D6D3C4] border border-[#ACA899] rounded-lg text-[12px] font-bold text-gray-700 shadow-sm hover:brightness-105 active:shadow-inner transition-all flex items-center justify-center gap-2"
+                  whileTap={{ scale: 0.97 }}
+                  onClick={handleSend}
+                  style={{
+                    flex: 1,
+                    background: 'linear-gradient(180deg, #4a85d8 0%, #2a5fb5 100%)',
+                    border: '1px solid #1e4fa0',
+                    borderRadius: 8,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: 6,
+                    fontSize: 13,
+                    fontWeight: 700,
+                    fontFamily: 'Segoe UI, Tahoma, sans-serif',
+                    color: '#fff',
+                    cursor: 'pointer',
+                    boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.3), 0 2px 4px rgba(42,95,181,0.3)',
+                    textShadow: '0 1px 2px rgba(0,0,0,0.2)',
+                    transition: 'all 0.1s',
+                  }}
+                  onMouseEnter={e => {
+                    e.currentTarget.style.background = 'linear-gradient(180deg, #5a95e8 0%, #3a6fc5 100%)';
+                  }}
+                  onMouseLeave={e => {
+                    e.currentTarget.style.background = 'linear-gradient(180deg, #4a85d8 0%, #2a5fb5 100%)';
+                  }}
                 >
-                  <Smile size={14} /> Stickers
+                  Send
+                  <img src="/assets/icons/up.png" className="w-5 h-5" />
+                </motion.button>
+
+                {/* Stickers button */}
+                <motion.button
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.97 }}
+                  onClick={() => setShowStickerDialog(true)}
+                  style={{
+                    height: 46,
+                    background: 'linear-gradient(180deg, #f8f8f8 0%, #e8e8e8 100%)',
+                    border: '1px solid #c0c0c0',
+                    borderRadius: 8,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: 5,
+                    fontSize: 11,
+                    fontWeight: 700,
+                    fontFamily: 'Segoe UI, Tahoma, sans-serif',
+                    color: '#444',
+                    cursor: 'pointer',
+                    boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.95), 0 1px 2px rgba(0,0,0,0.1)',
+                    transition: 'all 0.1s',
+                  }}
+                  onMouseEnter={e => {
+                    e.currentTarget.style.background = 'linear-gradient(180deg, #ececec 0%, #dcdcdc 100%)';
+                    e.currentTarget.style.borderColor = '#aaa';
+                  }}
+                  onMouseLeave={e => {
+                    e.currentTarget.style.background = 'linear-gradient(180deg, #f8f8f8 0%, #e8e8e8 100%)';
+                    e.currentTarget.style.borderColor = '#c0c0c0';
+                  }}
+                >
+                  <Smile size={13}  /> Stickers
                 </motion.button>
               </div>
             </div>
@@ -1273,68 +1806,218 @@ export const ChatPage: React.FC<ChatPageProps> = ({ user, onLogout }) => {
 
           {/* Right Column (Avatars & News) */}
           <div className="w-48 xl:w-72 flex flex-col gap-4 shrink-0 overflow-hidden">
-            {/* Breaking News Section */}
-            <div className="flex-1 flex flex-col  bg-white/20 backdrop-blur-md border  border-[#ACA899] rounded-xl  overflow-hidden relative group/sidebar">
-              <div className="absolute inset-0 bg-gradient-to-b from-white/40 via-transparent to-white/5 pointer-events-none" />
 
-              <div style={{ background: 'linear-gradient(to bottom, #ffdd00, transparent)' }} className=" px-3 py-2 flex items-center gap-2  relative z-10">
-                <Newspaper size={14} className="text-white drop-shadow-sm" />
-                <span className="text-[11px] xl:text-[14px] font-bold text-gray-700 uppercase tracking-wider drop-shadow-sm">Breaking News</span>
+            {/* Breaking News Section */}
+            <div
+              className="flex-1 flex flex-col overflow-hidden"
+              style={{
+                background: 'linear-gradient(180deg, #f8f8f8 0%, #ececec 100%)',
+                border: '1px solid #c0c0c0',
+                borderRadius: 10,
+                boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.95), 0 2px 6px rgba(0,0,0,0.10)',
+              }}
+            >
+              {/* Title bar */}
+              <div
+                style={{
+                  background: 'linear-gradient(180deg, #ffe033 0%, #d4a800 100%)',
+                  borderBottom: '1px solid #b8900a',
+                  padding: '6px 10px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 7,
+                  flexShrink: 0,
+                  boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.4)',
+                }}
+              >
+                {/* Icon badge */}
+                <div style={{
+                  width: 22, height: 22,
+                  background: 'linear-gradient(180deg, #fff 0%, #ffe066 100%)',
+                  border: '1px solid #b8900a',
+                  borderRadius: 4,
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.8), 0 1px 2px rgba(0,0,0,0.15)',
+                  flexShrink: 0,
+                }}>
+                  <Newspaper size={12} color="#8a6000" />
+                </div>
+
+                <span style={{
+                  fontSize: 12, fontWeight: 800,
+                  fontFamily: 'Segoe UI, Tahoma, sans-serif',
+                  color: '#5a3a00',
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.06em',
+                  textShadow: '0 1px 0 rgba(255,255,255,0.4)',
+                  flex: 1,
+                }}>
+                  Breaking News
+                </span>
+
+                {/* LIVE badge */}
+                <div style={{
+                  display: 'flex', alignItems: 'center', gap: 4,
+                  background: 'linear-gradient(180deg, #ff4444 0%, #cc1111 100%)',
+                  border: '1px solid #aa0000',
+                  borderRadius: 10,
+                  padding: '1px 7px',
+                  boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.25)',
+                }}>
+                  <div style={{
+                    width: 5, height: 5, borderRadius: '50%',
+                    background: '#fff',
+                    animation: 'pulse 1.5s infinite',
+                  }} />
+                  <span style={{
+                    fontSize: 9, fontWeight: 900, color: '#fff',
+                    fontFamily: 'Segoe UI, Tahoma, sans-serif',
+                    letterSpacing: '0.05em',
+                  }}>LIVE</span>
+                </div>
               </div>
 
-              <div className="flex-1 p-3 flex flex-col gap-4 overflow-y-auto scrollbar-thin bg-white/10 relative z-10">
+              {/* Body */}
+              <div className="flex-1 overflow-y-auto scrollbar-thin" style={{
+                padding: '8px 6px',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 2,
+              }}>
 
+                {/* Add News button */}
                 <motion.button
                   whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
+                  whileTap={{ scale: 0.97 }}
                   onClick={() => setShowAddNewsDialog(true)}
-                  className="h-10 py-2 bg-gradient-to-b from-[#F8F8F8] to-[#D6D3C4] border border-[#ACA899] rounded-lg text-[12px] font-bold text-gray-700 shadow-sm hover:brightness-105 active:shadow-inner transition-all flex items-center justify-center gap-2 cursor-pointer"
+                  style={{
+                    height: 30,
+                    background: 'linear-gradient(180deg, #f8f8f8 0%, #e8e8e8 100%)',
+                    border: '1px solid #c0c0c0',
+                    borderRadius: 6,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: 5,
+                    fontSize: 11,
+                    fontWeight: 700,
+                    fontFamily: 'Segoe UI, Tahoma, sans-serif',
+                    color: '#444',
+                    cursor: 'pointer',
+                    boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.95), 0 1px 2px rgba(0,0,0,0.08)',
+                    marginBottom: 4,
+                    flexShrink: 0,
+                    transition: 'all 0.1s',
+                  }}
+                  onMouseEnter={e => {
+                    e.currentTarget.style.background = 'linear-gradient(180deg, #ececec 0%, #dcdcdc 100%)';
+                    e.currentTarget.style.borderColor = '#aaa';
+                  }}
+                  onMouseLeave={e => {
+                    e.currentTarget.style.background = 'linear-gradient(180deg, #f8f8f8 0%, #e8e8e8 100%)';
+                    e.currentTarget.style.borderColor = '#c0c0c0';
+                  }}
                 >
-                  Add New News
-                  <Plus size={14} />
+                  <Plus size={12} color="#666" /> Add News
                 </motion.button>
 
+                {/* News items */}
                 {newsList
                   .filter(news => new Date(news.expirationDate) > new Date())
                   .map((news) => (
                     <motion.div
                       key={news.id}
                       whileHover={{ x: 2 }}
-                      whileTap={{ scale: 0.98 }}
-                      onClick={() => {
-                        setSelectedNews(news);
-                        setShowNewsDialog(true);
+                      onClick={() => { setSelectedNews(news); setShowNewsDialog(true); }}
+                      className="group/item"
+                      style={{
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: 2,
+                        padding: '5px 8px',
+                        borderRadius: 5,
+                        cursor: 'pointer',
+                        borderLeft: news.type === 'breaking' ? '3px solid #d4a800' : '3px solid #b0b0b0',
+                        background: 'transparent',
+                        transition: 'background 0.1s',
                       }}
-                      className="flex  gap-1 cursor-pointer group/item py-1 px-2"
+                      onMouseEnter={e => {
+                        e.currentTarget.style.background = 'linear-gradient(180deg, #ececec 0%, #e0e0e0 100%)';
+                      }}
+                      onMouseLeave={e => {
+                        e.currentTarget.style.background = 'transparent';
+                      }}
                     >
-                      <div className="flex items-center gap-2 overflow-hidden">
-
-                        <span className={`text-[12px] xl:text-[13px] font-bold transition-all truncate hover:underline
-                          ${news.type === 'breaking' ? 'text-[#8a8b26]' : 'text-[#3169C6]'}`}>
+                      {/* Headline row */}
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 5, overflow: 'hidden' }}>
+                        {news.type === 'breaking' && (
+                          <div style={{
+                            width: 6, height: 6, borderRadius: '50%', flexShrink: 0,
+                            background: 'linear-gradient(180deg, #ffdd00 0%, #cc9900 100%)',
+                            border: '1px solid #aa7700',
+                            boxShadow: '0 0 4px rgba(200,150,0,0.5)',
+                            animation: 'pulse 1.5s infinite',
+                          }} />
+                        )}
+                        <span style={{
+                          fontSize: 12,
+                          fontWeight: 700,
+                          fontFamily: 'Segoe UI, Tahoma, sans-serif',
+                          color: news.type === 'breaking' ? '#7a5500' : '#333',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                          whiteSpace: 'nowrap',
+                          flex: 1,
+                        }}>
                           {news.headline}
                         </span>
-
-
-                        {news.type === 'breaking' && (
-                          <div className="w-2 h-2 rounded-full bg-[#b3a700] border border-white shadow-sm shrink-0 animate-pulse" />
-                        )}
-
-                        <ExternalLink size={10} className="shrink-0 opacity-0 group-hover/item:opacity-100 transition-opacity" />
+                        <ExternalLink
+                          size={9}
+                          style={{ flexShrink: 0, color: '#aaa', opacity: 0, transition: 'opacity 0.1s' }}
+                          className="group-hover/item:opacity-100"
+                        />
                       </div>
-                      <div className="flex items-center gap-2 ml-4 opacity-40">
-                        <Clock size={8} />
-                        <span className="text-[9px] font-bold uppercase">
+
+                      {/* Time row */}
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 4, paddingLeft: 11 }}>
+                        <Clock size={8} color="#999" />
+                        <span style={{
+                          fontSize: 9, fontWeight: 700, color: '#999',
+                          fontFamily: 'Segoe UI, Tahoma, sans-serif',
+                          textTransform: 'uppercase', letterSpacing: '0.05em',
+                        }}>
                           {new Date(news.publicationTime).toLocaleDateString([], { month: 'short', day: 'numeric' })}
                         </span>
                       </div>
                     </motion.div>
                   ))}
 
-                <div className="mt-auto pt-4 text-center border-t border-white/10">
-                  <span className="text-[10px] text-[#FF6600] font-bold hover:underline cursor-pointer italic drop-shadow-sm">View all news on Dot.com</span>
+                {/* Divider */}
+                <div style={{
+                  marginTop: 'auto',
+                  paddingTop: 8,
+                  borderTop: '1px solid #d0d0d0',
+                  textAlign: 'center',
+                  flexShrink: 0,
+                }}>
+                  <span
+                    style={{
+                      fontSize: 10,
+                      fontWeight: 700,
+                      fontFamily: 'Segoe UI, Tahoma, sans-serif',
+                      color: '#cc6600',
+                      fontStyle: 'italic',
+                      cursor: 'pointer',
+                    }}
+                    onMouseEnter={e => e.currentTarget.style.textDecoration = 'underline'}
+                    onMouseLeave={e => e.currentTarget.style.textDecoration = 'none'}
+                  >
+                    View all news on MSN.com →
+                  </span>
                 </div>
               </div>
             </div>
+
 
             {/* Bottom Display Picture (My Profile) */}
             <div className="relative group mt-auto xl:w-[200px] mx-auto shrink-0">
@@ -1354,6 +2037,8 @@ export const ChatPage: React.FC<ChatPageProps> = ({ user, onLogout }) => {
               </div>
             </div>
           </div>
+
+          
         </div>
 
         {/* Footer Bar */}
@@ -1687,15 +2372,31 @@ function NewsDialog({ news, onClose }: { news: NewsItem, onClose: () => void }) 
   );
 }
 
-function StickerDialog({ onSelect, onClose }: { onSelect: (url: string, type: 'sticker' | 'gif') => void, onClose: () => void }) {
+function StickerDialog({ onSelect, onClose , fetchRandomGif }: { onSelect: (url: string, type: 'sticker' | 'gif') => void, onClose: () => void  , fetchRandomGif: (q: string) => Promise<any>}) {
   const [tab, setTab] = useState<'stickers' | 'gifs'>('stickers');
   const [searchQuery, setSearchQuery] = useState('');
 
-  const filteredItems = (tab === 'stickers' ? STICKERS : GIFS).filter(url => {
-    // Since we don't have tags, we search within the URL string
-    // This is a basic search based on the URL filename/path
-    return url.toLowerCase().includes(searchQuery.toLowerCase());
+  const [gifList , setGifList] = useState()
+
+  useEffect(() => {
+    // This timer makes sure we wait 500ms after you stop typing
+    const delayDebounceFn = setTimeout(async () => {
+      const data = await fetchRandomGif(searchQuery ? searchQuery : "funny");
+
+      if (Array.isArray(data)) {
+        setGifList(data);
+      }
+    }, 500);
+
+    return () => clearTimeout(delayDebounceFn); // Clean up the timer
+  }, [searchQuery]);
+
+
+  const filteredItems = gifList?.filter(gif => {
+
+    return gif.slug.toLowerCase().includes(searchQuery.toLowerCase());
   });
+
 
   return (
     <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-[130] p-4">
@@ -1722,35 +2423,68 @@ function StickerDialog({ onSelect, onClose }: { onSelect: (url: string, type: 's
             </button>
           </div>
 
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
-            <input
-              type="text"
-              placeholder={`Search ${tab}...`}
-              className="w-full h-10 pl-10 pr-4 bg-gray-50 border border-[#ACA899] rounded-md text-sm focus:outline-none focus:border-[#3169C6] focus:ring-1 focus:ring-[#3169C6]/20 transition-all"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
-          </div>
 
-          <div className="h-[300px] overflow-y-auto p-2 grid grid-cols-3 gap-3 bg-gray-50 rounded border border-[#ACA899]/30">
-            {filteredItems.length > 0 ? (
-              filteredItems.map((url, i) => (
-                <div
-                  key={i}
-                  onClick={() => onSelect(url, tab === 'stickers' ? 'sticker' : 'gif')}
-                  className="bg-white border border-[#ACA899]/70 rounded p-2 cursor-pointer hover:border-[#3169C6] hover:shadow-md transition-all flex items-center justify-center group"
-                >
-                  <img src={url} className="max-w-full max-h-full group-hover:scale-110 transition-transform" alt="Sticker/GIF" />
+      
+
+          {
+            tab === "gifs" ? (
+
+                <>
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
+                  <input
+                    type="text"
+                    placeholder={`Search ${tab}...`}
+                    className="w-full h-10 pl-10 pr-4 bg-gray-50 border border-[#ACA899] rounded-md text-sm focus:outline-none focus:border-[#3169C6] focus:ring-1 focus:ring-[#3169C6]/20 transition-all"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                  />
                 </div>
-              ))
+                
+              <div className="h-[300px] overflow-y-auto p-2 grid grid-cols-3 gap-3 bg-gray-50 rounded border border-[#ACA899]/30">
+                  {filteredItems?.length > 0 ? (
+                    filteredItems.map((gif, i) => (
+                      <div
+                        key={i}
+                        onClick={() => onSelect(gif.images.fixed_height.url, 'gif' )}
+                        className="bg-white border border-[#ACA899]/70 rounded p-2 cursor-pointer hover:border-[#3169C6] hover:shadow-md transition-all flex items-center justify-center group"
+                      >
+                        <img src={gif.images.fixed_height.url} className="max-w-full max-h-full group-hover:scale-110 transition-transform" alt="Sticker/GIF" />
+                      </div>
+                    ))
+                  ) : (
+                    <div className="col-span-4 h-full flex flex-col items-center justify-center text-gray-400 gap-2">
+                      <Search size={32} className="opacity-20" />
+                      <span className="text-sm font-medium">No results found for "{searchQuery}"</span>
+                    </div>
+                  )}
+                </div>
+
+                </>
             ) : (
-              <div className="col-span-2 h-full flex flex-col items-center justify-center text-gray-400 gap-2">
-                <Search size={32} className="opacity-20" />
-                <span className="text-sm font-medium">No results found for "{searchQuery}"</span>
-              </div>
-            )}
-          </div>
+
+
+
+                <div className="h-[300px] overflow-y-auto p-2 grid grid-cols-3 gap-3 bg-gray-50 rounded border border-[#ACA899]/30">
+                  {STICKERS.length > 0 ? (
+                    STICKERS.map((url, i) => (
+                      <div
+                        key={i}
+                        onClick={() => onSelect(url, 'sticker')}
+                        className="bg-white border border-[#ACA899]/70 rounded p-2 cursor-pointer hover:border-[#3169C6] hover:shadow-md transition-all flex items-center justify-center group"
+                      >
+                        <img src={url} className="max-w-full max-h-full group-hover:scale-110 transition-transform" alt="Sticker/GIF" />
+                      </div>
+                    ))
+                  ) : (
+                    <div className="col-span-2 h-full flex flex-col items-center justify-center text-gray-400 gap-2">
+                      <Search size={32} className="opacity-20" />
+                      <span className="text-sm font-medium">No results found for Stickers</span>
+                    </div>
+                  )}
+                </div>
+            )
+          }
 
           <div className="flex gap-2">
             <button
@@ -1797,12 +2531,10 @@ function UserProfileDialog({ user , IP, lastMessageObj, onClose }: { user: any, 
             <div className="flex flex-col gap-1 overflow-hidden">
               <h2 className="text-2xl font-bold text-[#3169C6] truncate">{user.username}</h2>
               <div className="flex items-center gap-2">
-                <div className={`w-3 h-3 rounded-full ${user.status === 'Online' ? 'bg-green-500' :
-                  user.status === 'Busy' ? 'bg-red-500' : 'bg-yellow-500'
-                  }`}></div>
+                <div className={`w-3 h-3 rounded-full ${user.status === 'online' ? 'bg-green-500' :'bg-red-500' }`}></div>
                 <span className="text-sm font-medium text-gray-600">{user.status}</span>
               </div>
-              <div className="flex items-center gap-1.5 text-[11px] text-gray-500 mt-1">
+              <div className="flex items-center gap-1.5 text-[13px] text-gray-500 mt-1">
                 <Mail size={12} />
                 <span className="truncate">{user.email}</span>
               </div>
@@ -2154,24 +2886,80 @@ function ToolbarButton({ icon, label }: { icon: React.ReactNode, label: string }
   );
 }
 
-function FormatButton({ icon, label, onClick }: { icon: React.ReactNode, label?: string, onClick?: () => void }) {
+function FormatButton({ icon, label, onClick, active }: { 
+  icon: React.ReactNode, 
+  label?: string, 
+  onClick?: () => void,
+  active?: boolean 
+}) {
   return (
     <div
       onClick={onClick}
-      className={`h-8 px-2 flex items-center gap-2 border border-transparent hover:border-[#ACA899] hover:bg-white/60 rounded-md cursor-pointer transition-all ${label ? 'pr-3' : ''}`}
+      title={label}
+      style={{
+        height: 30,
+        paddingLeft: label && label !== 'text' && label !== 'emoji' ? 8 : 6,
+        paddingRight: label && label !== 'text' && label !== 'emoji' ? 10 : 6,
+        display: 'flex',
+        alignItems: 'center',
+        gap: 5,
+        background: active
+          ? 'linear-gradient(180deg, #ddeeff 0%, #c2d8f5 100%)'
+          : 'linear-gradient(180deg, #f8f8f8 0%, #e8e8e8 100%)',
+        border: active ? '1px solid #7aaee0' : '1px solid #c0c0c0',
+        borderRadius: 6,
+        cursor: 'pointer',
+        boxShadow: active
+          ? 'inset 0 1px 0 rgba(255,255,255,0.7), inset 0 -1px 0 rgba(49,105,198,0.1)'
+          : 'inset 0 1px 0 rgba(255,255,255,0.95), 0 1px 1px rgba(0,0,0,0.08)',
+        transition: 'all 0.1s',
+        userSelect: 'none',
+      }}
+      onMouseEnter={e => {
+        if (!active) {
+          e.currentTarget.style.background = 'linear-gradient(180deg, #ececec 0%, #dcdcdc 100%)';
+          e.currentTarget.style.borderColor = '#aaa';
+        }
+      }}
+      onMouseLeave={e => {
+        if (!active) {
+          e.currentTarget.style.background = 'linear-gradient(180deg, #f8f8f8 0%, #e8e8e8 100%)';
+          e.currentTarget.style.borderColor = '#c0c0c0';
+        }
+      }}
     >
-      <div className="text-[#3169C6] drop-shadow-sm ">{icon}</div>
-      {(label === "Voice Clip" || label === "PDF") && <span className="text-[12px] font-medium text-gray-700">{label}</span>}
-      {
-        (label === "text" || label === "emoji") && (
+      {/* Icon */}
+      <div style={{ color: active ? '#2a5fb5' : '#555', display: 'flex', alignItems: 'center'  }}>
+        {icon}
+      </div>
 
-          <div className="w-0 h-0 border-l-[4px] border-l-transparent border-r-[4px] border-r-transparent border-t-[4px] border-t-gray-500 ml-1"></div>
+      {/* Label for Voice Clip / PDF */}
+      {(label === 'Voice Clip' || label === 'PDF') && (
+        <span style={{
+          fontSize: 12,
+          fontWeight: 700,
+          fontFamily: 'Segoe UI, Tahoma, sans-serif',
+          color: active ? '#1a4fa0' : '#444',
+          whiteSpace: 'nowrap',
+        }}>
+          {label}
+        </span>
+      )}
 
-        )
-      }
+      {/* Dropdown arrow for text / emoji */}
+      {(label === 'text' || label === 'emoji') && (
+        <div style={{
+          width: 0, height: 0,
+          borderLeft: '3px solid transparent',
+          borderRight: '3px solid transparent',
+          borderTop: `4px solid ${active ? '#2a5fb5' : '#777'}`,
+          marginLeft: 1,
+        }} />
+      )}
     </div>
   );
 }
+
 
 function AddNewsDialog({ onClose, onAdd }: { onClose: () => void, onAdd: (news: NewsItem) => void }) {
   const [headline, setHeadline] = useState('');

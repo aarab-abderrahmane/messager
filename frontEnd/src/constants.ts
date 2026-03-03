@@ -56,6 +56,11 @@ export const STICKERS = [
   '/assets/stickers/STK-20250923-WA0004.png',
   '/assets/stickers/STK-20250923-WA0005.png',
   '/assets/stickers/STK-20250923-WA0008.png',
+  '/assets/stickers/STK-20250923-WA0009.png',
+  '/assets/stickers/STK-20250923-WA0012.png',
+  '/assets/stickers/STK-20250925-WA0008.png',
+  '/assets/stickers/STK-20250925-WA0021.png',
+  '/assets/stickers/STK-20251011-WA0003.png',
 ];
 
 export const GIFS = [
