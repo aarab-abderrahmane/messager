@@ -22,6 +22,424 @@ const DEFAULT_THEME = {
   fontFamily: 'sans-serif'
 };
 
+const PeopleOnlineContent: React.FC<{
+  onlineUsers: any[];
+  offlineUsers: any[];
+  userSearchQuery: string;
+  setUserSearchQuery: (val: string) => void;
+  onUserClick: (user: any) => void;
+  currentUser: UserData;
+}> = ({ onlineUsers, offlineUsers, userSearchQuery, setUserSearchQuery, onUserClick, currentUser }) => (
+  <div className="flex-1 flex flex-col border border-[#b0aca0] rounded-md overflow-hidden"
+    style={{ background: 'linear-gradient(180deg, #f2f0ec 0%, #e8e5df 100%)', boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.8), 0 2px 4px rgba(0,0,0,0.1)' }}>
+
+    {/* Header */}
+    <div
+      style={{
+        background: 'linear-gradient(180deg, #4a85d8 0%, #2a5fb5 100%)',
+        borderBottom: '1px solid #1e4fa0',
+        padding: '10px 10px',
+        display: 'flex',
+        alignItems: 'center',
+        gap: 7,
+        flexShrink: 0,
+      }}
+    >
+      <div style={{
+        width: 20, height: 20,
+        background: 'linear-gradient(180deg, #7bc8ff 0%, #3a9aee 100%)',
+        border: '1px solid #1a7acc',
+        borderRadius: '50%',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.4)',
+        flexShrink: 0,
+      }}>
+        <User size={11} color="white" />
+      </div>
+      <span style={{
+        fontSize: 12, fontWeight: 700, color: '#fff',
+        fontFamily: 'Segoe UI, Tahoma, sans-serif',
+        textShadow: '0 1px 2px rgba(0,0,0,0.3)',
+        flex: 1,
+      }}>
+        People Online
+      </span>
+      {/* online count badge */}
+      <div style={{
+        background: 'linear-gradient(180deg, #5ab840 0%, #3a9020 100%)',
+        border: '1px solid #2a7010',
+        borderRadius: 10,
+        padding: '1px 6px',
+        fontSize: 10, fontWeight: 800, color: '#fff',
+        fontFamily: 'Segoe UI, Tahoma, sans-serif',
+        boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.3)',
+      }}>
+        {onlineUsers.length}
+      </div>
+    </div>
+
+    {/* Search */}
+    <div className="px-2 py-2 border-b border-[#b0aca0]/50"
+      style={{ background: 'linear-gradient(180deg, #eeebe5 0%, #e4e1db 100%)' }}>
+      <div className="relative">
+        <input
+          type="text"
+          placeholder="Search people..."
+          value={userSearchQuery}
+          onChange={(e) => setUserSearchQuery(e.target.value)}
+          style={{
+            width: '100%',
+            paddingLeft: 28, paddingRight: 8, paddingTop: 5, paddingBottom: 5,
+            background: 'linear-gradient(180deg, #ffffff 0%, #f5f3ef 100%)',
+            border: '1px solid #b0aca0',
+            borderRadius: 3,
+            fontSize: 12,
+            fontFamily: 'Segoe UI, Tahoma, sans-serif',
+            color: '#3a3830',
+            boxShadow: 'inset 0 1px 3px rgba(0,0,0,0.08)',
+            outline: 'none',
+          }}
+          onFocus={e => e.currentTarget.style.borderColor = '#7a9abf'}
+          onBlur={e => e.currentTarget.style.borderColor = '#b0aca0'}
+        />
+        <Search size={13} style={{ position: 'absolute', left: 9, top: '50%', transform: 'translateY(-50%)', color: '#9a9690' }} />
+      </div>
+    </div>
+
+    {/* User List */}
+    <div className="flex-1 overflow-y-auto flex flex-col gap-1 p-2 scrollbar-thin">
+
+      {/* Online Users */}
+      {onlineUsers.filter(u => u.username.toLowerCase().includes(userSearchQuery.toLowerCase())).map((onlineUser) => (
+        <div
+          key={onlineUser.username}
+          onClick={() => {
+            if (onlineUser.email === currentUser.email) return;
+            onUserClick({ ...onlineUser, status: "online" });
+          }}
+          style={{ borderRadius: 4, cursor: 'pointer', transition: 'all 0.1s' }}
+          className="flex items-center gap-2 px-2 py-1.5 group"
+          onMouseEnter={e => {
+            e.currentTarget.style.background = 'linear-gradient(180deg, #deeaf8 0%, #ccddf0 100%)';
+            e.currentTarget.style.border = '1px solid #9abbd8';
+            e.currentTarget.style.boxShadow = 'inset 0 1px 0 rgba(255,255,255,0.7)';
+          }}
+          onMouseLeave={e => {
+            e.currentTarget.style.background = 'transparent';
+            e.currentTarget.style.border = '1px solid transparent';
+            e.currentTarget.style.boxShadow = 'none';
+          }}
+        >
+          <div className="relative shrink-0">
+            <img
+              src={onlineUser.avatar}
+              className="w-9 h-9 xl:w-11 xl:h-11 rounded"
+              alt={onlineUser.username}
+              style={{ border: '1px solid #b0aca0', boxShadow: '0 1px 2px rgba(0,0,0,0.15)' }}
+            />
+            {/* Online dot */}
+            <div style={{
+              position: 'absolute', bottom: -1, right: -1,
+              width: 11, height: 11,
+              background: 'linear-gradient(180deg, #60d840 0%, #30a810 100%)',
+              border: '1.5px solid white',
+              borderRadius: '50%',
+              boxShadow: '0 1px 2px rgba(0,0,0,0.2)',
+            }} />
+          </div>
+          <div className="flex flex-col overflow-hidden">
+            <span style={{
+              fontSize: 12, fontWeight: 700,
+              fontFamily: 'Segoe UI, Tahoma, sans-serif',
+              color: '#2a2820',
+              overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+            }}
+              className="group-hover:text-[#1a4a8a]"
+            >{onlineUser.username}</span>
+            <span style={{ fontSize: 10, color: '#3a9020', fontFamily: 'Segoe UI, Tahoma, sans-serif', fontWeight: 600 }}>● online</span>
+          </div>
+        </div>
+      ))}
+
+      {/* Divider if both lists have items */}
+      {onlineUsers.filter(u => u.username.toLowerCase().includes(userSearchQuery.toLowerCase())).length > 0 &&
+        offlineUsers.filter(u => u.username.toLowerCase().includes(userSearchQuery.toLowerCase())).length > 0 && (
+          <div style={{ height: 1, background: 'linear-gradient(90deg, transparent, #b0aca0, transparent)', margin: '4px 0' }} />
+        )}
+
+      {/* Offline Users */}
+      {offlineUsers.filter(u => u.username.toLowerCase().includes(userSearchQuery.toLowerCase())).map((offlineUser) => (
+        <div
+          key={offlineUser.username}
+          onClick={() => {
+            onUserClick({ ...offlineUser, status: "offline" });
+          }}
+          style={{ borderRadius: 4, cursor: 'pointer', transition: 'all 0.1s', opacity: 0.75 }}
+          className="flex items-center gap-2 px-2 py-1.5 group"
+          onMouseEnter={e => {
+            e.currentTarget.style.background = 'linear-gradient(180deg, #eeebe5 0%, #e0ddd7 100%)';
+            e.currentTarget.style.border = '1px solid #c0bdb5';
+            e.currentTarget.style.opacity = '1';
+          }}
+          onMouseLeave={e => {
+            e.currentTarget.style.background = 'transparent';
+            e.currentTarget.style.border = '1px solid transparent';
+            e.currentTarget.style.opacity = '0.75';
+          }}
+        >
+          <div className="relative shrink-0">
+            <img
+              src={offlineUser.avatar}
+              className="w-9 h-9 xl:w-11 xl:h-11 rounded"
+              alt={offlineUser.username}
+              style={{ border: '1px solid #b0aca0', boxShadow: '0 1px 2px rgba(0,0,0,0.1)', filter: 'grayscale(30%)' }}
+            />
+            {/* Offline dot */}
+            <div style={{
+              position: 'absolute', bottom: -1, right: -1,
+              width: 11, height: 11,
+              background: 'linear-gradient(180deg, #c0bdb5 0%, #909088 100%)',
+              border: '1.5px solid white',
+              borderRadius: '50%',
+              boxShadow: '0 1px 2px rgba(0,0,0,0.2)',
+            }} />
+          </div>
+          <div className="flex flex-col overflow-hidden">
+            <span style={{
+              fontSize: 12, fontWeight: 700,
+              fontFamily: 'Segoe UI, Tahoma, sans-serif',
+              color: '#6a6860',
+              overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+            }}>{offlineUser.username}</span>
+            <span style={{ fontSize: 10, color: '#9a9890', fontFamily: 'Segoe UI, Tahoma, sans-serif', fontWeight: 600 }}>● offline</span>
+          </div>
+        </div>
+      ))}
+
+      {onlineUsers.filter(u => u.username.toLowerCase().includes(userSearchQuery.toLowerCase())).length === 0 &&
+        offlineUsers.filter(u => u.username.toLowerCase().includes(userSearchQuery.toLowerCase())).length === 0 && (
+          <div style={{ fontSize: 11, color: '#9a9890', fontStyle: 'italic', textAlign: 'center', padding: '16px 0', fontFamily: 'Segoe UI, Tahoma, sans-serif' }}>
+            No results found
+          </div>
+        )}
+    </div>
+  </div>
+);
+
+const NewsContent: React.FC<{
+  newsList: NewsItem[];
+  onAddClick: () => void;
+  onNewsClick: (news: NewsItem) => void;
+}> = ({ newsList, onAddClick, onNewsClick }) => (
+  <div
+    className="flex-1 flex flex-col overflow-hidden"
+    style={{
+      background: 'linear-gradient(180deg, #f8f8f8 0%, #ececec 100%)',
+      border: '1px solid #c0c0c0',
+      borderRadius: 10,
+      boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.95), 0 2px 6px rgba(0,0,0,0.10)',
+    }}
+  >
+    {/* Title bar */}
+    <div
+      style={{
+        background: 'linear-gradient(180deg, #ffe033 0%, #d4a800 100%)',
+        borderBottom: '1px solid #b8900a',
+        padding: '6px 10px',
+        display: 'flex',
+        alignItems: 'center',
+        gap: 7,
+        flexShrink: 0,
+        boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.4)',
+      }}
+    >
+      {/* Icon badge */}
+      <div style={{
+        width: 22, height: 22,
+        background: 'linear-gradient(180deg, #fff 0%, #ffe066 100%)',
+        border: '1px solid #b8900a',
+        borderRadius: 4,
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.8), 0 1px 2px rgba(0,0,0,0.15)',
+        flexShrink: 0,
+      }}>
+        <Newspaper size={12} color="#8a6000" />
+      </div>
+
+      <span style={{
+        fontSize: 12, fontWeight: 800,
+        fontFamily: 'Segoe UI, Tahoma, sans-serif',
+        color: '#5a3a00',
+        textTransform: 'uppercase',
+        letterSpacing: '0.06em',
+        textShadow: '0 1px 0 rgba(255,255,255,0.4)',
+        flex: 1,
+      }}>
+        Breaking News
+      </span>
+
+      {/* LIVE badge */}
+      <div style={{
+        display: 'flex', alignItems: 'center', gap: 4,
+        background: 'linear-gradient(180deg, #ff4444 0%, #cc1111 100%)',
+        border: '1px solid #aa0000',
+        borderRadius: 10,
+        padding: '1px 7px',
+        boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.25)',
+      }}>
+        <div style={{
+          width: 5, height: 5, borderRadius: '50%',
+          background: '#fff',
+          animation: 'pulse 1.5s infinite',
+        }} />
+        <span style={{
+          fontSize: 9, fontWeight: 900, color: '#fff',
+          fontFamily: 'Segoe UI, Tahoma, sans-serif',
+          letterSpacing: '0.05em',
+        }}>LIVE</span>
+      </div>
+    </div>
+
+    {/* Body */}
+    <div className="flex-1 overflow-y-auto scrollbar-thin" style={{
+      padding: '8px 6px',
+      display: 'flex',
+      flexDirection: 'column',
+      gap: 2,
+    }}>
+
+      {/* Add News button */}
+      <motion.button
+        whileHover={{ scale: 1.02 }}
+        whileTap={{ scale: 0.97 }}
+        onClick={onAddClick}
+        style={{
+          height: 30,
+          background: 'linear-gradient(180deg, #f8f8f8 0%, #e8e8e8 100%)',
+          border: '1px solid #c0c0c0',
+          borderRadius: 6,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: 5,
+          fontSize: 11,
+          fontWeight: 700,
+          fontFamily: 'Segoe UI, Tahoma, sans-serif',
+          color: '#444',
+          cursor: 'pointer',
+          boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.95), 0 1px 2px rgba(0,0,0,0.08)',
+          marginBottom: 4,
+          flexShrink: 0,
+          transition: 'all 0.1s',
+        }}
+        onMouseEnter={e => {
+          e.currentTarget.style.background = 'linear-gradient(180deg, #ececec 0%, #dcdcdc 100%)';
+          e.currentTarget.style.borderColor = '#aaa';
+        }}
+        onMouseLeave={e => {
+          e.currentTarget.style.background = 'linear-gradient(180deg, #f8f8f8 0%, #e8e8e8 100%)';
+          e.currentTarget.style.borderColor = '#c0c0c0';
+        }}
+      >
+        <Plus size={12} color="#666" /> Add News
+      </motion.button>
+
+      {/* News items */}
+      {newsList
+        .filter(news => new Date(news.expirationDate) > new Date())
+        .map((news) => (
+          <motion.div
+            key={news.id}
+            whileHover={{ x: 2 }}
+            onClick={() => onNewsClick(news)}
+            className="group/item"
+            style={{
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 2,
+              padding: '5px 8px',
+              borderRadius: 5,
+              cursor: 'pointer',
+              borderLeft: news.type === 'breaking' ? '3px solid #d4a800' : '3px solid #b0b0b0',
+              background: 'transparent',
+              transition: 'background 0.1s',
+            }}
+            onMouseEnter={e => {
+              e.currentTarget.style.background = 'linear-gradient(180deg, #ececec 0%, #e0e0e0 100%)';
+            }}
+            onMouseLeave={e => {
+              e.currentTarget.style.background = 'transparent';
+            }}
+          >
+            {/* Headline row */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 5, overflow: 'hidden' }}>
+              {news.type === 'breaking' && (
+                <div style={{
+                  width: 6, height: 6, borderRadius: '50%', flexShrink: 0,
+                  background: 'linear-gradient(180deg, #ffdd00 0%, #cc9900 100%)',
+                  border: '1px solid #aa7700',
+                  boxShadow: '0 0 4px rgba(200,150,0,0.5)',
+                  animation: 'pulse 1.5s infinite',
+                }} />
+              )}
+              <span style={{
+                fontSize: 12,
+                fontWeight: 700,
+                fontFamily: 'Segoe UI, Tahoma, sans-serif',
+                color: news.type === 'breaking' ? '#7a5500' : '#333',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                whiteSpace: 'nowrap',
+                flex: 1,
+              }}>
+                {news.headline}
+              </span>
+              <ExternalLink
+                size={9}
+                style={{ flexShrink: 0, color: '#aaa', opacity: 0, transition: 'opacity 0.1s' }}
+                className="group-hover/item:opacity-100"
+              />
+            </div>
+
+            {/* Time row */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 4, paddingLeft: 11 }}>
+              <Clock size={8} color="#999" />
+              <span style={{
+                fontSize: 9, fontWeight: 700, color: '#999',
+                fontFamily: 'Segoe UI, Tahoma, sans-serif',
+                textTransform: 'uppercase', letterSpacing: '0.05em',
+              }}>
+                {new Date(news.publicationTime).toLocaleDateString([], { month: 'short', day: 'numeric' })}
+              </span>
+            </div>
+          </motion.div>
+        ))}
+
+      {/* Divider */}
+      <div style={{
+        marginTop: 'auto',
+        paddingTop: 8,
+        borderTop: '1px solid #d0d0d0',
+        textAlign: 'center',
+        flexShrink: 0,
+      }}>
+        <span
+          style={{
+            fontSize: 10,
+            fontWeight: 700,
+            fontFamily: 'Segoe UI, Tahoma, sans-serif',
+            color: '#999',
+            textTransform: 'uppercase',
+            letterSpacing: '0.05em',
+          }}
+        >
+          MSN Digital Network
+        </span>
+      </div>
+    </div>
+  </div>
+);
+
 export const ChatPage: React.FC<ChatPageProps> = ({ user, onLogout }) => {
   const [currentUser, setCurrentUser] = useState<UserData>(user);
   const [onlineUsers, setOnlineUsers] = useState([])
@@ -103,6 +521,9 @@ export const ChatPage: React.FC<ChatPageProps> = ({ user, onLogout }) => {
 
   const [theme, setTheme] = useState(DEFAULT_THEME);
 
+  const [isLeftSidebarOpen, setIsLeftSidebarOpen] = useState(false);
+  const [isRightSidebarOpen, setIsRightSidebarOpen] = useState(false);
+
   const chatEndRef = useRef<HTMLDivElement>(null);
   const windowControls = useAnimation();
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -160,7 +581,7 @@ export const ChatPage: React.FC<ChatPageProps> = ({ user, onLogout }) => {
 
 
 
-      if (["text", "image", "voice", "pdf" , "sticker" , "gif"].includes(data.type)) {
+      if (["text", "image", "voice", "pdf", "sticker", "gif"].includes(data.type)) {
         setMessages(prev => [
           ...prev, data
         ])
@@ -197,7 +618,7 @@ export const ChatPage: React.FC<ChatPageProps> = ({ user, onLogout }) => {
   function cleanIP(ip) {
     if (ip.includes('::ffff:')) {
       return ip.split('::ffff:')[1];
-    
+
     }
 
 
@@ -339,10 +760,10 @@ export const ChatPage: React.FC<ChatPageProps> = ({ user, onLogout }) => {
       // Call your own server
       const response = await fetch(`http://localhost:5000/get-gif?q=${query}&limit=10`);
       const data = await response.json();
-      
+
       console.log("Here is your GIF:", data);
 
-      return data 
+      return data
     } catch (error) {
       console.error("Error fetching GIF:", error);
       return []
@@ -436,7 +857,7 @@ export const ChatPage: React.FC<ChatPageProps> = ({ user, onLogout }) => {
           <StickerDialog
             onSelect={handleSendSticker}
             onClose={() => setShowStickerDialog(false)}
-            fetchRandomGif = {fetchRandomGif}
+            fetchRandomGif={fetchRandomGif}
           />
         )}
         {previewImageUrl && (
@@ -504,7 +925,7 @@ export const ChatPage: React.FC<ChatPageProps> = ({ user, onLogout }) => {
         animate={windowControls}
         className="flex-1 flex flex-col overflow-hidden"
       >
-        <TitleBar  title={`Conversation - (${currentUser.username})`} />
+        <TitleBar title={`Conversation - (${currentUser.username})`} />
 
         {/* Menu Bar */}
         <div className="h-7 border-b border-[#ACA899] flex items-center px-2 gap-5 text-[11px] select-none shrink-0" style={{ backgroundColor: theme.bgColor }}>
@@ -517,1044 +938,972 @@ export const ChatPage: React.FC<ChatPageProps> = ({ user, onLogout }) => {
               {item}
             </div>
           ))}
+
+          {/* Mobile Toggle Buttons */}
+          <div className="flex-1 flex justify-end gap-2 md:hidden">
+            <button
+              onClick={() => setIsLeftSidebarOpen(true)}
+              className="px-2 py-0.5 bg-[#f0f0f0] border border-[#aca899] rounded-sm hover:brightness-95 active:translate-y-[1px] flex items-center gap-1"
+            >
+              <User size={12} /> <span className="text-[10px] font-bold">Contacts</span>
+            </button>
+            <button
+              onClick={() => setIsRightSidebarOpen(true)}
+              className="px-2 py-0.5 bg-[#f0f0f0] border border-[#aca899] rounded-sm hover:brightness-95 active:translate-y-[1px] flex items-center gap-1"
+            >
+              <Newspaper size={12} /> <span className="text-[10px] font-bold">News</span>
+            </button>
+          </div>
         </div>
 
         {/* Main Content Area */}
-        <div className="flex-1 flex p-4 gap-4 overflow-hidden">
+        <div className="flex-1 flex p-4 gap-4 overflow-hidden relative">
 
-          {/* Left Column (Online Users) */}
-          <div className="w-48 xl:w-72 flex flex-col gap-4 shrink-0 overflow-hidden">
-            <div className="flex-1 flex flex-col border border-[#b0aca0] rounded-md overflow-hidden"
-              style={{ background: 'linear-gradient(180deg, #f2f0ec 0%, #e8e5df 100%)', boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.8), 0 2px 4px rgba(0,0,0,0.1)' }}>
-
-              {/* Header */}
-              <div
-                style={{
-                  background: 'linear-gradient(180deg, #4a85d8 0%, #2a5fb5 100%)',
-                  borderBottom: '1px solid #1e4fa0',
-                  padding: '10px 10px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 7,
-                  flexShrink: 0,
-                }}
-              >
-                <div style={{
-                  width: 20, height: 20,
-                  background: 'linear-gradient(180deg, #7bc8ff 0%, #3a9aee 100%)',
-                  border: '1px solid #1a7acc',
-                  borderRadius: '50%',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.4)',
-                  flexShrink: 0,
-                }}>
-                  <User size={11} color="white" />
-                </div>
-                <span style={{
-                  fontSize: 12, fontWeight: 700, color: '#fff',
-                  fontFamily: 'Segoe UI, Tahoma, sans-serif',
-                  textShadow: '0 1px 2px rgba(0,0,0,0.3)',
-                  flex: 1,
-                }}>
-                  People Online
-                </span>
-                {/* online count badge */}
-                <div style={{
-                  background: 'linear-gradient(180deg, #5ab840 0%, #3a9020 100%)',
-                  border: '1px solid #2a7010',
-                  borderRadius: 10,
-                  padding: '1px 6px',
-                  fontSize: 10, fontWeight: 800, color: '#fff',
-                  fontFamily: 'Segoe UI, Tahoma, sans-serif',
-                  boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.3)',
-                }}>
-                  {onlineUsers.length}
-                </div>
-              </div>
-
-              {/* Search */}
-              <div className="px-2 py-2 border-b border-[#b0aca0]/50"
-                style={{ background: 'linear-gradient(180deg, #eeebe5 0%, #e4e1db 100%)' }}>
-                <div className="relative">
-                  <input
-                    type="text"
-                    placeholder="Search people..."
-                    value={userSearchQuery}
-                    onChange={(e) => setUserSearchQuery(e.target.value)}
-                    style={{
-                      width: '100%',
-                      paddingLeft: 28, paddingRight: 8, paddingTop: 5, paddingBottom: 5,
-                      background: 'linear-gradient(180deg, #ffffff 0%, #f5f3ef 100%)',
-                      border: '1px solid #b0aca0',
-                      borderRadius: 3,
-                      fontSize: 12,
-                      fontFamily: 'Segoe UI, Tahoma, sans-serif',
-                      color: '#3a3830',
-                      boxShadow: 'inset 0 1px 3px rgba(0,0,0,0.08)',
-                      outline: 'none',
-                    }}
-                    onFocus={e => e.currentTarget.style.borderColor = '#7a9abf'}
-                    onBlur={e => e.currentTarget.style.borderColor = '#b0aca0'}
-                  />
-                  <Search size={13} style={{ position: 'absolute', left: 9, top: '50%', transform: 'translateY(-50%)', color: '#9a9690' }} />
-                </div>
-              </div>
-
-              {/* User List */}
-              <div className="flex-1 overflow-y-auto flex flex-col gap-1 p-2 scrollbar-thin">
-
-                {/* Online Users */}
-                {onlineUsers.filter(u => u.username.toLowerCase().includes(userSearchQuery.toLowerCase())).map((onlineUser) => (
-                  <div
-                    key={onlineUser.username}
-                    onClick={() => {
-                      if (onlineUser.email === currentUser.email) return;
-                      setSelectedUser({...onlineUser , status: "online"});
-                      setShowUserProfileDialog(true);
-                    }}
-                    style={{ borderRadius: 4, cursor: 'pointer', transition: 'all 0.1s' }}
-                    className="flex items-center gap-2 px-2 py-1.5 group"
-                    onMouseEnter={e => {
-                      e.currentTarget.style.background = 'linear-gradient(180deg, #deeaf8 0%, #ccddf0 100%)';
-                      e.currentTarget.style.border = '1px solid #9abbd8';
-                      e.currentTarget.style.boxShadow = 'inset 0 1px 0 rgba(255,255,255,0.7)';
-                    }}
-                    onMouseLeave={e => {
-                      e.currentTarget.style.background = 'transparent';
-                      e.currentTarget.style.border = '1px solid transparent';
-                      e.currentTarget.style.boxShadow = 'none';
-                    }}
-                  >
-                    <div className="relative shrink-0">
-                      <img
-                        src={onlineUser.avatar}
-                        className="w-9 h-9 xl:w-11 xl:h-11 rounded"
-                        alt={onlineUser.username}
-                        style={{ border: '1px solid #b0aca0', boxShadow: '0 1px 2px rgba(0,0,0,0.15)' }}
-                      />
-                      {/* Online dot */}
-                      <div style={{
-                        position: 'absolute', bottom: -1, right: -1,
-                        width: 11, height: 11,
-                        background: 'linear-gradient(180deg, #60d840 0%, #30a810 100%)',
-                        border: '1.5px solid white',
-                        borderRadius: '50%',
-                        boxShadow: '0 1px 2px rgba(0,0,0,0.2)',
-                      }} />
-                    </div>
-                    <div className="flex flex-col overflow-hidden">
-                      <span style={{
-                        fontSize: 12, fontWeight: 700,
-                        fontFamily: 'Segoe UI, Tahoma, sans-serif',
-                        color: '#2a2820',
-                        overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+          {/* Left Column (Online Users) - Mobile Overlay */}
+          <AnimatePresence>
+            {isLeftSidebarOpen && (
+              <>
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  onClick={() => setIsLeftSidebarOpen(false)}
+                  className="fixed inset-0 bg-black/40 z-40 md:hidden backdrop-blur-[2px]"
+                />
+                <motion.div
+                  initial={{ x: '-100%' }}
+                  animate={{ x: 0 }}
+                  exit={{ x: '-100%' }}
+                  transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+                  className="fixed left-0 top-0 bottom-0 w-[280px] z-50 md:hidden flex flex-col p-4"
+                  style={{ backgroundColor: theme.bgColor }}
+                >
+                  <div className="flex justify-between items-center mb-4">
+                    <span className="text-sm font-bold">Contacts</span>
+                    <button onClick={() => setIsLeftSidebarOpen(false)} className="p-1 hover:bg-black/10 rounded-full transition-colors">
+                      <X size={20} />
+                    </button>
+                  </div>
+                  <div className="flex-1 flex flex-col overflow-hidden">
+                    <PeopleOnlineContent
+                      onlineUsers={onlineUsers}
+                      offlineUsers={offlineUsers}
+                      userSearchQuery={userSearchQuery}
+                      setUserSearchQuery={setUserSearchQuery}
+                      onUserClick={(user) => {
+                        setSelectedUser(user);
+                        setShowUserProfileDialog(true);
+                        setIsLeftSidebarOpen(false);
                       }}
-                        className="group-hover:text-[#1a4a8a]"
-                      >{onlineUser.username}</span>
-                      <span style={{ fontSize: 10, color: '#3a9020', fontFamily: 'Segoe UI, Tahoma, sans-serif', fontWeight: 600 }}>● online</span>
-                    </div>
+                      currentUser={currentUser}
+                    />
                   </div>
-                ))}
+                </motion.div>
+              </>
+            )}
+          </AnimatePresence>
 
-                {/* Divider if both lists have items */}
-                {onlineUsers.filter(u => u.username.toLowerCase().includes(userSearchQuery.toLowerCase())).length > 0 &&
-                  offlineUsers.filter(u => u.username.toLowerCase().includes(userSearchQuery.toLowerCase())).length > 0 && (
-                    <div style={{ height: 1, background: 'linear-gradient(90deg, transparent, #b0aca0, transparent)', margin: '4px 0' }} />
-                  )}
+          {/* Right Column (Profile & News) - Mobile Overlay */}
+          <AnimatePresence>
+            {isRightSidebarOpen && (
+              <>
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  onClick={() => setIsRightSidebarOpen(false)}
+                  className="fixed inset-0 bg-black/40 z-40 md:hidden backdrop-blur-[2px]"
+                />
+                <motion.div
+                  initial={{ x: '100%' }}
+                  animate={{ x: 0 }}
+                  exit={{ x: '100%' }}
+                  transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+                  className="fixed right-0 top-0 bottom-0 w-[280px] z-50 md:hidden flex flex-col p-4"
+                  style={{ backgroundColor: theme.bgColor }}
+                >
+                  <div className="flex justify-between items-center mb-4">
+                    <button onClick={() => setIsRightSidebarOpen(false)} className="p-1 hover:bg-black/10 rounded-full transition-colors">
+                      <X size={20} />
+                    </button>
+                    <span className="text-sm font-bold text-right">Profile & News</span>
+                  </div>
+                  <div className="flex-1 flex flex-col overflow-hidden">
+                    {/* Simplified Profile Section for Mobile Menu */}
+                    <div className="mb-4 flex flex-col items-center gap-2 p-3 border border-[#ACA899] rounded-md bg-white/50">
+                      <img src={currentUser.avatar} className="w-16 h-16 rounded-md border-2 border-white shadow-md" alt="Me" />
+                      <div className="text-center">
+                        <div className="font-bold text-sm tracking-tight">{currentUser.username}</div>
+                        <div className="text-[11px] text-[#666]">{status}</div>
+                      </div>
+                    </div>
 
-                {/* Offline Users */}
-                {offlineUsers.filter(u => u.username.toLowerCase().includes(userSearchQuery.toLowerCase())).map((offlineUser) => (
-                  <div
-                    key={offlineUser.username}
-                    onClick={() => {
-                      setSelectedUser({...offlineUser , status : "offline"});
-                      setShowUserProfileDialog(true);
-                    }}
-                    style={{ borderRadius: 4, cursor: 'pointer', transition: 'all 0.1s', opacity: 0.75 }}
-                    className="flex items-center gap-2 px-2 py-1.5 group"
-                    onMouseEnter={e => {
-                      e.currentTarget.style.background = 'linear-gradient(180deg, #eeebe5 0%, #e0ddd7 100%)';
-                      e.currentTarget.style.border = '1px solid #c0bdb5';
-                      e.currentTarget.style.opacity = '1';
-                    }}
-                    onMouseLeave={e => {
-                      e.currentTarget.style.background = 'transparent';
-                      e.currentTarget.style.border = '1px solid transparent';
-                      e.currentTarget.style.opacity = '0.75';
-                    }}
-                  >
-                    <div className="relative shrink-0">
-                      <img
-                        src={offlineUser.avatar}
-                        className="w-9 h-9 xl:w-11 xl:h-11 rounded"
-                        alt={offlineUser.username}
-                        style={{ border: '1px solid #b0aca0', boxShadow: '0 1px 2px rgba(0,0,0,0.1)', filter: 'grayscale(30%)' }}
+                    <div className="flex-1 flex flex-col overflow-hidden">
+                      <NewsContent
+                        newsList={newsList}
+                        onAddClick={() => {
+                          setShowAddNewsDialog(true);
+                          setIsRightSidebarOpen(false);
+                        }}
+                        onNewsClick={(news) => {
+                          setSelectedNews(news);
+                          setShowNewsDialog(true);
+                          setIsRightSidebarOpen(false);
+                        }}
                       />
-                      {/* Offline dot */}
-                      <div style={{
-                        position: 'absolute', bottom: -1, right: -1,
-                        width: 11, height: 11,
-                        background: 'linear-gradient(180deg, #c0bdb5 0%, #909088 100%)',
-                        border: '1.5px solid white',
-                        borderRadius: '50%',
-                        boxShadow: '0 1px 2px rgba(0,0,0,0.2)',
-                      }} />
-                    </div>
-                    <div className="flex flex-col overflow-hidden">
-                      <span style={{
-                        fontSize: 12, fontWeight: 700,
-                        fontFamily: 'Segoe UI, Tahoma, sans-serif',
-                        color: '#6a6860',
-                        overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-                      }}>{offlineUser.username}</span>
-                      <span style={{ fontSize: 10, color: '#9a9890', fontFamily: 'Segoe UI, Tahoma, sans-serif', fontWeight: 600 }}>● offline</span>
                     </div>
                   </div>
-                ))}
+                </motion.div>
+              </>
+            )}
+          </AnimatePresence>
 
-                {onlineUsers.filter(u => u.username.toLowerCase().includes(userSearchQuery.toLowerCase())).length === 0 &&
-                  offlineUsers.filter(u => u.username.toLowerCase().includes(userSearchQuery.toLowerCase())).length === 0 && (
-                    <div style={{ fontSize: 11, color: '#9a9890', fontStyle: 'italic', textAlign: 'center', padding: '16px 0', fontFamily: 'Segoe UI, Tahoma, sans-serif' }}>
-                      No results found
-                    </div>
-                  )}
-              </div>
-            </div>
+          {/* Left Column (Online Users) - Desktop */}
+          <div className="hidden md:flex w-48 xl:w-72 flex-col gap-4 shrink-0 overflow-hidden">
+            <PeopleOnlineContent
+              onlineUsers={onlineUsers}
+              offlineUsers={offlineUsers}
+              userSearchQuery={userSearchQuery}
+              setUserSearchQuery={setUserSearchQuery}
+              onUserClick={(user) => {
+                setSelectedUser(user);
+                setShowUserProfileDialog(true);
+              }}
+              currentUser={currentUser}
+            />
           </div>
 
           {/* Center Column (Chat Area) */}
-          <div className="flex-1 flex flex-col gap-4 ">
+          <div className="flex-1 flex flex-col gap-4">
             {/* Conversation Panel */}
-
-
-
+            <div
+              className="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-[#c0c0c0] scrollbar-track-[#f0f0f0]"
+              style={{
+                background: 'linear-gradient(180deg, #ffffff 0%, #f8f8ff 100%)',
+                border: '1px solid #b0c8e8',
+                borderRadius: 6,
+                boxShadow: 'inset 0 2px 6px rgba(49,105,198,0.06)',
+                display: 'flex',
+                flexDirection: 'column',
+              }}
+            >
+              {/* "To:" header bar */}
               <div
-                className="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-[#c0c0c0] scrollbar-track-[#f0f0f0]"
                 style={{
-                  background: 'linear-gradient(180deg, #ffffff 0%, #f8f8ff 100%)',
-                  border: '1px solid #b0c8e8',
-                  borderRadius: 6,
-                  boxShadow: 'inset 0 2px 6px rgba(49,105,198,0.06)',
+                  flexShrink: 0,
+                  background: 'linear-gradient(180deg, #f0f6ff 0%, #ddeeff 100%)',
+                  borderBottom: '1px solid #b0c8e8',
+                  padding: '5px 12px',
                   display: 'flex',
-                  flexDirection: 'column',
+                  alignItems: 'center',
+                  gap: 8,
+                  boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.9)',
+                  position: 'sticky',
+                  top: 0,
+                  zIndex: 5,
                 }}
               >
-                {/* "To:" header bar */}
-                <div
-                  style={{
-                    flexShrink: 0,
-                    background: 'linear-gradient(180deg, #f0f6ff 0%, #ddeeff 100%)',
-                    borderBottom: '1px solid #b0c8e8',
-                    padding: '5px 12px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 8,
-                    boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.9)',
-                    position: 'sticky',
-                    top: 0,
-                    zIndex: 5,
-                  }}
-                >
-                  {/* "To:" label badge */}
-                  <div style={{
-                    background: 'linear-gradient(180deg, #4a85d8 0%, #2a5fb5 100%)',
-                    border: '1px solid #1e4fa0',
-                    borderRadius: 3,
-                    padding: '1px 7px',
-                    fontSize: 10,
-                    fontWeight: 800,
-                    fontFamily: 'Segoe UI, Tahoma, sans-serif',
-                    color: '#fff',
-                    letterSpacing: '0.04em',
-                    boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.25)',
-                    flexShrink: 0,
-                  }}>
-                    To:
-                  </div>
-
-
-                    <span style={{
-                      fontSize: 12,
-                      fontWeight: 700,
-                      fontFamily: 'Segoe UI, Tahoma, sans-serif',
-                      color: '#1a3e7a',
-                      overflow: 'hidden',
-                      textOverflow: 'ellipsis',
-                      whiteSpace: 'nowrap',
-                    }}>
-                      all contacts
-                    </span>
+                {/* "To:" label badge */}
+                <div style={{
+                  background: 'linear-gradient(180deg, #4a85d8 0%, #2a5fb5 100%)',
+                  border: '1px solid #1e4fa0',
+                  borderRadius: 3,
+                  padding: '1px 7px',
+                  fontSize: 10,
+                  fontWeight: 800,
+                  fontFamily: 'Segoe UI, Tahoma, sans-serif',
+                  color: '#fff',
+                  letterSpacing: '0.04em',
+                  boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.25)',
+                  flexShrink: 0,
+                }}>
+                  To:
                 </div>
 
-                {/* Messages area */}
-                <div
-                  style={{
-                    flex: 1,
-                    padding: '12px 14px',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    gap: 10,
-                    overflowY: 'auto',
-                  }}
-                >
-                  {/* Date separator — shown once per day */}
-                  <div style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 8,
-                    margin: '4px 0',
+
+                <span style={{
+                  fontSize: 12,
+                  fontWeight: 700,
+                  fontFamily: 'Segoe UI, Tahoma, sans-serif',
+                  color: '#1a3e7a',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  whiteSpace: 'nowrap',
+                }}>
+                  all contacts
+                </span>
+              </div>
+
+              {/* Messages area */}
+              <div
+                style={{
+                  flex: 1,
+                  padding: '12px 14px',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: 10,
+                  overflowY: 'auto',
+                }}
+              >
+                {/* Date separator — shown once per day */}
+                <div style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 8,
+                  margin: '4px 0',
+                }}>
+                  <div style={{ flex: 1, height: 1, background: 'linear-gradient(90deg, transparent, #c8d8ee)' }} />
+                  <span style={{
+                    fontSize: 10,
+                    fontWeight: 700,
+                    fontFamily: 'Segoe UI, Tahoma, sans-serif',
+                    color: '#7aaee0',
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.06em',
+                    padding: '1px 8px',
+                    background: 'linear-gradient(180deg, #f0f6ff 0%, #e4eeff 100%)',
+                    border: '1px solid #b0c8e8',
+                    borderRadius: 10,
+                    boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.8)',
                   }}>
-                    <div style={{ flex: 1, height: 1, background: 'linear-gradient(90deg, transparent, #c8d8ee)' }} />
-                    <span style={{
-                      fontSize: 10,
-                      fontWeight: 700,
-                      fontFamily: 'Segoe UI, Tahoma, sans-serif',
-                      color: '#7aaee0',
-                      textTransform: 'uppercase',
-                      letterSpacing: '0.06em',
-                      padding: '1px 8px',
-                      background: 'linear-gradient(180deg, #f0f6ff 0%, #e4eeff 100%)',
-                      border: '1px solid #b0c8e8',
-                      borderRadius: 10,
-                      boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.8)',
-                    }}>
-                      Today
-                    </span>
-                    <div style={{ flex: 1, height: 1, background: 'linear-gradient(90deg, #c8d8ee, transparent)' }} />
-                  </div>
+                    Today
+                  </span>
+                  <div style={{ flex: 1, height: 1, background: 'linear-gradient(90deg, #c8d8ee, transparent)' }} />
+                </div>
 
-                  {messages.map((msg) => {
-                              const isMe = msg.email === currentUser.email;
+                {
+                  messages.map((msg) => {
+                    const isMe = msg.email === currentUser.email;
 
-                              return (
-                                <div key={msg.id} className={`text-sm group relative my-1 ${msg.type === 'nudge' ? 'text-center my-3' : ''}`}>
-                              
-                                  {msg.type !== 'nudge' && (
-                                    <div
-                                      className="absolute -right-2 top-0 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity z-10"
+                    return (
+                      <div key={msg.id} className={`text-sm group relative my-1 ${msg.type === 'nudge' ? 'text-center my-3' : ''}`}>
+
+                        {msg.type !== 'nudge' && (
+                          <div
+                            className="absolute -right-2 top-0 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity z-10"
+                          >
+                            {/* Toolbar pill */}
+                            <div
+                              style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: 2,
+                                background: 'linear-gradient(180deg, #f8f8f8 0%, #e8e8e8 100%)',
+                                border: '1px solid #c0c0c0',
+                                borderRadius: 20,
+                                padding: '2px 5px',
+                                boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.95), 0 2px 5px rgba(0,0,0,0.12)',
+                              }}
+                            >
+                              {/* Reaction button */}
+                              <div className="relative">
+                                <button
+                                  onClick={() => setReactionMenuId(reactionMenuId === msg.id ? null : msg.id)}
+                                  title="React"
+                                  style={{
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    width: 24,
+                                    height: 24,
+                                    borderRadius: '50%',
+                                    border: 'none',
+                                    background: reactionMenuId === msg.id
+                                      ? 'linear-gradient(180deg, #888 0%, #666 100%)'
+                                      : 'transparent',
+                                    color: reactionMenuId === msg.id ? '#fff' : '#999',
+                                    cursor: 'pointer',
+                                    transition: 'all 0.15s',
+                                  }}
+                                  onMouseEnter={e => {
+                                    if (reactionMenuId !== msg.id) {
+                                      e.currentTarget.style.background = 'linear-gradient(180deg, #ececec 0%, #dcdcdc 100%)';
+                                      e.currentTarget.style.color = '#555';
+                                    }
+                                  }}
+                                  onMouseLeave={e => {
+                                    if (reactionMenuId !== msg.id) {
+                                      e.currentTarget.style.background = 'transparent';
+                                      e.currentTarget.style.color = '#999';
+                                    }
+                                  }}
+                                >
+                                  <Smile size={14} />
+                                </button>
+
+                                {/* Reaction picker */}
+                                <AnimatePresence>
+                                  {reactionMenuId === msg.id && (
+                                    <motion.div
+                                      initial={{ opacity: 0, scale: 0.8, y: 6 }}
+                                      animate={{ opacity: 1, scale: 1, y: 0 }}
+                                      exit={{ opacity: 0, scale: 0.8, y: 6 }}
+                                      transition={{ type: 'spring', stiffness: 300, damping: 22 }}
+                                      style={{
+                                        position: 'absolute',
+                                        bottom: '110%',
+                                        right: 0,
+                                        background: 'linear-gradient(180deg, #f8f8f8 0%, #ececec 100%)',
+                                        border: '1px solid #c0c0c0',
+                                        borderRadius: 20,
+                                        padding: '4px 6px',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: 2,
+                                        boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.95), 0 4px 12px rgba(0,0,0,0.15)',
+                                        whiteSpace: 'nowrap',
+                                        zIndex: 20,
+                                      }}
                                     >
-                                      {/* Toolbar pill */}
-                                      <div
-                                        style={{
-                                          display: 'flex',
-                                          alignItems: 'center',
-                                          gap: 2,
-                                          background: 'linear-gradient(180deg, #f8f8f8 0%, #e8e8e8 100%)',
-                                          border: '1px solid #c0c0c0',
-                                          borderRadius: 20,
-                                          padding: '2px 5px',
-                                          boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.95), 0 2px 5px rgba(0,0,0,0.12)',
-                                        }}
-                                      >
-                                        {/* Reaction button */}
-                                        <div className="relative">
-                                          <button
-                                            onClick={() => setReactionMenuId(reactionMenuId === msg.id ? null : msg.id)}
-                                            title="React"
-                                            style={{
-                                              display: 'flex',
-                                              alignItems: 'center',
-                                              justifyContent: 'center',
-                                              width: 24,
-                                              height: 24,
-                                              borderRadius: '50%',
-                                              border: 'none',
-                                              background: reactionMenuId === msg.id
-                                                ? 'linear-gradient(180deg, #888 0%, #666 100%)'
-                                                : 'transparent',
-                                              color: reactionMenuId === msg.id ? '#fff' : '#999',
-                                              cursor: 'pointer',
-                                              transition: 'all 0.15s',
-                                            }}
-                                            onMouseEnter={e => {
-                                              if (reactionMenuId !== msg.id) {
-                                                e.currentTarget.style.background = 'linear-gradient(180deg, #ececec 0%, #dcdcdc 100%)';
-                                                e.currentTarget.style.color = '#555';
-                                              }
-                                            }}
-                                            onMouseLeave={e => {
-                                              if (reactionMenuId !== msg.id) {
-                                                e.currentTarget.style.background = 'transparent';
-                                                e.currentTarget.style.color = '#999';
-                                              }
-                                            }}
-                                          >
-                                            <Smile size={14} />
-                                          </button>
+                                      {/* Pointer arrow */}
+                                      <div style={{
+                                        position: 'absolute',
+                                        bottom: -5,
+                                        right: 10,
+                                        width: 0, height: 0,
+                                        borderLeft: '5px solid transparent',
+                                        borderRight: '5px solid transparent',
+                                        borderTop: '5px solid #c0c0c0',
+                                      }} />
+                                      <div style={{
+                                        position: 'absolute',
+                                        bottom: -4,
+                                        right: 10,
+                                        width: 0, height: 0,
+                                        borderLeft: '5px solid transparent',
+                                        borderRight: '5px solid transparent',
+                                        borderTop: '5px solid #ececec',
+                                      }} />
 
-                                          {/* Reaction picker */}
-                                          <AnimatePresence>
-                                            {reactionMenuId === msg.id && (
-                                              <motion.div
-                                                initial={{ opacity: 0, scale: 0.8, y: 6 }}
-                                                animate={{ opacity: 1, scale: 1, y: 0 }}
-                                                exit={{ opacity: 0, scale: 0.8, y: 6 }}
-                                                transition={{ type: 'spring', stiffness: 300, damping: 22 }}
-                                                style={{
-                                                  position: 'absolute',
-                                                  bottom: '110%',
-                                                  right: 0,
-                                                  background: 'linear-gradient(180deg, #f8f8f8 0%, #ececec 100%)',
-                                                  border: '1px solid #c0c0c0',
-                                                  borderRadius: 20,
-                                                  padding: '4px 6px',
-                                                  display: 'flex',
-                                                  alignItems: 'center',
-                                                  gap: 2,
-                                                  boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.95), 0 4px 12px rgba(0,0,0,0.15)',
-                                                  whiteSpace: 'nowrap',
-                                                  zIndex: 20,
-                                                }}
-                                              >
-                                                {/* Pointer arrow */}
-                                                <div style={{
-                                                  position: 'absolute',
-                                                  bottom: -5,
-                                                  right: 10,
-                                                  width: 0, height: 0,
-                                                  borderLeft: '5px solid transparent',
-                                                  borderRight: '5px solid transparent',
-                                                  borderTop: '5px solid #c0c0c0',
-                                                }} />
-                                                <div style={{
-                                                  position: 'absolute',
-                                                  bottom: -4,
-                                                  right: 10,
-                                                  width: 0, height: 0,
-                                                  borderLeft: '5px solid transparent',
-                                                  borderRight: '5px solid transparent',
-                                                  borderTop: '5px solid #ececec',
-                                                }} />
-
-                                                {[
-                                                  { emoji: '❤️', type: 'love', label: 'Love' },
-                                                  { emoji: '👍', type: 'like', label: 'Like' },
-                                                  { emoji: '👎', type: 'dislike', label: 'Dislike' },
-                                                  { emoji: '😂', type: 'fun', label: 'Funny' },
-                                                ].map(r => (
-                                                  <button
-                                                    key={r.type}
-                                                    onClick={() => handleReaction(msg.id, r.emoji)}
-                                                    title={r.label}
-                                                    style={{
-                                                      fontSize: 18,
-                                                      width: 32,
-                                                      height: 32,
-                                                      display: 'flex',
-                                                      alignItems: 'center',
-                                                      justifyContent: 'center',
-                                                      borderRadius: '50%',
-                                                      border: '1px solid transparent',
-                                                      background: 'transparent',
-                                                      cursor: 'pointer',
-                                                      transition: 'all 0.12s',
-                                                      lineHeight: 1,
-                                                    }}
-                                                    onMouseEnter={e => {
-                                                      e.currentTarget.style.transform = 'scale(1.35)';
-                                                      e.currentTarget.style.background = 'linear-gradient(180deg, #ececec 0%, #dcdcdc 100%)';
-                                                      e.currentTarget.style.borderColor = '#b0b0b0';
-                                                    }}
-                                                    onMouseLeave={e => {
-                                                      e.currentTarget.style.transform = 'scale(1)';
-                                                      e.currentTarget.style.background = 'transparent';
-                                                      e.currentTarget.style.borderColor = 'transparent';
-                                                    }}
-                                                  >
-                                                    {r.emoji}
-                                                  </button>
-                                                ))}
-                                              </motion.div>
-                                            )}
-                                          </AnimatePresence>
-                                        </div>
-
-                                        {/* Divider */}
-                                        <div style={{
-                                          width: 1, height: 14,
-                                          background: 'linear-gradient(180deg, transparent, #b0b0b0, transparent)',
-                                          margin: '0 2px',
-                                        }} />
-
-                                        {/* Reply button */}
+                                      {[
+                                        { emoji: '❤️', type: 'love', label: 'Love' },
+                                        { emoji: '👍', type: 'like', label: 'Like' },
+                                        { emoji: '👎', type: 'dislike', label: 'Dislike' },
+                                        { emoji: '😂', type: 'fun', label: 'Funny' },
+                                      ].map(r => (
                                         <button
-                                          onClick={() => setReplyingTo(msg)}
-                                          title="Reply"
+                                          key={r.type}
+                                          onClick={() => handleReaction(msg.id, r.emoji)}
+                                          title={r.label}
                                           style={{
+                                            fontSize: 18,
+                                            width: 32,
+                                            height: 32,
                                             display: 'flex',
                                             alignItems: 'center',
                                             justifyContent: 'center',
-                                            width: 24,
-                                            height: 24,
                                             borderRadius: '50%',
-                                            border: 'none',
+                                            border: '1px solid transparent',
                                             background: 'transparent',
-                                            color: '#999',
                                             cursor: 'pointer',
-                                            transition: 'all 0.15s',
+                                            transition: 'all 0.12s',
+                                            lineHeight: 1,
                                           }}
                                           onMouseEnter={e => {
+                                            e.currentTarget.style.transform = 'scale(1.35)';
                                             e.currentTarget.style.background = 'linear-gradient(180deg, #ececec 0%, #dcdcdc 100%)';
-                                            e.currentTarget.style.color = '#555';
+                                            e.currentTarget.style.borderColor = '#b0b0b0';
                                           }}
                                           onMouseLeave={e => {
+                                            e.currentTarget.style.transform = 'scale(1)';
                                             e.currentTarget.style.background = 'transparent';
-                                            e.currentTarget.style.color = '#999';
+                                            e.currentTarget.style.borderColor = 'transparent';
                                           }}
                                         >
-                                          <Reply size={14} />
+                                          {r.emoji}
                                         </button>
-                                      </div>
-                                    </div>
+                                      ))}
+                                    </motion.div>
                                   )}
+                                </AnimatePresence>
+                              </div>
 
-                                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 2 }}>
-                                    {/* Avatar */}
-                                    <img
-                                      src={isMe ? currentUser.avatar : msg.avatar}
-                                      alt={isMe ? 'You' : msg.username}
-                                      style={{
-                                        width: 18,
-                                        height: 18,
-                                        borderRadius: 3,
-                                        border: `1px solid ${isMe ? '#7aaee0' : '#c0c0c0'}`,
-                                        boxShadow: '0 1px 2px rgba(0,0,0,0.12)',
-                                        flexShrink: 0,
-                                      }}
-                                    />
+                              {/* Divider */}
+                              <div style={{
+                                width: 1, height: 14,
+                                background: 'linear-gradient(180deg, transparent, #b0b0b0, transparent)',
+                                margin: '0 2px',
+                              }} />
 
-                                    {/* Name */}
-                                    <span
-                                      style={{
-                                        fontSize: 12,
-                                        fontWeight: 800,
-                                        fontFamily: 'Segoe UI, Tahoma, sans-serif',
-                                        color: isMe ? '#2a5fb5' : '#222',
-                                        letterSpacing: '0.01em',
-                                        textShadow: isMe ? '0 1px 0 rgba(255,255,255,0.6)' : 'none',
-                                      }}
-                                    >
-                                      {isMe ? 'You' : msg.username}
-                                    </span>
+                              {/* Reply button */}
+                              <button
+                                onClick={() => setReplyingTo(msg)}
+                                title="Reply"
+                                style={{
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                  width: 24,
+                                  height: 24,
+                                  borderRadius: '50%',
+                                  border: 'none',
+                                  background: 'transparent',
+                                  color: '#999',
+                                  cursor: 'pointer',
+                                  transition: 'all 0.15s',
+                                }}
+                                onMouseEnter={e => {
+                                  e.currentTarget.style.background = 'linear-gradient(180deg, #ececec 0%, #dcdcdc 100%)';
+                                  e.currentTarget.style.color = '#555';
+                                }}
+                                onMouseLeave={e => {
+                                  e.currentTarget.style.background = 'transparent';
+                                  e.currentTarget.style.color = '#999';
+                                }}
+                              >
+                                <Reply size={14} />
+                              </button>
+                            </div>
+                          </div>
+                        )}
 
-                                    {/* Em dash */}
-                                    <span style={{
-                                      fontSize: 11,
-                                      color: '#b0b0b0',
-                                      fontFamily: 'Segoe UI, Tahoma, sans-serif',
-                                      fontWeight: 600,
-                                      marginLeft: -3,
-                                    }}>
-                                      —
-                                    </span>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 2 }}>
+                          {/* Avatar */}
+                          <img
+                            src={isMe ? currentUser.avatar : msg.avatar}
+                            alt={isMe ? 'You' : msg.username}
+                            style={{
+                              width: 18,
+                              height: 18,
+                              borderRadius: 3,
+                              border: `1px solid ${isMe ? '#7aaee0' : '#c0c0c0'}`,
+                              boxShadow: '0 1px 2px rgba(0,0,0,0.12)',
+                              flexShrink: 0,
+                            }}
+                          />
 
-                                    {/* Timestamp — right after the dash */}
-                                    <span style={{
-                                      fontSize: 10,
-                                      color: '#aaa',
-                                      fontFamily: 'Segoe UI, Tahoma, sans-serif',
-                                      fontWeight: 600,
-                                      marginLeft: -2,
-                                    }}>
-                                      {new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                                    </span>
-                                  </div>
+                          {/* Name */}
+                          <span
+                            style={{
+                              fontSize: 12,
+                              fontWeight: 800,
+                              fontFamily: 'Segoe UI, Tahoma, sans-serif',
+                              color: isMe ? '#2a5fb5' : '#222',
+                              letterSpacing: '0.01em',
+                              textShadow: isMe ? '0 1px 0 rgba(255,255,255,0.6)' : 'none',
+                            }}
+                          >
+                            {isMe ? 'You' : msg.username}
+                          </span>
 
-                                  {msg.replyTo && (
-                                    <div className="ml-3 mb-2" style={{ maxWidth: '80%' }}>
-                                      <div
-                                        style={{
-                                          background: 'linear-gradient(180deg, #f8f8f8 0%, #ececec 100%)',
-                                          border: '1px solid #c8c8c8',
-                                          borderLeft: '3px solid #888888',
-                                          borderRadius: '0 5px 5px 0',
-                                          padding: '5px 10px',
-                                          boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.95), 0 1px 2px rgba(0,0,0,0.10)',
-                                          position: 'relative',
-                                          overflow: 'hidden',
-                                        }}
-                                      >
-                                        {/* Subtle left watermark stripe */}
-                                        <div
-                                          style={{
-                                            position: 'absolute',
-                                            top: 0, left: 0, bottom: 0,
-                                            width: 28,
-                                            background: 'linear-gradient(90deg, rgba(0,0,0,0.04), transparent)',
-                                            pointerEvents: 'none',
-                                          }}
-                                        />
+                          {/* Em dash */}
+                          <span style={{
+                            fontSize: 11,
+                            color: '#b0b0b0',
+                            fontFamily: 'Segoe UI, Tahoma, sans-serif',
+                            fontWeight: 600,
+                            marginLeft: -3,
+                          }}>
+                            —
+                          </span>
 
-                                        {/* Reply-to label */}
-                                        <div className="flex items-center gap-1 mb-0.5">
-                                          <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
-                                            <path d="M4 2L1 5L4 8M1 5h6a2 2 0 0 1 2 2v1" stroke="#666666" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
-                                          </svg>
-                                          <span
-                                            style={{
-                                              fontSize: 11,
-                                              fontWeight: 700,
-                                              color: '#444444',
-                                              fontFamily: 'Segoe UI, Tahoma, sans-serif',
-                                              letterSpacing: '0.01em',
-                                            }}
-                                          >
-                                            {msg.replyTo.email === currentUser.email ? 'You' : msg.replyTo.username}
-                                          </span>
-                                        </div>
+                          {/* Timestamp — right after the dash */}
+                          <span style={{
+                            fontSize: 10,
+                            color: '#aaa',
+                            fontFamily: 'Segoe UI, Tahoma, sans-serif',
+                            fontWeight: 600,
+                            marginLeft: -2,
+                          }}>
+                            {new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                          </span>
+                        </div>
 
-                                        {/* Reply content */}
-                                        <div
-                                          style={{
-                                            fontSize: 11,
-                                            color: '#777777',
-                                            fontFamily: 'Segoe UI, Tahoma, sans-serif',
-                                            fontStyle: 'italic',
-                                            whiteSpace: 'nowrap',
-                                            overflow: 'hidden',
-                                            textOverflow: 'ellipsis',
-                                            paddingLeft: 14,
-                                          }}
-                                        >
-                                          {msg.replyTo.type === "text" ?  msg.replyTo.content :  ["image" , "pdf" , "voice"].includes(msg.replyTo.type) ?  msg.replyTo.text : msg.replyTo.type}
-                                        </div>
-                                      </div>
-                                    </div>
-                                  )}
+                        {msg.replyTo && (
+                          <div className="ml-3 mb-2" style={{ maxWidth: '80%' }}>
+                            <div
+                              style={{
+                                background: 'linear-gradient(180deg, #f8f8f8 0%, #ececec 100%)',
+                                border: '1px solid #c8c8c8',
+                                borderLeft: '3px solid #888888',
+                                borderRadius: '0 5px 5px 0',
+                                padding: '5px 10px',
+                                boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.95), 0 1px 2px rgba(0,0,0,0.10)',
+                                position: 'relative',
+                                overflow: 'hidden',
+                              }}
+                            >
+                              {/* Subtle left watermark stripe */}
+                              <div
+                                style={{
+                                  position: 'absolute',
+                                  top: 0, left: 0, bottom: 0,
+                                  width: 28,
+                                  background: 'linear-gradient(90deg, rgba(0,0,0,0.04), transparent)',
+                                  pointerEvents: 'none',
+                                }}
+                              />
 
-                                  {msg.type === 'text' && (
-                                    <div className="flex flex-col gap-0.5">
-                                      {/* <span className={`font-bold text-[13px] ${isMe ? 'text-[#3169C6]' : 'text-black'}`}>
+                              {/* Reply-to label */}
+                              <div className="flex items-center gap-1 mb-0.5">
+                                <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
+                                  <path d="M4 2L1 5L4 8M1 5h6a2 2 0 0 1 2 2v1" stroke="#666666" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
+                                </svg>
+                                <span
+                                  style={{
+                                    fontSize: 11,
+                                    fontWeight: 700,
+                                    color: '#444444',
+                                    fontFamily: 'Segoe UI, Tahoma, sans-serif',
+                                    letterSpacing: '0.01em',
+                                  }}
+                                >
+                                  {msg.replyTo.email === currentUser.email ? 'You' : msg.replyTo.username}
+                                </span>
+                              </div>
+
+                              {/* Reply content */}
+                              <div
+                                style={{
+                                  fontSize: 11,
+                                  color: '#777777',
+                                  fontFamily: 'Segoe UI, Tahoma, sans-serif',
+                                  fontStyle: 'italic',
+                                  whiteSpace: 'nowrap',
+                                  overflow: 'hidden',
+                                  textOverflow: 'ellipsis',
+                                  paddingLeft: 14,
+                                }}
+                              >
+                                {msg.replyTo.type === "text" ? msg.replyTo.content : ["image", "pdf", "voice"].includes(msg.replyTo.type) ? msg.replyTo.text : msg.replyTo.type}
+                              </div>
+                            </div>
+                          </div>
+                        )}
+
+                        {msg.type === 'text' && (
+                          <div className="flex flex-col gap-0.5">
+                            {/* <span className={`font-bold text-[13px] ${isMe ? 'text-[#3169C6]' : 'text-black'}`}>
                                       {msg.username}
                                     </span> */}
-                                      <span className="text-[14px] ml-3 leading-relaxed">{msg.content}</span>
-                                    </div>
-                                  )}
-                                  {msg.type === 'image' && (
-                                    <div className="flex flex-col gap-1">
-                                      {/* <span className={`font-bold text-[13px] ${isMe ? 'text-[#3169C6]' : 'text-black'}`}>
+                            <span className="text-[14px] ml-3 leading-relaxed">{msg.content}</span>
+                          </div>
+                        )}
+                        {msg.type === 'image' && (
+                          <div className="flex flex-col gap-1">
+                            {/* <span className={`font-bold text-[13px] ${isMe ? 'text-[#3169C6]' : 'text-black'}`}>
                                       {isMe ? 'You sent a photo:' : 'Poops sent a photo:'}
                                     </span> */}
-                                      <img
-                                        src={msg.content}
-                                        className="max-w-[200px] rounded-md border border-gray-200 shadow-sm ml-3 cursor-pointer hover:opacity-90 transition-opacity"
-                                        alt="Sent photo"
-                                        onClick={() => setPreviewImageUrl(msg.content || null)}
-                                      />
-                                    </div>
-                                  )}
+                            <img
+                              src={msg.content}
+                              className="max-w-[200px] rounded-md border border-gray-200 shadow-sm ml-3 cursor-pointer hover:opacity-90 transition-opacity"
+                              alt="Sent photo"
+                              onClick={() => setPreviewImageUrl(msg.content || null)}
+                            />
+                          </div>
+                        )}
 
-                                {(msg.type === 'sticker' || msg.type === 'gif') && (
-                                    <div className="flex flex-col gap-1 w-fit">
-                                      <div
-                                        style={{
-                                          marginLeft: 12,
-                                          display: 'inline-flex',
-                                          flexDirection: 'column',
-                                          gap: 4,
-                                        }}
-                                      >
-                                        {/* Sticker frame */}
-                                        <div
-                                          style={{
-                                            position: 'relative',
-                                            display: 'inline-block',
-                                            padding: 5,
-                                            background: 'linear-gradient(180deg, #f8f8f8 0%, #ececec 100%)',
-                                            border: '1px solid #c0c0c0',
-                                            borderRadius: 8,
-                                            boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.95), 0 2px 6px rgba(0,0,0,0.12)',
-                                          }}
-                                        >
-                                          {/* GIF badge — only for gif type */}
-                                          {msg.type === 'gif' && (
-                                            <div
-                                              style={{
-                                                position: 'absolute',
-                                                top: -7,
-                                                right: -7,
-                                                background: 'linear-gradient(180deg, #4a85d8 0%, #2a5fb5 100%)',
-                                                border: '1px solid #1e4fa0',
-                                                borderRadius: 4,
-                                                padding: '1px 5px',
-                                                fontSize: 9,
-                                                fontWeight: 900,
-                                                color: '#fff',
-                                                fontFamily: 'Segoe UI, Tahoma, sans-serif',
-                                                letterSpacing: '0.05em',
-                                                boxShadow: '0 1px 3px rgba(0,0,0,0.25)',
-                                                zIndex: 1,
-                                              }}
-                                            >
-                                              GIF
-                                            </div>
-                                          )}
+                        {(msg.type === 'sticker' || msg.type === 'gif') && (
+                          <div className="flex flex-col gap-1 w-fit">
+                            <div
+                              style={{
+                                marginLeft: 12,
+                                display: 'inline-flex',
+                                flexDirection: 'column',
+                                gap: 4,
+                              }}
+                            >
+                              {/* Sticker frame */}
+                              <div
+                                style={{
+                                  position: 'relative',
+                                  display: 'inline-block',
+                                  padding: 5,
+                                  background: 'linear-gradient(180deg, #f8f8f8 0%, #ececec 100%)',
+                                  border: '1px solid #c0c0c0',
+                                  borderRadius: 8,
+                                  boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.95), 0 2px 6px rgba(0,0,0,0.12)',
+                                }}
+                              >
+                                {/* GIF badge — only for gif type */}
+                                {msg.type === 'gif' && (
+                                  <div
+                                    style={{
+                                      position: 'absolute',
+                                      top: -7,
+                                      right: -7,
+                                      background: 'linear-gradient(180deg, #4a85d8 0%, #2a5fb5 100%)',
+                                      border: '1px solid #1e4fa0',
+                                      borderRadius: 4,
+                                      padding: '1px 5px',
+                                      fontSize: 9,
+                                      fontWeight: 900,
+                                      color: '#fff',
+                                      fontFamily: 'Segoe UI, Tahoma, sans-serif',
+                                      letterSpacing: '0.05em',
+                                      boxShadow: '0 1px 3px rgba(0,0,0,0.25)',
+                                      zIndex: 1,
+                                    }}
+                                  >
+                                    GIF
+                                  </div>
+                                )}
 
-                                          {/* Sticker badge — only for sticker type */}
-                                          {msg.type === 'sticker' && (
-                                            <div
-                                              style={{
-                                                position: 'absolute',
-                                                top: -7,
-                                                right: -7,
-                                                background: 'linear-gradient(180deg, #f0a020 0%, #c07010 100%)',
-                                                border: '1px solid #a06000',
-                                                borderRadius: 4,
-                                                padding: '1px 5px',
-                                                fontSize: 9,
-                                                fontWeight: 900,
-                                                color: '#fff',
-                                                fontFamily: 'Segoe UI, Tahoma, sans-serif',
-                                                letterSpacing: '0.05em',
-                                                boxShadow: '0 1px 3px rgba(0,0,0,0.25)',
-                                                zIndex: 1,
-                                              }}
-                                            >
-                                              ✦ Sticker
-                                            </div>
-                                          )}
+                                {/* Sticker badge — only for sticker type */}
+                                {msg.type === 'sticker' && (
+                                  <div
+                                    style={{
+                                      position: 'absolute',
+                                      top: -7,
+                                      right: -7,
+                                      background: 'linear-gradient(180deg, #f0a020 0%, #c07010 100%)',
+                                      border: '1px solid #a06000',
+                                      borderRadius: 4,
+                                      padding: '1px 5px',
+                                      fontSize: 9,
+                                      fontWeight: 900,
+                                      color: '#fff',
+                                      fontFamily: 'Segoe UI, Tahoma, sans-serif',
+                                      letterSpacing: '0.05em',
+                                      boxShadow: '0 1px 3px rgba(0,0,0,0.25)',
+                                      zIndex: 1,
+                                    }}
+                                  >
+                                    ✦ Sticker
+                                  </div>
+                                )}
 
-                                          {/* Image */}
-                                          <img
-                                            src={msg.content}
-                                            alt={msg.type}
-                                            style={{
-                                              maxWidth: 140,
-                                              maxHeight: 140,
-                                              borderRadius: 5,
-                                              display: 'block',
-                                              filter: 'drop-shadow(0 1px 3px rgba(0,0,0,0.15))',
-                                            }}
-                                          />
+                                {/* Image */}
+                                <img
+                                  src={msg.content}
+                                  alt={msg.type}
+                                  style={{
+                                    maxWidth: 140,
+                                    maxHeight: 140,
+                                    borderRadius: 5,
+                                    display: 'block',
+                                    filter: 'drop-shadow(0 1px 3px rgba(0,0,0,0.15))',
+                                  }}
+                                />
 
-                                          {/* Bottom shine strip */}
-                                          <div
-                                            style={{
-                                              position: 'absolute',
-                                              bottom: 5,
-                                              left: 5,
-                                              right: 5,
-                                              height: 10,
-                                              background: 'linear-gradient(180deg, rgba(255,255,255,0.0) 0%, rgba(255,255,255,0.18) 100%)',
-                                              borderRadius: '0 0 4px 4px',
-                                              pointerEvents: 'none',
-                                            }}
-                                          />
-                                        </div>
-                                      </div>
-                                    </div>
-                                  )}
+                                {/* Bottom shine strip */}
+                                <div
+                                  style={{
+                                    position: 'absolute',
+                                    bottom: 5,
+                                    left: 5,
+                                    right: 5,
+                                    height: 10,
+                                    background: 'linear-gradient(180deg, rgba(255,255,255,0.0) 0%, rgba(255,255,255,0.18) 100%)',
+                                    borderRadius: '0 0 4px 4px',
+                                    pointerEvents: 'none',
+                                  }}
+                                />
+                              </div>
+                            </div>
+                          </div>
+                        )}
 
-                                  {msg.type === 'voice' && (
-                                    <div className="flex flex-col gap-1">
-                                      {/* <span className={`font-bold text-[13px] ${isMe ? 'text-[#3169C6]' : 'text-black'}`}>
+                        {msg.type === 'voice' && (
+                          <div className="flex flex-col gap-1">
+                            {/* <span className={`font-bold text-[13px] ${isMe ? 'text-[#3169C6]' : 'text-black'}`}>
                                         {isMe ? 'You sent:' : msg.username}
                                       </span> */}
 
-                                      <div
-                                        className="ml-3 flex flex-col gap-2"
-                                        style={{
-                                          background: 'linear-gradient(180deg, #f5f9ff 0%, #ddeeff 100%)',
-                                          border: '1px solid #aac8e8',
-                                          borderRadius: '6px',
-                                          padding: '8px 12px',
-                                          maxWidth: '260px',
-                                          boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.9), 0 1px 3px rgba(0,0,0,0.1)',
-                                        }}
-                                      >
-                                        {/* Header row */}
-                                        <div className="flex items-center gap-2">
-                                          {/* Animated mic icon bubble */}
-                                          <div
-                                            style={{
-                                              width: 32,
-                                              height: 32,
-                                              borderRadius: '50%',
-                                              background: 'linear-gradient(180deg, #5b9bd5 0%, #2a6ab5 100%)',
-                                              border: '1px solid #1a5aa5',
-                                              boxShadow: '0 2px 4px rgba(0,0,0,0.2)',
-                                              display: 'flex',
-                                              alignItems: 'center',
-                                              justifyContent: 'center',
-                                              flexShrink: 0,
-                                            }}
-                                          >
-                                            <Mic size={16} color="white" />
-                                          </div>
-
-                                          <div className="flex flex-col">
-                                            <span style={{ fontSize: 12, fontWeight: 700, color: '#1a5aa5', fontFamily: 'Segoe UI, Tahoma, sans-serif' }}>
-                                              Voice Message
-                                            </span>
-                                            <span style={{ fontSize: 11, color: '#5a7fa8', fontFamily: 'Segoe UI, Tahoma, sans-serif' }}>
-                                              {msg.text}
-                                            </span>
-                                          </div>
-                                        </div>
-
-                                        {/* Divider */}
-                                        <div style={{ height: 1, background: 'linear-gradient(90deg, transparent, #aac8e8, transparent)' }} />
-
-                                        {/* Audio player */}
-                                        {msg.content && (
-                                          <div className="flex flex-col gap-1">
-                                            <audio
-                                              controls
-                                              src={msg.content}
-                                              style={{
-                                                width: '100%',
-                                                height: 28,
-                                                accentColor: '#3169C6',
-                                              }}
-                                            />
-                                          </div>
-                                        )}
-                                      </div>
-                                    </div>
-                                  )}
-                                  {msg.type === 'gift' && (
-                                    <div className="flex flex-col gap-1">
-                                      <span className={`font-bold text-[13px] ${isMe ? 'text-[#3169C6]' : 'text-black'}`}>
-                                        {isMe ? 'You sent a gift:' : 'Poops sent a gift:'}
-                                      </span>
-                                      <div className="ml-3 py-2 px-4 bg-[#FFF0F5] border border-[#E96E4C]/20 rounded-md flex flex-col gap-2">
-                                        <div className="flex items-center gap-2 text-[#E96E4C] font-bold">
-                                          <Gift size={16} />
-                                          {msg.isOpened ? 'Gift Opened!' : 'You have a new gift!'}
-                                        </div>
-                                        {msg.isOpened ? (
-                                          <div className="text-sm text-gray-700 italic bg-white/50 p-2 rounded border border-[#E96E4C]/10">
-                                            "{msg.text}"
-                                          </div>
-                                        ) : (
-                                          <button
-                                            onClick={() => handleOpenGift(msg.id)}
-                                            className="text-[11px] font-bold text-white bg-[#E96E4C] px-3 py-1 rounded hover:brightness-110 transition-all self-start shadow-sm"
-                                          >
-                                            View Action
-                                          </button>
-                                        )}
-                                      </div>
-                                    </div>
-                                  )}
-                                  {msg.type === 'nudge' && (
-                                    <div className="py-2 px-6 bg-[#F8F8F8] border-y border-[#ACA899] inline-block mx-auto rounded-md italic text-[#666] text-[13px] shadow-sm">
-                                      {msg.text}
-                                    </div>
-                                  )}
-
-                                  {msg.type === 'pdf' && (
-                                    <div className="flex flex-col gap-2 ml-3" style={{ maxWidth: 300 }}>
-                                      {(msg.attachments && msg.attachments.length > 0
-                                        ? msg.attachments
-                                        : [{ name: msg.text, content: msg.content }]
-                                      ).map((att, idx) => (
-                                        <div
-                                          key={idx}
-                                          style={{
-                                            background: 'linear-gradient(180deg, #f8f8f8 0%, #e8e8e8 100%)',
-                                            border: '1px solid #c0c0c0',
-                                            borderRadius: 6,
-                                            boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.95), 0 1px 3px rgba(0,0,0,0.12)',
-                                            overflow: 'hidden',
-                                          }}
-                                        >
-                                          {/* Top header bar - WLM style title bar */}
-                                          <div
-                                            style={{
-                                              background: 'linear-gradient(180deg, #dcdcdc 0%, #c8c8c8 100%)',
-                                              borderBottom: '1px solid #b0b0b0',
-                                              padding: '4px 8px',
-                                              display: 'flex',
-                                              alignItems: 'center',
-                                              gap: 6,
-                                            }}
-                                          >
-                                            {/* PDF icon badge */}
-                                            <div
-                                              style={{
-                                                width: 28,
-                                                height: 28,
-                                                background: 'linear-gradient(180deg, #e84040 0%, #b82020 100%)',
-                                                border: '1px solid #901010',
-                                                borderRadius: 4,
-                                                boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.3), 0 1px 2px rgba(0,0,0,0.2)',
-                                                display: 'flex',
-                                                alignItems: 'center',
-                                                justifyContent: 'center',
-                                                flexShrink: 0,
-                                              }}
-                                            >
-                                              <span style={{ color: 'white', fontSize: 9, fontWeight: 900, fontFamily: 'Segoe UI, Tahoma, sans-serif', letterSpacing: '-0.5px' }}>PDF</span>
-                                            </div>
-
-                                            {/* Filename */}
-                                            <span
-                                              style={{
-                                                fontSize: 12,
-                                                fontWeight: 700,
-                                                color: '#333',
-                                                fontFamily: 'Segoe UI, Tahoma, sans-serif',
-                                                overflow: 'hidden',
-                                                textOverflow: 'ellipsis',
-                                                whiteSpace: 'nowrap',
-                                                flex: 1,
-                                              }}
-                                            >
-                                              {att.name}
-                                            </span>
-                                          </div>
-
-                                          {/* Body */}
-                                          <div
-                                            style={{
-                                              padding: '7px 10px',
-                                              display: 'flex',
-                                              alignItems: 'center',
-                                              justifyContent: 'space-between',
-                                              gap: 8,
-                                            }}
-                                          >
-                                            <span style={{ fontSize: 11, color: '#888', fontFamily: 'Segoe UI, Tahoma, sans-serif', fontStyle: 'italic' }}>
-                                              PDF Document
-                                            </span>
-
-                                            {/* Action buttons - WLM toolbar button style */}
-                                            <div style={{ display: 'flex', gap: 5 }}>
-                                              <button
-                                                onClick={() => { setPreviewPdf(att); setShowPdfPreviewDialog(true); }}
-                                                style={{
-                                                  display: 'flex',
-                                                  alignItems: 'center',
-                                                  gap: 4,
-                                                  padding: '3px 8px',
-                                                  fontSize: 11,
-                                                  fontWeight: 700,
-                                                  fontFamily: 'Segoe UI, Tahoma, sans-serif',
-                                                  color: '#333',
-                                                  background: 'linear-gradient(180deg, #f5f5f5 0%, #dcdcdc 100%)',
-                                                  border: '1px solid #aaa',
-                                                  borderRadius: 3,
-                                                  boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.9)',
-                                                  cursor: 'pointer',
-                                                }}
-                                                onMouseEnter={e => e.currentTarget.style.background = 'linear-gradient(180deg, #e8f0ff 0%, #ccd8f0 100%)'}
-                                                onMouseLeave={e => e.currentTarget.style.background = 'linear-gradient(180deg, #f5f5f5 0%, #dcdcdc 100%)'}
-                                              >
-                                                <Eye size={11} /> Preview
-                                              </button>
-
-                                              <a
-                                                href={att.content}
-                                                download={att.name}
-                                                style={{
-                                                  display: 'flex',
-                                                  alignItems: 'center',
-                                                  gap: 4,
-                                                  padding: '3px 8px',
-                                                  fontSize: 11,
-                                                  fontWeight: 700,
-                                                  fontFamily: 'Segoe UI, Tahoma, sans-serif',
-                                                  color: '#333',
-                                                  background: 'linear-gradient(180deg, #f5f5f5 0%, #dcdcdc 100%)',
-                                                  border: '1px solid #aaa',
-                                                  borderRadius: 3,
-                                                  boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.9)',
-                                                  textDecoration: 'none',
-                                                }}
-                                                onMouseEnter={e => (e.currentTarget as HTMLAnchorElement).style.background = 'linear-gradient(180deg, #e8f0ff 0%, #ccd8f0 100%)'}
-                                                onMouseLeave={e => (e.currentTarget as HTMLAnchorElement).style.background = 'linear-gradient(180deg, #f5f5f5 0%, #dcdcdc 100%)'}
-                                              >
-                                                <Download size={11} /> Save
-                                              </a>
-                                            </div>
-                                          </div>
-                                        </div>
-                                      ))}
-                                    </div>
-                                  )}
-
-                                  {msg.reactions && Object.keys(msg.reactions).length > 0 && (
-                                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginTop: 4, marginLeft: 12 }}>
-                                      {Object.entries(msg.reactions).map(([emoji, users]) => {
-                                        const count = (users as string[]).length;
-                                        if (count === 0) return null;
-
-                                        const iMReacted = (users as string[]).includes(currentUser.email);
-
-                                        return (
-                                          <div
-                                            key={emoji}
-                                            title={`${count} reaction${count > 1 ? 's' : ''}`}
-                                            style={{
-                                              display: 'flex',
-                                              alignItems: 'center',
-                                              gap: 4,
-                                              padding: '6px',
-                                              background: iMReacted
-                                                ? 'linear-gradient(180deg, #ddeeff 0%, #c2d8f5 100%)'
-                                                : 'linear-gradient(180deg, #f8f8f8 0%, #ececec 100%)',
-                                              border: iMReacted ? '1px solid #7aaee0' : '1px solid #c0c0c0',
-                                              borderRadius: 20,
-                                              boxShadow: iMReacted
-                                                ? 'inset 0 1px 0 rgba(255,255,255,0.9), 0 1px 3px rgba(49,105,198,0.15)'
-                                                : 'inset 0 1px 0 rgba(255,255,255,0.95), 0 1px 2px rgba(0,0,0,0.08)',
-                                              cursor: 'pointer',
-                                              transition: 'all 0.12s',
-                                              animation: 'zoomIn 0.2s ease',
-                                            }}
-                                            onMouseEnter={e => {
-                                              e.currentTarget.style.background = iMReacted
-                                                ? 'linear-gradient(180deg, #c8e0ff 0%, #aacef5 100%)'
-                                                : 'linear-gradient(180deg, #ececec 0%, #dcdcdc 100%)';
-                                              e.currentTarget.style.transform = 'scale(1.08)';
-                                            }}
-                                            onMouseLeave={e => {
-                                              e.currentTarget.style.background = iMReacted
-                                                ? 'linear-gradient(180deg, #ddeeff 0%, #c2d8f5 100%)'
-                                                : 'linear-gradient(180deg, #f8f8f8 0%, #ececec 100%)';
-                                              e.currentTarget.style.transform = 'scale(1)';
-                                            }}
-                                          >
-                                            {/* Emoji */}
-                                            <span style={{ fontSize: 13, lineHeight: 1 }}>{emoji}</span>
-
-                                            {/* Divider */}
-                                            <div style={{
-                                              width: 1,
-                                              height: 10,
-                                              background: iMReacted
-                                                ? 'linear-gradient(180deg, transparent, #7aaee0, transparent)'
-                                                : 'linear-gradient(180deg, transparent, #c0c0c0, transparent)',
-                                            }} />
-
-                                            {/* Count */}
-                                            <span className="" style={{
-                                              fontSize: 11,
-                                              fontWeight: 800,
-                                              fontFamily: 'Segoe UI, Tahoma, sans-serif',
-                                              color: iMReacted ? '#1a4fa0' : '#666',
-                                              lineHeight: 1,
-                                              minWidth: 8,
-                                              textAlign: 'center',
-                                            }}>
-                                              {count}
-                                            </span>
-                                          </div>
-                                        );
-                                      })}
-                                    </div>
-                                  )}
-
-
+                            <div
+                              className="ml-3 flex flex-col gap-2"
+                              style={{
+                                background: 'linear-gradient(180deg, #f5f9ff 0%, #ddeeff 100%)',
+                                border: '1px solid #aac8e8',
+                                borderRadius: '6px',
+                                padding: '8px 12px',
+                                maxWidth: '260px',
+                                boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.9), 0 1px 3px rgba(0,0,0,0.1)',
+                              }}
+                            >
+                              {/* Header row */}
+                              <div className="flex items-center gap-2">
+                                {/* Animated mic icon bubble */}
+                                <div
+                                  style={{
+                                    width: 32,
+                                    height: 32,
+                                    borderRadius: '50%',
+                                    background: 'linear-gradient(180deg, #5b9bd5 0%, #2a6ab5 100%)',
+                                    border: '1px solid #1a5aa5',
+                                    boxShadow: '0 2px 4px rgba(0,0,0,0.2)',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    flexShrink: 0,
+                                  }}
+                                >
+                                  <Mic size={16} color="white" />
                                 </div>
-                              )
-                            })
-                            }
 
-                  <div ref={chatEndRef} />
-                </div>
+                                <div className="flex flex-col">
+                                  <span style={{ fontSize: 12, fontWeight: 700, color: '#1a5aa5', fontFamily: 'Segoe UI, Tahoma, sans-serif' }}>
+                                    Voice Message
+                                  </span>
+                                  <span style={{ fontSize: 11, color: '#5a7fa8', fontFamily: 'Segoe UI, Tahoma, sans-serif' }}>
+                                    {msg.text}
+                                  </span>
+                                </div>
+                              </div>
+
+                              {/* Divider */}
+                              <div style={{ height: 1, background: 'linear-gradient(90deg, transparent, #aac8e8, transparent)' }} />
+
+                              {/* Audio player */}
+                              {msg.content && (
+                                <div className="flex flex-col gap-1">
+                                  <audio
+                                    controls
+                                    src={msg.content}
+                                    style={{
+                                      width: '100%',
+                                      height: 28,
+                                      accentColor: '#3169C6',
+                                    }}
+                                  />
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        )}
+                        {msg.type === 'gift' && (
+                          <div className="flex flex-col gap-1">
+                            <span className={`font-bold text-[13px] ${isMe ? 'text-[#3169C6]' : 'text-black'}`}>
+                              {isMe ? 'You sent a gift:' : 'Poops sent a gift:'}
+                            </span>
+                            <div className="ml-3 py-2 px-4 bg-[#FFF0F5] border border-[#E96E4C]/20 rounded-md flex flex-col gap-2">
+                              <div className="flex items-center gap-2 text-[#E96E4C] font-bold">
+                                <Gift size={16} />
+                                {msg.isOpened ? 'Gift Opened!' : 'You have a new gift!'}
+                              </div>
+                              {msg.isOpened ? (
+                                <div className="text-sm text-gray-700 italic bg-white/50 p-2 rounded border border-[#E96E4C]/10">
+                                  "{msg.text}"
+                                </div>
+                              ) : (
+                                <button
+                                  onClick={() => handleOpenGift(msg.id)}
+                                  className="text-[11px] font-bold text-white bg-[#E96E4C] px-3 py-1 rounded hover:brightness-110 transition-all self-start shadow-sm"
+                                >
+                                  View Action
+                                </button>
+                              )}
+                            </div>
+                          </div>
+                        )}
+                        {msg.type === 'nudge' && (
+                          <div className="py-2 px-6 bg-[#F8F8F8] border-y border-[#ACA899] inline-block mx-auto rounded-md italic text-[#666] text-[13px] shadow-sm">
+                            {msg.text}
+                          </div>
+                        )}
+
+                        {msg.type === 'pdf' && (
+                          <div className="flex flex-col gap-2 ml-3" style={{ maxWidth: 300 }}>
+                            {(msg.attachments && msg.attachments.length > 0
+                              ? msg.attachments
+                              : [{ name: msg.text, content: msg.content }]
+                            ).map((att, idx) => (
+                              <div
+                                key={idx}
+                                style={{
+                                  background: 'linear-gradient(180deg, #f8f8f8 0%, #e8e8e8 100%)',
+                                  border: '1px solid #c0c0c0',
+                                  borderRadius: 6,
+                                  boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.95), 0 1px 3px rgba(0,0,0,0.12)',
+                                  overflow: 'hidden',
+                                }}
+                              >
+                                {/* Top header bar - WLM style title bar */}
+                                <div
+                                  style={{
+                                    background: 'linear-gradient(180deg, #dcdcdc 0%, #c8c8c8 100%)',
+                                    borderBottom: '1px solid #b0b0b0',
+                                    padding: '4px 8px',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: 6,
+                                  }}
+                                >
+                                  {/* PDF icon badge */}
+                                  <div
+                                    style={{
+                                      width: 28,
+                                      height: 28,
+                                      background: 'linear-gradient(180deg, #e84040 0%, #b82020 100%)',
+                                      border: '1px solid #901010',
+                                      borderRadius: 4,
+                                      boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.3), 0 1px 2px rgba(0,0,0,0.2)',
+                                      display: 'flex',
+                                      alignItems: 'center',
+                                      justifyContent: 'center',
+                                      flexShrink: 0,
+                                    }}
+                                  >
+                                    <span style={{ color: 'white', fontSize: 9, fontWeight: 900, fontFamily: 'Segoe UI, Tahoma, sans-serif', letterSpacing: '-0.5px' }}>PDF</span>
+                                  </div>
+
+                                  {/* Filename */}
+                                  <span
+                                    style={{
+                                      fontSize: 12,
+                                      fontWeight: 700,
+                                      color: '#333',
+                                      fontFamily: 'Segoe UI, Tahoma, sans-serif',
+                                      overflow: 'hidden',
+                                      textOverflow: 'ellipsis',
+                                      whiteSpace: 'nowrap',
+                                      flex: 1,
+                                    }}
+                                  >
+                                    {att.name}
+                                  </span>
+                                </div>
+
+                                {/* Body */}
+                                <div
+                                  style={{
+                                    padding: '7px 10px',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'space-between',
+                                    gap: 8,
+                                  }}
+                                >
+                                  <span style={{ fontSize: 11, color: '#888', fontFamily: 'Segoe UI, Tahoma, sans-serif', fontStyle: 'italic' }}>
+                                    PDF Document
+                                  </span>
+
+                                  {/* Action buttons - WLM toolbar button style */}
+                                  <div style={{ display: 'flex', gap: 5 }}>
+                                    <button
+                                      onClick={() => { setPreviewPdf(att); setShowPdfPreviewDialog(true); }}
+                                      style={{
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: 4,
+                                        padding: '3px 8px',
+                                        fontSize: 11,
+                                        fontWeight: 700,
+                                        fontFamily: 'Segoe UI, Tahoma, sans-serif',
+                                        color: '#333',
+                                        background: 'linear-gradient(180deg, #f5f5f5 0%, #dcdcdc 100%)',
+                                        border: '1px solid #aaa',
+                                        borderRadius: 3,
+                                        boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.9)',
+                                        cursor: 'pointer',
+                                      }}
+                                      onMouseEnter={e => e.currentTarget.style.background = 'linear-gradient(180deg, #e8f0ff 0%, #ccd8f0 100%)'}
+                                      onMouseLeave={e => e.currentTarget.style.background = 'linear-gradient(180deg, #f5f5f5 0%, #dcdcdc 100%)'}
+                                    >
+                                      <Eye size={11} /> Preview
+                                    </button>
+
+                                    <a
+                                      href={att.content}
+                                      download={att.name}
+                                      style={{
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: 4,
+                                        padding: '3px 8px',
+                                        fontSize: 11,
+                                        fontWeight: 700,
+                                        fontFamily: 'Segoe UI, Tahoma, sans-serif',
+                                        color: '#333',
+                                        background: 'linear-gradient(180deg, #f5f5f5 0%, #dcdcdc 100%)',
+                                        border: '1px solid #aaa',
+                                        borderRadius: 3,
+                                        boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.9)',
+                                        textDecoration: 'none',
+                                      }}
+                                      onMouseEnter={e => (e.currentTarget as HTMLAnchorElement).style.background = 'linear-gradient(180deg, #e8f0ff 0%, #ccd8f0 100%)'}
+                                      onMouseLeave={e => (e.currentTarget as HTMLAnchorElement).style.background = 'linear-gradient(180deg, #f5f5f5 0%, #dcdcdc 100%)'}
+                                    >
+                                      <Download size={11} /> Save
+                                    </a>
+                                  </div>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+
+                        {msg.reactions && Object.keys(msg.reactions).length > 0 && (
+                          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginTop: 4, marginLeft: 12 }}>
+                            {Object.entries(msg.reactions).map(([emoji, users]) => {
+                              const count = (users as string[]).length;
+                              if (count === 0) return null;
+
+                              const iMReacted = (users as string[]).includes(currentUser.email);
+
+                              return (
+                                <div
+                                  key={emoji}
+                                  title={`${count} reaction${count > 1 ? 's' : ''}`}
+                                  style={{
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: 4,
+                                    padding: '6px',
+                                    background: iMReacted
+                                      ? 'linear-gradient(180deg, #ddeeff 0%, #c2d8f5 100%)'
+                                      : 'linear-gradient(180deg, #f8f8f8 0%, #ececec 100%)',
+                                    border: iMReacted ? '1px solid #7aaee0' : '1px solid #c0c0c0',
+                                    borderRadius: 20,
+                                    boxShadow: iMReacted
+                                      ? 'inset 0 1px 0 rgba(255,255,255,0.9), 0 1px 3px rgba(49,105,198,0.15)'
+                                      : 'inset 0 1px 0 rgba(255,255,255,0.95), 0 1px 2px rgba(0,0,0,0.08)',
+                                    cursor: 'pointer',
+                                    transition: 'all 0.12s',
+                                    animation: 'zoomIn 0.2s ease',
+                                  }}
+                                  onMouseEnter={e => {
+                                    e.currentTarget.style.background = iMReacted
+                                      ? 'linear-gradient(180deg, #c8e0ff 0%, #aacef5 100%)'
+                                      : 'linear-gradient(180deg, #ececec 0%, #dcdcdc 100%)';
+                                    e.currentTarget.style.transform = 'scale(1.08)';
+                                  }}
+                                  onMouseLeave={e => {
+                                    e.currentTarget.style.background = iMReacted
+                                      ? 'linear-gradient(180deg, #ddeeff 0%, #c2d8f5 100%)'
+                                      : 'linear-gradient(180deg, #f8f8f8 0%, #ececec 100%)';
+                                    e.currentTarget.style.transform = 'scale(1)';
+                                  }}
+                                >
+                                  {/* Emoji */}
+                                  <span style={{ fontSize: 13, lineHeight: 1 }}>{emoji}</span>
+
+                                  {/* Divider */}
+                                  <div style={{
+                                    width: 1,
+                                    height: 10,
+                                    background: iMReacted
+                                      ? 'linear-gradient(180deg, transparent, #7aaee0, transparent)'
+                                      : 'linear-gradient(180deg, transparent, #c0c0c0, transparent)',
+                                  }} />
+
+                                  {/* Count */}
+                                  <span className="" style={{
+                                    fontSize: 11,
+                                    fontWeight: 800,
+                                    fontFamily: 'Segoe UI, Tahoma, sans-serif',
+                                    color: iMReacted ? '#1a4fa0' : '#666',
+                                    lineHeight: 1,
+                                    minWidth: 8,
+                                    textAlign: 'center',
+                                  }}>
+                                    {count}
+                                  </span>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        )}
+
+
+                      </div>
+                    )
+                  })
+                }
+
+                <div ref={chatEndRef} />
               </div>
+            </div>
 
 
             {/* Formatting Toolbar */}
@@ -1749,7 +2098,7 @@ export const ChatPage: React.FC<ChatPageProps> = ({ user, onLogout }) => {
 
             {/* Input Section */}
 
-          <div className={`flex gap-3 ${replyingTo ? 'border-t-0 rounded-t-none' : ''}`} style={{ minHeight: 112 }}>
+            <div className={`flex gap-3 ${replyingTo ? 'border-t-0 rounded-t-none' : ''}`} style={{ minHeight: 112 }}>
               <div className="flex flex-1 flex-col shrink-0">
 
                 {/* Reply banner */}
@@ -1783,7 +2132,7 @@ export const ChatPage: React.FC<ChatPageProps> = ({ user, onLogout }) => {
                           boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.3)',
                         }}>
                           <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
-                            <path d="M4 2L1 5L4 8M1 5h6a2 2 0 0 1 2 2v1" stroke="white" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/>
+                            <path d="M4 2L1 5L4 8M1 5h6a2 2 0 0 1 2 2v1" stroke="white" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
                           </svg>
                         </div>
 
@@ -1800,7 +2149,7 @@ export const ChatPage: React.FC<ChatPageProps> = ({ user, onLogout }) => {
                             fontStyle: 'italic',
                             overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
                           }}>
-                          {replyingTo.type === "text" ?  replyingTo.content :  ["image" , "pdf" , "voice"].includes(replyingTo.type) ?  replyingTo.text : replyingTo.type}
+                            {replyingTo.type === "text" ? replyingTo.content : ["image", "pdf", "voice"].includes(replyingTo.type) ? replyingTo.text : replyingTo.type}
 
                           </span>
                         </div>
@@ -1941,231 +2290,31 @@ export const ChatPage: React.FC<ChatPageProps> = ({ user, onLogout }) => {
                     e.currentTarget.style.borderColor = '#c0c0c0';
                   }}
                 >
-                  <Smile size={13}  /> Stickers
+                  <Smile size={13} /> Stickers
                 </motion.button>
               </div>
             </div>
-
           </div>
 
-          {/* Right Column (Avatars & News) */}
-          <div className="w-48 xl:w-72 flex flex-col gap-4 shrink-0 overflow-hidden">
+          {/* Right Column (Avatars & News) - Desktop */}
+          <div className="hidden md:flex w-48 xl:w-72 flex-col gap-4 shrink-0 overflow-hidden">
 
             {/* Breaking News Section */}
-            <div
-              className="flex-1 flex flex-col overflow-hidden"
-              style={{
-                background: 'linear-gradient(180deg, #f8f8f8 0%, #ececec 100%)',
-                border: '1px solid #c0c0c0',
-                borderRadius: 10,
-                boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.95), 0 2px 6px rgba(0,0,0,0.10)',
-              }}
-            >
-              {/* Title bar */}
-              <div
-                style={{
-                  background: 'linear-gradient(180deg, #ffe033 0%, #d4a800 100%)',
-                  borderBottom: '1px solid #b8900a',
-                  padding: '6px 10px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 7,
-                  flexShrink: 0,
-                  boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.4)',
+            <div className="flex-1 flex flex-col overflow-hidden">
+              <NewsContent
+                newsList={newsList}
+                onAddClick={() => setShowAddNewsDialog(true)}
+                onNewsClick={(news) => {
+                  setSelectedNews(news);
+                  setShowNewsDialog(true);
                 }}
-              >
-                {/* Icon badge */}
-                <div style={{
-                  width: 22, height: 22,
-                  background: 'linear-gradient(180deg, #fff 0%, #ffe066 100%)',
-                  border: '1px solid #b8900a',
-                  borderRadius: 4,
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.8), 0 1px 2px rgba(0,0,0,0.15)',
-                  flexShrink: 0,
-                }}>
-                  <Newspaper size={12} color="#8a6000" />
-                </div>
-
-                <span style={{
-                  fontSize: 12, fontWeight: 800,
-                  fontFamily: 'Segoe UI, Tahoma, sans-serif',
-                  color: '#5a3a00',
-                  textTransform: 'uppercase',
-                  letterSpacing: '0.06em',
-                  textShadow: '0 1px 0 rgba(255,255,255,0.4)',
-                  flex: 1,
-                }}>
-                  Breaking News
-                </span>
-
-                {/* LIVE badge */}
-                <div style={{
-                  display: 'flex', alignItems: 'center', gap: 4,
-                  background: 'linear-gradient(180deg, #ff4444 0%, #cc1111 100%)',
-                  border: '1px solid #aa0000',
-                  borderRadius: 10,
-                  padding: '1px 7px',
-                  boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.25)',
-                }}>
-                  <div style={{
-                    width: 5, height: 5, borderRadius: '50%',
-                    background: '#fff',
-                    animation: 'pulse 1.5s infinite',
-                  }} />
-                  <span style={{
-                    fontSize: 9, fontWeight: 900, color: '#fff',
-                    fontFamily: 'Segoe UI, Tahoma, sans-serif',
-                    letterSpacing: '0.05em',
-                  }}>LIVE</span>
-                </div>
-              </div>
-
-              {/* Body */}
-              <div className="flex-1 overflow-y-auto scrollbar-thin" style={{
-                padding: '8px 6px',
-                display: 'flex',
-                flexDirection: 'column',
-                gap: 2,
-              }}>
-
-                {/* Add News button */}
-                <motion.button
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.97 }}
-                  onClick={() => setShowAddNewsDialog(true)}
-                  style={{
-                    height: 30,
-                    background: 'linear-gradient(180deg, #f8f8f8 0%, #e8e8e8 100%)',
-                    border: '1px solid #c0c0c0',
-                    borderRadius: 6,
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    gap: 5,
-                    fontSize: 11,
-                    fontWeight: 700,
-                    fontFamily: 'Segoe UI, Tahoma, sans-serif',
-                    color: '#444',
-                    cursor: 'pointer',
-                    boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.95), 0 1px 2px rgba(0,0,0,0.08)',
-                    marginBottom: 4,
-                    flexShrink: 0,
-                    transition: 'all 0.1s',
-                  }}
-                  onMouseEnter={e => {
-                    e.currentTarget.style.background = 'linear-gradient(180deg, #ececec 0%, #dcdcdc 100%)';
-                    e.currentTarget.style.borderColor = '#aaa';
-                  }}
-                  onMouseLeave={e => {
-                    e.currentTarget.style.background = 'linear-gradient(180deg, #f8f8f8 0%, #e8e8e8 100%)';
-                    e.currentTarget.style.borderColor = '#c0c0c0';
-                  }}
-                >
-                  <Plus size={12} color="#666" /> Add News
-                </motion.button>
-
-                {/* News items */}
-                {newsList
-                  .filter(news => new Date(news.expirationDate) > new Date())
-                  .map((news) => (
-                    <motion.div
-                      key={news.id}
-                      whileHover={{ x: 2 }}
-                      onClick={() => { setSelectedNews(news); setShowNewsDialog(true); }}
-                      className="group/item"
-                      style={{
-                        display: 'flex',
-                        flexDirection: 'column',
-                        gap: 2,
-                        padding: '5px 8px',
-                        borderRadius: 5,
-                        cursor: 'pointer',
-                        borderLeft: news.type === 'breaking' ? '3px solid #d4a800' : '3px solid #b0b0b0',
-                        background: 'transparent',
-                        transition: 'background 0.1s',
-                      }}
-                      onMouseEnter={e => {
-                        e.currentTarget.style.background = 'linear-gradient(180deg, #ececec 0%, #e0e0e0 100%)';
-                      }}
-                      onMouseLeave={e => {
-                        e.currentTarget.style.background = 'transparent';
-                      }}
-                    >
-                      {/* Headline row */}
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 5, overflow: 'hidden' }}>
-                        {news.type === 'breaking' && (
-                          <div style={{
-                            width: 6, height: 6, borderRadius: '50%', flexShrink: 0,
-                            background: 'linear-gradient(180deg, #ffdd00 0%, #cc9900 100%)',
-                            border: '1px solid #aa7700',
-                            boxShadow: '0 0 4px rgba(200,150,0,0.5)',
-                            animation: 'pulse 1.5s infinite',
-                          }} />
-                        )}
-                        <span style={{
-                          fontSize: 12,
-                          fontWeight: 700,
-                          fontFamily: 'Segoe UI, Tahoma, sans-serif',
-                          color: news.type === 'breaking' ? '#7a5500' : '#333',
-                          overflow: 'hidden',
-                          textOverflow: 'ellipsis',
-                          whiteSpace: 'nowrap',
-                          flex: 1,
-                        }}>
-                          {news.headline}
-                        </span>
-                        <ExternalLink
-                          size={9}
-                          style={{ flexShrink: 0, color: '#aaa', opacity: 0, transition: 'opacity 0.1s' }}
-                          className="group-hover/item:opacity-100"
-                        />
-                      </div>
-
-                      {/* Time row */}
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 4, paddingLeft: 11 }}>
-                        <Clock size={8} color="#999" />
-                        <span style={{
-                          fontSize: 9, fontWeight: 700, color: '#999',
-                          fontFamily: 'Segoe UI, Tahoma, sans-serif',
-                          textTransform: 'uppercase', letterSpacing: '0.05em',
-                        }}>
-                          {new Date(news.publicationTime).toLocaleDateString([], { month: 'short', day: 'numeric' })}
-                        </span>
-                      </div>
-                    </motion.div>
-                  ))}
-
-                {/* Divider */}
-                <div style={{
-                  marginTop: 'auto',
-                  paddingTop: 8,
-                  borderTop: '1px solid #d0d0d0',
-                  textAlign: 'center',
-                  flexShrink: 0,
-                }}>
-                  <span
-                    style={{
-                      fontSize: 10,
-                      fontWeight: 700,
-                      fontFamily: 'Segoe UI, Tahoma, sans-serif',
-                      color: '#cc6600',
-                      fontStyle: 'italic',
-                      cursor: 'pointer',
-                    }}
-                    onMouseEnter={e => e.currentTarget.style.textDecoration = 'underline'}
-                    onMouseLeave={e => e.currentTarget.style.textDecoration = 'none'}
-                  >
-                    View all news on MSN.com →
-                  </span>
-                </div>
-              </div>
+              />
             </div>
 
 
-            {/* Bottom Display Picture (My Profile) */}
-            <div className="relative group mt-auto xl:w-[200px] mx-auto shrink-0">
-              <div className="w-full aspect-square bg-white border-2 border-[#ACA899] rounded-xl p-1.5 shadow-lg overflow-hidden transition-transform ">
+            {/* My Profile Section */}
+            <div className="relative group xl:w-[200px] mx-auto shrink-0">
+              <div className="w-full aspect-square bg-white border-2 border-[#ACA899] rounded-xl p-1.5 shadow-lg overflow-hidden transition-transform">
                 <div className="w-full h-full bg-[#F0F0F0] rounded-lg flex items-center justify-center overflow-hidden border border-black/5">
                   <img src={currentUser.avatar} className="w-full h-full object-cover" alt="Me" />
                 </div>
@@ -2175,14 +2324,11 @@ export const ChatPage: React.FC<ChatPageProps> = ({ user, onLogout }) => {
                 className="absolute -right-0 top-1/2 -translate-y-1/2 w-4 h-10 xl:w-6 xl:h-12 bg-[#D6D3C4] border border-[#ACA899] rounded-l-md flex items-center justify-center cursor-pointer hover:bg-[#ECE9D8] transition-colors shadow-sm"
               >
                 <div className="w-1.5 h-5 xl:w-2 border-l border-r border-[#ACA899]"></div>
-                {/* <div className="absolute right-0 bottom-0 w-3 h-3 border-l border-t border-[#ACA899] flex items-center justify-center">
-                  <div className="w-0 h-0 border-l-[3px] border-l-transparent border-r-[3px] border-r-transparent border-t-[3px] border-t-gray-600"></div>
-                </div> */}
               </div>
             </div>
-          </div>
 
-          
+
+          </div>
         </div>
 
         {/* Footer Bar */}
@@ -2204,7 +2350,7 @@ export const ChatPage: React.FC<ChatPageProps> = ({ user, onLogout }) => {
             <div className="w-4 h-4 bg-[#ACA899] rounded-sm shadow-sm"></div>
           </div>
         </div> */}
-      </motion.div>
+      </motion.div >
       <input
         type="file"
         ref={pdfInputRef}
@@ -2213,7 +2359,8 @@ export const ChatPage: React.FC<ChatPageProps> = ({ user, onLogout }) => {
         multiple
         className="hidden"
       />
-    </div>
+    </div >
+
   );
 };
 
@@ -2503,7 +2650,7 @@ function PhotoPreviewDialog({ imageUrl, onClose }: { imageUrl: string, onClose: 
             </button>
           </div> */}
 
-             <div style={{
+          <div style={{
             display: 'flex',
             alignItems: 'center',
             gap: 6,
@@ -2789,11 +2936,11 @@ function NewsDialog({ news, onClose }: { news: NewsItem, onClose: () => void }) 
   );
 }
 
-function StickerDialog({ onSelect, onClose , fetchRandomGif }: { onSelect: (url: string, type: 'sticker' | 'gif') => void, onClose: () => void  , fetchRandomGif: (q: string) => Promise<any>}) {
+function StickerDialog({ onSelect, onClose, fetchRandomGif }: { onSelect: (url: string, type: 'sticker' | 'gif') => void, onClose: () => void, fetchRandomGif: (q: string) => Promise<any> }) {
   const [tab, setTab] = useState<'stickers' | 'gifs'>('stickers');
   const [searchQuery, setSearchQuery] = useState('');
 
-  const [gifList , setGifList] = useState()
+  const [gifList, setGifList] = useState()
 
   useEffect(() => {
     // This timer makes sure we wait 500ms after you stop typing
@@ -2841,12 +2988,12 @@ function StickerDialog({ onSelect, onClose , fetchRandomGif }: { onSelect: (url:
           </div>
 
 
-      
+
 
           {
             tab === "gifs" ? (
 
-                <>
+              <>
                 <div className="relative">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
                   <input
@@ -2857,13 +3004,13 @@ function StickerDialog({ onSelect, onClose , fetchRandomGif }: { onSelect: (url:
                     onChange={(e) => setSearchQuery(e.target.value)}
                   />
                 </div>
-                
-              <div className="h-[300px] overflow-y-auto p-2 grid grid-cols-3 gap-3 bg-gray-50 rounded border border-[#ACA899]/30">
+
+                <div className="h-[300px] overflow-y-auto p-2 grid grid-cols-3 gap-3 bg-gray-50 rounded border border-[#ACA899]/30">
                   {filteredItems?.length > 0 ? (
                     filteredItems.map((gif, i) => (
                       <div
                         key={i}
-                        onClick={() => onSelect(gif.images.fixed_height.url, 'gif' )}
+                        onClick={() => onSelect(gif.images.fixed_height.url, 'gif')}
                         className="bg-white border border-[#ACA899]/70 rounded p-2 cursor-pointer hover:border-[#3169C6] hover:shadow-md transition-all flex items-center justify-center group"
                       >
                         <img src={gif.images.fixed_height.url} className="max-w-full max-h-full group-hover:scale-110 transition-transform" alt="Sticker/GIF" />
@@ -2877,29 +3024,29 @@ function StickerDialog({ onSelect, onClose , fetchRandomGif }: { onSelect: (url:
                   )}
                 </div>
 
-                </>
+              </>
             ) : (
 
 
 
-                <div className="h-[300px] overflow-y-auto p-2 grid grid-cols-3 gap-3 bg-gray-50 rounded border border-[#ACA899]/30">
-                  {STICKERS.length > 0 ? (
-                    STICKERS.map((url, i) => (
-                      <div
-                        key={i}
-                        onClick={() => onSelect(url, 'sticker')}
-                        className="bg-white border border-[#ACA899]/70 rounded p-2 cursor-pointer hover:border-[#3169C6] hover:shadow-md transition-all flex items-center justify-center group"
-                      >
-                        <img src={url} className="max-w-full max-h-full group-hover:scale-110 transition-transform" alt="Sticker/GIF" />
-                      </div>
-                    ))
-                  ) : (
-                    <div className="col-span-2 h-full flex flex-col items-center justify-center text-gray-400 gap-2">
-                      <Search size={32} className="opacity-20" />
-                      <span className="text-sm font-medium">No results found for Stickers</span>
+              <div className="h-[300px] overflow-y-auto p-2 grid grid-cols-3 gap-3 bg-gray-50 rounded border border-[#ACA899]/30">
+                {STICKERS.length > 0 ? (
+                  STICKERS.map((url, i) => (
+                    <div
+                      key={i}
+                      onClick={() => onSelect(url, 'sticker')}
+                      className="bg-white border border-[#ACA899]/70 rounded p-2 cursor-pointer hover:border-[#3169C6] hover:shadow-md transition-all flex items-center justify-center group"
+                    >
+                      <img src={url} className="max-w-full max-h-full group-hover:scale-110 transition-transform" alt="Sticker/GIF" />
                     </div>
-                  )}
-                </div>
+                  ))
+                ) : (
+                  <div className="col-span-2 h-full flex flex-col items-center justify-center text-gray-400 gap-2">
+                    <Search size={32} className="opacity-20" />
+                    <span className="text-sm font-medium">No results found for Stickers</span>
+                  </div>
+                )}
+              </div>
             )
           }
 
@@ -2917,7 +3064,7 @@ function StickerDialog({ onSelect, onClose , fetchRandomGif }: { onSelect: (url:
   );
 }
 
-function UserProfileDialog({ user , IP, lastMessageObj, onClose }: { user: any, IP : string, lastMessageObj: Message | undefined, onClose: () => void }) {
+function UserProfileDialog({ user, IP, lastMessageObj, onClose }: { user: any, IP: string, lastMessageObj: Message | undefined, onClose: () => void }) {
   const formatDate = (timestamp: number) => {
     // Create the Date object here!
     const date = new Date(timestamp);
@@ -2948,7 +3095,7 @@ function UserProfileDialog({ user , IP, lastMessageObj, onClose }: { user: any, 
             <div className="flex flex-col gap-1 overflow-hidden">
               <h2 className="text-2xl font-bold text-[#3169C6] truncate">{user.username}</h2>
               <div className="flex items-center gap-2">
-                <div className={`w-3 h-3 rounded-full ${user.status === 'online' ? 'bg-green-500' :'bg-red-500' }`}></div>
+                <div className={`w-3 h-3 rounded-full ${user.status === 'online' ? 'bg-green-500' : 'bg-red-500'}`}></div>
                 <span className="text-sm font-medium text-gray-600">{user.status}</span>
               </div>
               <div className="flex items-center gap-1.5 text-[13px] text-gray-500 mt-1">
@@ -2971,7 +3118,7 @@ function UserProfileDialog({ user , IP, lastMessageObj, onClose }: { user: any, 
                 <Globe size={16} className="text-[#3169C6]" />
                 <div className="flex flex-col">
                   <span className="text-[10px] font-bold uppercase text-gray-400">IP Address</span>
-                  <span className="text-sm font-medium font-mono">{ IP}</span>
+                  <span className="text-sm font-medium font-mono">{IP}</span>
                 </div>
               </div>
               <div className="flex flex-col gap-2 pt-2 border-t border-[#ACA899]/20">
@@ -2981,7 +3128,7 @@ function UserProfileDialog({ user , IP, lastMessageObj, onClose }: { user: any, 
                     <span className="text-[10px] font-bold uppercase text-gray-400">Last Message Sent</span>
                     <span className="text-sm font-medium italic">
 
-                      {!lastMessageObj ? 'No messages yet'  :  lastMessageObj.type==="text" ? lastMessageObj.content : lastMessageObj.text }
+                      {!lastMessageObj ? 'No messages yet' : lastMessageObj.type === "text" ? lastMessageObj.content : lastMessageObj.text}
                     </span>
                   </div>
                 </div>
@@ -3303,11 +3450,11 @@ function ToolbarButton({ icon, label }: { icon: React.ReactNode, label: string }
   );
 }
 
-function FormatButton({ icon, label, onClick, active }: { 
-  icon: React.ReactNode, 
-  label?: string, 
+function FormatButton({ icon, label, onClick, active }: {
+  icon: React.ReactNode,
+  label?: string,
   onClick?: () => void,
-  active?: boolean 
+  active?: boolean
 }) {
   return (
     <div
@@ -3346,7 +3493,7 @@ function FormatButton({ icon, label, onClick, active }: {
       }}
     >
       {/* Icon */}
-      <div style={{ color: active ? '#2a5fb5' : '#555', display: 'flex', alignItems: 'center'  }}>
+      <div style={{ color: active ? '#2a5fb5' : '#555', display: 'flex', alignItems: 'center' }}>
         {icon}
       </div>
 
