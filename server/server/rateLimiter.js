@@ -1,18 +1,34 @@
-const { MAX_TOKENS, TOKEN_REFILL_RATE } = require('./config')
+const { MAX_TOKENS } = require('./config');
 
 function canSend(client) {
-  const now = Date.now()
-  const elapsed = (now - client.lastRefill) / 1000
-  const refill = Math.floor(elapsed * TOKEN_REFILL_RATE)
-  if (refill > 0) {
-    client.tokens = Math.min(MAX_TOKENS, client.tokens + refill)
-    client.lastRefill = now
+  const now = Date.now();
+
+  // 1. Check if the user is currently in the "Penalty Box"
+  if (client.lockUntil && now < client.lockUntil) {
+    return false;
   }
+
+  // 2. Initialize tokens if this is a new connection
+  if (client.tokens === undefined) {
+    client.tokens = MAX_TOKENS;
+  }
+
+  // 3. If they have tokens, let them send
   if (client.tokens > 0) {
-    client.tokens--
-    return true
+    client.tokens -= 1;
+    return true;
   }
-  return false
+
+  // 4. IF TOKENS ARE RUN OUT (0):
+  // Set a strict lock for 1 minute (60,000 milliseconds)
+  client.lockUntil = now + 60000;
+  
+  // Reset tokens so they can use them after the minute is over
+  client.tokens = MAX_TOKENS; 
+  
+  return false;
 }
+
+
 
 module.exports = { canSend }

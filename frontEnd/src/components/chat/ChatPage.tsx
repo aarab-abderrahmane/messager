@@ -152,6 +152,11 @@ export const ChatPage: React.FC<ChatPageProps> = ({ user, onLogout }) => {
         return;
       }
 
+      if(data.type ==="error"){
+        alert(data.message);
+
+      }
+
 
 
       if (data.type === "text" || data.type === "image" || data.type === "voice" || data.type === "pdf") {

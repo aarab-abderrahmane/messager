@@ -3,9 +3,10 @@ const express = require("express");
 const WebSocket = require('ws');
 const cors = require("cors");
 
-const { PORT } = require('./config');
+const { PORT ,MAX_TOKENS} = require('./config');
 const { validateTextMessage, validateImageMessage ,validateVoiceMessage , validatePdfMessage } = require('./validation');
 const { getRegistredUsers, getUserByToken, removeUser, addUser } = require('./authManager');
+const { canSend} = require('./rateLimiter')
 
 const app = express();
 app.use(cors());
@@ -133,13 +134,40 @@ app.post('/signup', (req, res) => {
 
 wss.on('connection', (ws, req) => {
   clients.add(ws);
+
+  ws.tokens = MAX_TOKENS;
+  ws.lastRefill = Date.now();
+
   ws.isAuthenticated = false;
   ws.userToken = null;
 
   console.log("New WS connection from:", req.socket.remoteAddress);
 
   ws.on('message', (raw) => {
+
+    const now = Date.now();
+  
+    if (!canSend(ws)) {
+      // Calculate how many seconds are left in the penalty
+      const secondsLeft = Math.ceil((ws.lockUntil - now) / 1000);
+      
+      return ws.send(JSON.stringify({ 
+        type: "error", 
+        message: `Limit reached! Please wait ${secondsLeft} seconds.` 
+      }));
+    }
+
     try {
+
+      if (!canSend(ws)) {
+      // You MUST use 'return' here to stop the code!
+        return ws.send(JSON.stringify({ 
+          type: "error", 
+          message: "Slow down! You can only send 5 messages per minute." 
+        }));
+      }
+
+
       const data = JSON.parse(raw);
 
       // ======================
