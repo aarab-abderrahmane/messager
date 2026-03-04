@@ -1,19 +1,32 @@
 import React, { useState, useRef, useEffect } from 'react';
 import {
-  User, Paperclip, Video, Mic,
-  Gamepad2, Puzzle, Type, Smile,
-  Gift, ImageIcon, Search, MoreHorizontal,
+  User, Mic, Type, Smile,
+  Gift, ImageIcon,
   Plus, Minus as MinusIcon, X, Reply,
-  Calendar, Info, Globe, MessageSquare, Mail, Clock,
-  Newspaper, ExternalLink, TrendingUp, Eye, EyeOff, FileText, Download
+  Newspaper, Eye, FileText, Download
 } from 'lucide-react';
 import { motion, useAnimation, AnimatePresence } from 'motion/react';
 import { Message, UserData, NewsItem } from '../../types';
-import { MSN_LOGO_URL, ALL_EMOJIS, AVATARS, STICKERS, GIFS } from '../../constants';
+import {  ALL_EMOJIS } from '../../constants';
+
+
 import { TitleBar } from '../common/TitleBar';
-interface ChatPageProps {
-  user: UserData;
-}
+
+
+import PeopleOnlineContent from "./peopleOnlineContent"
+import PendingPhotoDialog from "./PendingPhotoDialog"
+import NewsContent from "./NewsContent"
+import PhotoPreviewDialog from "./PhotoPreviewDialog"
+import NewsDialog from "./NewsDialog"
+import StickerDialog from "./StickerDialog"
+import UserProfileDialog from "./UserProfileDialog"
+import ThemeDialog from "./ThemeDialog"
+import ProfileDialog from "./ProfileDialog"
+import PdfPreviewDialog from "./PdfPreviewDialog"
+import FormatButton from "./FormatButton"
+import AddNewsDialog from "./AddNewsDialog"
+import PendingPdfDialog from "./PendingPdfDialog"
+import GiftDialog from "./GiftDialog"
 
 const DEFAULT_THEME = {
   bgColor: '#ECE9D8',
@@ -22,423 +35,10 @@ const DEFAULT_THEME = {
   fontFamily: 'sans-serif'
 };
 
-const PeopleOnlineContent: React.FC<{
-  onlineUsers: any[];
-  offlineUsers: any[];
-  userSearchQuery: string;
-  setUserSearchQuery: (val: string) => void;
-  onUserClick: (user: any) => void;
-  currentUser: UserData;
-}> = ({ onlineUsers, offlineUsers, userSearchQuery, setUserSearchQuery, onUserClick, currentUser }) => (
-  <div className="flex-1 flex flex-col border border-[#b0aca0] rounded-md overflow-hidden"
-    style={{ background: 'linear-gradient(180deg, #f2f0ec 0%, #e8e5df 100%)', boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.8), 0 2px 4px rgba(0,0,0,0.1)' }}>
 
-    {/* Header */}
-    <div
-      style={{
-        background: 'linear-gradient(180deg, #4a85d8 0%, #2a5fb5 100%)',
-        borderBottom: '1px solid #1e4fa0',
-        padding: '10px 10px',
-        display: 'flex',
-        alignItems: 'center',
-        gap: 7,
-        flexShrink: 0,
-      }}
-    >
-      <div style={{
-        width: 20, height: 20,
-        background: 'linear-gradient(180deg, #7bc8ff 0%, #3a9aee 100%)',
-        border: '1px solid #1a7acc',
-        borderRadius: '50%',
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-        boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.4)',
-        flexShrink: 0,
-      }}>
-        <User size={11} color="white" />
-      </div>
-      <span style={{
-        fontSize: 12, fontWeight: 700, color: '#fff',
-        fontFamily: 'Segoe UI, Tahoma, sans-serif',
-        textShadow: '0 1px 2px rgba(0,0,0,0.3)',
-        flex: 1,
-      }}>
-        People Online
-      </span>
-      {/* online count badge */}
-      <div style={{
-        background: 'linear-gradient(180deg, #5ab840 0%, #3a9020 100%)',
-        border: '1px solid #2a7010',
-        borderRadius: 10,
-        padding: '1px 6px',
-        fontSize: 10, fontWeight: 800, color: '#fff',
-        fontFamily: 'Segoe UI, Tahoma, sans-serif',
-        boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.3)',
-      }}>
-        {onlineUsers.length}
-      </div>
-    </div>
-
-    {/* Search */}
-    <div className="px-2 py-2 border-b border-[#b0aca0]/50"
-      style={{ background: 'linear-gradient(180deg, #eeebe5 0%, #e4e1db 100%)' }}>
-      <div className="relative">
-        <input
-          type="text"
-          placeholder="Search people..."
-          value={userSearchQuery}
-          onChange={(e) => setUserSearchQuery(e.target.value)}
-          style={{
-            width: '100%',
-            paddingLeft: 28, paddingRight: 8, paddingTop: 5, paddingBottom: 5,
-            background: 'linear-gradient(180deg, #ffffff 0%, #f5f3ef 100%)',
-            border: '1px solid #b0aca0',
-            borderRadius: 3,
-            fontSize: 12,
-            fontFamily: 'Segoe UI, Tahoma, sans-serif',
-            color: '#3a3830',
-            boxShadow: 'inset 0 1px 3px rgba(0,0,0,0.08)',
-            outline: 'none',
-          }}
-          onFocus={e => e.currentTarget.style.borderColor = '#7a9abf'}
-          onBlur={e => e.currentTarget.style.borderColor = '#b0aca0'}
-        />
-        <Search size={13} style={{ position: 'absolute', left: 9, top: '50%', transform: 'translateY(-50%)', color: '#9a9690' }} />
-      </div>
-    </div>
-
-    {/* User List */}
-    <div className="flex-1 overflow-y-auto flex flex-col gap-1 p-2 scrollbar-thin">
-
-      {/* Online Users */}
-      {onlineUsers.filter(u => u.username.toLowerCase().includes(userSearchQuery.toLowerCase())).map((onlineUser) => (
-        <div
-          key={onlineUser.username}
-          onClick={() => {
-            if (onlineUser.email === currentUser.email) return;
-            onUserClick({ ...onlineUser, status: "online" });
-          }}
-          style={{ borderRadius: 4, cursor: 'pointer', transition: 'all 0.1s' }}
-          className="flex items-center gap-2 px-2 py-1.5 group"
-          onMouseEnter={e => {
-            e.currentTarget.style.background = 'linear-gradient(180deg, #deeaf8 0%, #ccddf0 100%)';
-            e.currentTarget.style.border = '1px solid #9abbd8';
-            e.currentTarget.style.boxShadow = 'inset 0 1px 0 rgba(255,255,255,0.7)';
-          }}
-          onMouseLeave={e => {
-            e.currentTarget.style.background = 'transparent';
-            e.currentTarget.style.border = '1px solid transparent';
-            e.currentTarget.style.boxShadow = 'none';
-          }}
-        >
-          <div className="relative shrink-0">
-            <img
-              src={onlineUser.avatar}
-              className="w-9 h-9 xl:w-11 xl:h-11 rounded"
-              alt={onlineUser.username}
-              style={{ border: '1px solid #b0aca0', boxShadow: '0 1px 2px rgba(0,0,0,0.15)' }}
-            />
-            {/* Online dot */}
-            <div style={{
-              position: 'absolute', bottom: -1, right: -1,
-              width: 11, height: 11,
-              background: 'linear-gradient(180deg, #60d840 0%, #30a810 100%)',
-              border: '1.5px solid white',
-              borderRadius: '50%',
-              boxShadow: '0 1px 2px rgba(0,0,0,0.2)',
-            }} />
-          </div>
-          <div className="flex flex-col overflow-hidden">
-            <span style={{
-              fontSize: 12, fontWeight: 700,
-              fontFamily: 'Segoe UI, Tahoma, sans-serif',
-              color: '#2a2820',
-              overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-            }}
-              className="group-hover:text-[#1a4a8a]"
-            >{onlineUser.username}</span>
-            <span style={{ fontSize: 10, color: '#3a9020', fontFamily: 'Segoe UI, Tahoma, sans-serif', fontWeight: 600 }}>● online</span>
-          </div>
-        </div>
-      ))}
-
-      {/* Divider if both lists have items */}
-      {onlineUsers.filter(u => u.username.toLowerCase().includes(userSearchQuery.toLowerCase())).length > 0 &&
-        offlineUsers.filter(u => u.username.toLowerCase().includes(userSearchQuery.toLowerCase())).length > 0 && (
-          <div style={{ height: 1, background: 'linear-gradient(90deg, transparent, #b0aca0, transparent)', margin: '4px 0' }} />
-        )}
-
-      {/* Offline Users */}
-      {offlineUsers.filter(u => u.username.toLowerCase().includes(userSearchQuery.toLowerCase())).map((offlineUser) => (
-        <div
-          key={offlineUser.username}
-          onClick={() => {
-            onUserClick({ ...offlineUser, status: "offline" });
-          }}
-          style={{ borderRadius: 4, cursor: 'pointer', transition: 'all 0.1s', opacity: 0.75 }}
-          className="flex items-center gap-2 px-2 py-1.5 group"
-          onMouseEnter={e => {
-            e.currentTarget.style.background = 'linear-gradient(180deg, #eeebe5 0%, #e0ddd7 100%)';
-            e.currentTarget.style.border = '1px solid #c0bdb5';
-            e.currentTarget.style.opacity = '1';
-          }}
-          onMouseLeave={e => {
-            e.currentTarget.style.background = 'transparent';
-            e.currentTarget.style.border = '1px solid transparent';
-            e.currentTarget.style.opacity = '0.75';
-          }}
-        >
-          <div className="relative shrink-0">
-            <img
-              src={offlineUser.avatar}
-              className="w-9 h-9 xl:w-11 xl:h-11 rounded"
-              alt={offlineUser.username}
-              style={{ border: '1px solid #b0aca0', boxShadow: '0 1px 2px rgba(0,0,0,0.1)', filter: 'grayscale(30%)' }}
-            />
-            {/* Offline dot */}
-            <div style={{
-              position: 'absolute', bottom: -1, right: -1,
-              width: 11, height: 11,
-              background: 'linear-gradient(180deg, #c0bdb5 0%, #909088 100%)',
-              border: '1.5px solid white',
-              borderRadius: '50%',
-              boxShadow: '0 1px 2px rgba(0,0,0,0.2)',
-            }} />
-          </div>
-          <div className="flex flex-col overflow-hidden">
-            <span style={{
-              fontSize: 12, fontWeight: 700,
-              fontFamily: 'Segoe UI, Tahoma, sans-serif',
-              color: '#6a6860',
-              overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-            }}>{offlineUser.username}</span>
-            <span style={{ fontSize: 10, color: '#9a9890', fontFamily: 'Segoe UI, Tahoma, sans-serif', fontWeight: 600 }}>● offline</span>
-          </div>
-        </div>
-      ))}
-
-      {onlineUsers.filter(u => u.username.toLowerCase().includes(userSearchQuery.toLowerCase())).length === 0 &&
-        offlineUsers.filter(u => u.username.toLowerCase().includes(userSearchQuery.toLowerCase())).length === 0 && (
-          <div style={{ fontSize: 11, color: '#9a9890', fontStyle: 'italic', textAlign: 'center', padding: '16px 0', fontFamily: 'Segoe UI, Tahoma, sans-serif' }}>
-            No results found
-          </div>
-        )}
-    </div>
-  </div>
-);
-
-const NewsContent: React.FC<{
-  newsList: NewsItem[];
-  onAddClick: () => void;
-  onNewsClick: (news: NewsItem) => void;
-}> = ({ newsList, onAddClick, onNewsClick }) => (
-  <div
-    className="flex-1 flex flex-col overflow-hidden"
-    style={{
-      background: 'linear-gradient(180deg, #f8f8f8 0%, #ececec 100%)',
-      border: '1px solid #c0c0c0',
-      borderRadius: 10,
-      boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.95), 0 2px 6px rgba(0,0,0,0.10)',
-    }}
-  >
-    {/* Title bar */}
-    <div
-      style={{
-        background: 'linear-gradient(180deg, #ffe033 0%, #d4a800 100%)',
-        borderBottom: '1px solid #b8900a',
-        padding: '6px 10px',
-        display: 'flex',
-        alignItems: 'center',
-        gap: 7,
-        flexShrink: 0,
-        boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.4)',
-      }}
-    >
-      {/* Icon badge */}
-      <div style={{
-        width: 22, height: 22,
-        background: 'linear-gradient(180deg, #fff 0%, #ffe066 100%)',
-        border: '1px solid #b8900a',
-        borderRadius: 4,
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-        boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.8), 0 1px 2px rgba(0,0,0,0.15)',
-        flexShrink: 0,
-      }}>
-        <Newspaper size={12} color="#8a6000" />
-      </div>
-
-      <span style={{
-        fontSize: 12, fontWeight: 800,
-        fontFamily: 'Segoe UI, Tahoma, sans-serif',
-        color: '#5a3a00',
-        textTransform: 'uppercase',
-        letterSpacing: '0.06em',
-        textShadow: '0 1px 0 rgba(255,255,255,0.4)',
-        flex: 1,
-      }}>
-        Breaking News
-      </span>
-
-      {/* LIVE badge */}
-      <div style={{
-        display: 'flex', alignItems: 'center', gap: 4,
-        background: 'linear-gradient(180deg, #ff4444 0%, #cc1111 100%)',
-        border: '1px solid #aa0000',
-        borderRadius: 10,
-        padding: '1px 7px',
-        boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.25)',
-      }}>
-        <div style={{
-          width: 5, height: 5, borderRadius: '50%',
-          background: '#fff',
-          animation: 'pulse 1.5s infinite',
-        }} />
-        <span style={{
-          fontSize: 9, fontWeight: 900, color: '#fff',
-          fontFamily: 'Segoe UI, Tahoma, sans-serif',
-          letterSpacing: '0.05em',
-        }}>LIVE</span>
-      </div>
-    </div>
-
-    {/* Body */}
-    <div className="flex-1 overflow-y-auto scrollbar-thin" style={{
-      padding: '8px 6px',
-      display: 'flex',
-      flexDirection: 'column',
-      gap: 2,
-    }}>
-
-      {/* Add News button */}
-      <motion.button
-        whileHover={{ scale: 1.02 }}
-        whileTap={{ scale: 0.97 }}
-        onClick={onAddClick}
-        style={{
-          height: 30,
-          background: 'linear-gradient(180deg, #f8f8f8 0%, #e8e8e8 100%)',
-          border: '1px solid #c0c0c0',
-          borderRadius: 6,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          gap: 5,
-          fontSize: 11,
-          fontWeight: 700,
-          fontFamily: 'Segoe UI, Tahoma, sans-serif',
-          color: '#444',
-          cursor: 'pointer',
-          boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.95), 0 1px 2px rgba(0,0,0,0.08)',
-          marginBottom: 4,
-          flexShrink: 0,
-          transition: 'all 0.1s',
-        }}
-        onMouseEnter={e => {
-          e.currentTarget.style.background = 'linear-gradient(180deg, #ececec 0%, #dcdcdc 100%)';
-          e.currentTarget.style.borderColor = '#aaa';
-        }}
-        onMouseLeave={e => {
-          e.currentTarget.style.background = 'linear-gradient(180deg, #f8f8f8 0%, #e8e8e8 100%)';
-          e.currentTarget.style.borderColor = '#c0c0c0';
-        }}
-      >
-        <Plus size={12} color="#666" /> Add News
-      </motion.button>
-
-      {/* News items */}
-      {newsList
-        .filter(news => new Date(news.expirationDate) > new Date())
-        .map((news) => (
-          <motion.div
-            key={news.id}
-            whileHover={{ x: 2 }}
-            onClick={() => onNewsClick(news)}
-            className="group/item"
-            style={{
-              display: 'flex',
-              flexDirection: 'column',
-              gap: 2,
-              padding: '5px 8px',
-              borderRadius: 5,
-              cursor: 'pointer',
-              borderLeft: news.type === 'breaking' ? '3px solid #d4a800' : '3px solid #b0b0b0',
-              background: 'transparent',
-              transition: 'background 0.1s',
-            }}
-            onMouseEnter={e => {
-              e.currentTarget.style.background = 'linear-gradient(180deg, #ececec 0%, #e0e0e0 100%)';
-            }}
-            onMouseLeave={e => {
-              e.currentTarget.style.background = 'transparent';
-            }}
-          >
-            {/* Headline row */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: 5, overflow: 'hidden' }}>
-              {news.type === 'breaking' && (
-                <div style={{
-                  width: 6, height: 6, borderRadius: '50%', flexShrink: 0,
-                  background: 'linear-gradient(180deg, #ffdd00 0%, #cc9900 100%)',
-                  border: '1px solid #aa7700',
-                  boxShadow: '0 0 4px rgba(200,150,0,0.5)',
-                  animation: 'pulse 1.5s infinite',
-                }} />
-              )}
-              <span style={{
-                fontSize: 12,
-                fontWeight: 700,
-                fontFamily: 'Segoe UI, Tahoma, sans-serif',
-                color: news.type === 'breaking' ? '#7a5500' : '#333',
-                overflow: 'hidden',
-                textOverflow: 'ellipsis',
-                whiteSpace: 'nowrap',
-                flex: 1,
-              }}>
-                {news.headline}
-              </span>
-              <ExternalLink
-                size={9}
-                style={{ flexShrink: 0, color: '#aaa', opacity: 0, transition: 'opacity 0.1s' }}
-                className="group-hover/item:opacity-100"
-              />
-            </div>
-
-            {/* Time row */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: 4, paddingLeft: 11 }}>
-              <Clock size={8} color="#999" />
-              <span style={{
-                fontSize: 9, fontWeight: 700, color: '#999',
-                fontFamily: 'Segoe UI, Tahoma, sans-serif',
-                textTransform: 'uppercase', letterSpacing: '0.05em',
-              }}>
-                {new Date(news.publicationTime).toLocaleDateString([], { month: 'short', day: 'numeric' })}
-              </span>
-            </div>
-          </motion.div>
-        ))}
-
-      {/* Divider */}
-      <div style={{
-        marginTop: 'auto',
-        paddingTop: 8,
-        borderTop: '1px solid #d0d0d0',
-        textAlign: 'center',
-        flexShrink: 0,
-      }}>
-        <span
-          style={{
-            fontSize: 10,
-            fontWeight: 700,
-            fontFamily: 'Segoe UI, Tahoma, sans-serif',
-            color: '#999',
-            textTransform: 'uppercase',
-            letterSpacing: '0.05em',
-          }}
-        >
-          MSN Digital Network
-        </span>
-      </div>
-    </div>
-  </div>
-);
+interface ChatPageProps {
+  user: UserData;
+}
 
 export const ChatPage: React.FC<ChatPageProps> = ({ user, onLogout }) => {
   const [currentUser, setCurrentUser] = useState<UserData>(user);
@@ -452,12 +52,7 @@ export const ChatPage: React.FC<ChatPageProps> = ({ user, onLogout }) => {
 
   ]);
 
-
-
   const ws = useRef(null);
-
-
-
 
   const [inputText, setInputText] = useState('');
   const [isTyping, setIsTyping] = useState(false);
@@ -471,43 +66,46 @@ export const ChatPage: React.FC<ChatPageProps> = ({ user, onLogout }) => {
   const [showStickerDialog, setShowStickerDialog] = useState(false);
   const [showAddNewsDialog, setShowAddNewsDialog] = useState(false);
   const [selectedNews, setSelectedNews] = useState<NewsItem | null>(null);
-  const [newsList, setNewsList] = useState<NewsItem[]>([
+  const [newsList, setNewsList] = useState<NewsItem[]>(
+    [
     {
-      id: '1',
-      type: 'breaking',
-      headline: "MSN hits 100M users!",
-      text: "MSN Messenger has officially surpassed 100 million active users worldwide! The service continues to grow as the premier destination for instant messaging and digital connection.",
-      publicationTime: new Date('2026-02-25T10:00:00'),
-      expirationDate: new Date('2026-03-10T10:00:00'),
-      coverImage: "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=800&auto=format&fit=crop&q=60",
-      attachments: [{ name: "Read Moore at MSN.com", url: "https://msn.com" }]
+      "id": "1",
+      "type": "breaking",
+      "headline": "Dot hits 100M users!",
+      "text": "Dot Messenger now has 100 million users! More and more people are using Dot to talk to friends every day.",
+      "publicationTime": "2026-02-25T10:00:00",
+      "expirationDate": "2026-03-10T10:00:00",
+      "coverImage": "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=800&auto=format&fit=crop&q=60",
+      "attachments": [{ "name": "Read more at Dot.com", "url": "https://Dot.com" }]
     },
     {
-      id: '2',
-      type: 'breaking',
-      headline: "New 3D Emoticons!",
-      text: "Express yourself like never before with our brand new pack of 3D animated emoticons. From dancing robots to spinning hearts, your conversations just got a lot more lively!",
-      publicationTime: new Date('2026-02-28T14:30:00'),
-      expirationDate: new Date('2026-03-05T14:30:00'),
+      "id": "2",
+      "type": "breaking",
+      "headline": "New 3D Faces!",
+      "text": "Show how you feel with our new 3D moving faces. We have dancing robots and spinning hearts to make your chats fun!",
+      "publicationTime": "2026-02-28T14:30:00",
+      "expirationDate": "2026-03-05T14:30:00"
     },
     {
-      id: '3',
-      type: 'regular',
-      headline: "Vista Beta 2 out now",
-      text: "Microsoft has released Windows Vista Beta 2 to the public. Experience the new Aero interface and enhanced security features of the next generation of Windows.",
-      publicationTime: new Date('2026-03-01T08:00:00'),
-      expirationDate: new Date('2026-03-15T08:00:00'),
-      attachments: [{ name: "Download Beta", url: "#" }]
+      "id": "3",
+      "type": "regular",
+      "headline": "Dot Desktop Beta is out",
+      "text": "The new version of Dot for your computer is ready. Try the new beautiful look and better safety features today.",
+      "publicationTime": "2026-03-01T08:00:00",
+      "expirationDate": "2026-03-15T08:00:00",
+      "attachments": [{ "name": "Download now", "url": "#" }]
     },
     {
-      id: '4',
-      type: 'regular',
-      headline: "Top 10 Pop Hits",
-      text: "Check out this week's top 10 pop hits on MSN Music. From the latest chart-toppers to rising stars, we've got the soundtrack for your summer.",
-      publicationTime: new Date('2026-02-27T12:00:00'),
-      expirationDate: new Date('2026-03-06T12:00:00'),
+      "id": "4",
+      "type": "regular",
+      "headline": "Top 10 Music Hits",
+      "text": "Listen to the best 10 songs this week on Dot Music. We have all the popular songs and new singers for you.",
+      "publicationTime": "2026-02-27T12:00:00",
+      "expirationDate": "2026-03-06T12:00:00"
     }
-  ]);
+]
+
+  );
   const [selectedUser, setSelectedUser] = useState<any>(null);
   const [replyingTo, setReplyingTo] = useState<Message | null>(null);
   const [userSearchQuery, setUserSearchQuery] = useState('');
@@ -798,7 +396,7 @@ export const ChatPage: React.FC<ChatPageProps> = ({ user, onLogout }) => {
       />
 
       <AnimatePresence>
-        {/* {showGiftDialog && (
+        {showGiftDialog && (
           <GiftDialog
             onClose={() => setShowGiftDialog(false)}
             onSend={(msg, count) => {
@@ -809,7 +407,7 @@ export const ChatPage: React.FC<ChatPageProps> = ({ user, onLogout }) => {
               setShowGiftDialog(false);
             }}
           />
-        )} */}
+        )}
         {showProfileDialog && (
           <ProfileDialog
             user={currentUser}
@@ -928,34 +526,155 @@ export const ChatPage: React.FC<ChatPageProps> = ({ user, onLogout }) => {
         <TitleBar title={`Conversation - (${currentUser.username})`} />
 
         {/* Menu Bar */}
-        <div className="h-7 border-b border-[#ACA899] flex items-center px-2 gap-5 text-[11px] select-none shrink-0" style={{ backgroundColor: theme.bgColor }}>
-          {['File', 'Edit', 'Actions', 'Tools', 'Help'].map(item => (
+        <div
+          style={{
+            height: 26,
+            background: 'linear-gradient(180deg, #f8f8f8 0%, #e8e8e8 100%)',
+            borderBottom: '1px solid #c0c0c0',
+            display: 'flex',
+            alignItems: 'center',
+            paddingLeft: 6,
+            paddingRight: 6,
+            gap: 1,
+            flexShrink: 0,
+            userSelect: 'none',
+            boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.95)',
+          }}
+        >
+          {/* Menu items */}
+          {[
+            { label: 'File' },
+            { label: 'Edit', action: () => setShowThemeDialog(true) },
+            { label: 'Actions' },
+            { label: 'Tools' },
+            { label: 'Help' },
+          ].map(item => (
             <div
-              key={item}
-              onClick={() => item === 'Edit' && setShowThemeDialog(true)}
-              className="px-2 py-1 hover:bg-[#316AC5] hover:text-white cursor-default rounded-sm transition-colors"
+              key={item.label}
+              onClick={item.action}
+              style={{
+                height: 20,
+                paddingLeft: 8,
+                paddingRight: 8,
+                display: 'flex',
+                alignItems: 'center',
+                fontSize: 11,
+                fontFamily: 'Segoe UI, Tahoma, sans-serif',
+                fontWeight: 600,
+                color: '#222',
+                borderRadius: 3,
+                cursor: 'default',
+                border: '1px solid transparent',
+                transition: 'all 0.1s',
+                position: 'relative',
+              }}
+              onMouseEnter={e => {
+                e.currentTarget.style.background = 'linear-gradient(180deg, #ddeeff 0%, #c2d8f5 100%)';
+                e.currentTarget.style.borderColor = '#7aaee0';
+                e.currentTarget.style.color = '#1a3e7a';
+              }}
+              onMouseLeave={e => {
+                e.currentTarget.style.background = 'transparent';
+                e.currentTarget.style.borderColor = 'transparent';
+                e.currentTarget.style.color = '#222';
+              }}
+              onMouseDown={e => {
+                e.currentTarget.style.background = 'linear-gradient(180deg, #c2d8f5 0%, #a8c8f0 100%)';
+                e.currentTarget.style.boxShadow = 'inset 0 1px 2px rgba(0,0,0,0.1)';
+              }}
+              onMouseUp={e => {
+                e.currentTarget.style.background = 'linear-gradient(180deg, #ddeeff 0%, #c2d8f5 100%)';
+                e.currentTarget.style.boxShadow = 'none';
+              }}
             >
-              {item}
+              {/* Underline first letter — WLM keyboard shortcut style */}
+              <span>
+                <span style={{ textDecoration: 'underline' }}>{item.label[0]}</span>
+                {item.label.slice(1)}
+              </span>
             </div>
           ))}
 
-          {/* Mobile Toggle Buttons */}
-          <div className="flex-1 flex justify-end gap-2 md:hidden">
-            <button
-              onClick={() => setIsLeftSidebarOpen(true)}
-              className="px-2 py-0.5 bg-[#f0f0f0] border border-[#aca899] rounded-sm hover:brightness-95 active:translate-y-[1px] flex items-center gap-1"
-            >
-              <User size={12} /> <span className="text-[10px] font-bold">Contacts</span>
-            </button>
-            <button
-              onClick={() => setIsRightSidebarOpen(true)}
-              className="px-2 py-0.5 bg-[#f0f0f0] border border-[#aca899] rounded-sm hover:brightness-95 active:translate-y-[1px] flex items-center gap-1"
-            >
-              <Newspaper size={12} /> <span className="text-[10px] font-bold">News</span>
-            </button>
+          {/* Separator */}
+          <div style={{
+            flex: 1,
+            display: 'flex',
+            justifyContent: 'flex-end',
+            alignItems: 'center',
+            gap: 4,
+          }}>
+            {/* Mobile toggle buttons */}
+            <div className="flex md:hidden items-center gap-2">
+              <button
+                onClick={() => setIsLeftSidebarOpen(true)}
+                style={{
+                  height: 20,
+                  paddingLeft: 8, paddingRight: 8,
+                  display: 'flex', alignItems: 'center', gap: 4,
+                  background: 'linear-gradient(180deg, #f8f8f8 0%, #e4e4e4 100%)',
+                  border: '1px solid #c0c0c0',
+                  borderRadius: 3,
+                  fontSize: 10,
+                  fontWeight: 700,
+                  fontFamily: 'Segoe UI, Tahoma, sans-serif',
+                  color: '#444',
+                  cursor: 'pointer',
+                  boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.9)',
+                  transition: 'all 0.1s',
+                }}
+                onMouseEnter={e => {
+                  e.currentTarget.style.background = 'linear-gradient(180deg, #ddeeff 0%, #c2d8f5 100%)';
+                  e.currentTarget.style.borderColor = '#7aaee0';
+                  e.currentTarget.style.color = '#1a3e7a';
+                }}
+                onMouseLeave={e => {
+                  e.currentTarget.style.background = 'linear-gradient(180deg, #f8f8f8 0%, #e4e4e4 100%)';
+                  e.currentTarget.style.borderColor = '#c0c0c0';
+                  e.currentTarget.style.color = '#444';
+                }}
+                onMouseDown={e => { e.currentTarget.style.boxShadow = 'inset 0 1px 2px rgba(0,0,0,0.12)'; }}
+                onMouseUp={e => { e.currentTarget.style.boxShadow = 'inset 0 1px 0 rgba(255,255,255,0.9)'; }}
+              >
+                <User size={10} /> Contacts
+              </button>
+
+              <button
+                onClick={() => setIsRightSidebarOpen(true)}
+                style={{
+                  height: 20,
+                  paddingLeft: 8, paddingRight: 8,
+                  display: 'flex', alignItems: 'center', gap: 4,
+                  background: 'linear-gradient(180deg, #f8f8f8 0%, #e4e4e4 100%)',
+                  border: '1px solid #c0c0c0',
+                  borderRadius: 3,
+                  fontSize: 10,
+                  fontWeight: 700,
+                  fontFamily: 'Segoe UI, Tahoma, sans-serif',
+                  color: '#444',
+                  cursor: 'pointer',
+                  boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.9)',
+                  transition: 'all 0.1s',
+                }}
+                onMouseEnter={e => {
+                  e.currentTarget.style.background = 'linear-gradient(180deg, #ddeeff 0%, #c2d8f5 100%)';
+                  e.currentTarget.style.borderColor = '#7aaee0';
+                  e.currentTarget.style.color = '#1a3e7a';
+                }}
+                onMouseLeave={e => {
+                  e.currentTarget.style.background = 'linear-gradient(180deg, #f8f8f8 0%, #e4e4e4 100%)';
+                  e.currentTarget.style.borderColor = '#c0c0c0';
+                  e.currentTarget.style.color = '#444';
+                }}
+                onMouseDown={e => { e.currentTarget.style.boxShadow = 'inset 0 1px 2px rgba(0,0,0,0.12)'; }}
+                onMouseUp={e => { e.currentTarget.style.boxShadow = 'inset 0 1px 0 rgba(255,255,255,0.9)'; }}
+              >
+                <Newspaper size={10} /> News
+              </button>
+            </div>
           </div>
         </div>
 
+        
         {/* Main Content Area */}
         <div className="flex-1 flex p-4 gap-4 overflow-hidden relative">
 
@@ -2314,16 +2033,99 @@ export const ChatPage: React.FC<ChatPageProps> = ({ user, onLogout }) => {
 
             {/* My Profile Section */}
             <div className="relative group xl:w-[200px] mx-auto shrink-0">
-              <div className="w-full aspect-square bg-white border-2 border-[#ACA899] rounded-xl p-1.5 shadow-lg overflow-hidden transition-transform">
-                <div className="w-full h-full bg-[#F0F0F0] rounded-lg flex items-center justify-center overflow-hidden border border-black/5">
-                  <img src={currentUser.avatar} className="w-full h-full object-cover" alt="Me" />
+              {/* Avatar frame */}
+              <div
+                style={{
+                  width: '100%',
+                  aspectRatio: '1',
+                  background: 'linear-gradient(180deg, #f8f8f8 0%, #e8e8e8 100%)',
+                  border: '1px solid #b0b0b0',
+                  borderRadius: 12,
+                  padding: 5,
+                  boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.95), 0 2px 8px rgba(0,0,0,0.15)',
+                  overflow: 'hidden',
+                  transition: 'all 0.15s',
+                }}
+                onMouseEnter={e => {
+                  e.currentTarget.style.boxShadow = 'inset 0 1px 0 rgba(255,255,255,0.95), 0 4px 14px rgba(49,105,198,0.2)';
+                  e.currentTarget.style.borderColor = '#7aaee0';
+                }}
+                onMouseLeave={e => {
+                  e.currentTarget.style.boxShadow = 'inset 0 1px 0 rgba(255,255,255,0.95), 0 2px 8px rgba(0,0,0,0.15)';
+                  e.currentTarget.style.borderColor = '#b0b0b0';
+                }}
+              >
+                {/* Inner mat */}
+                <div
+                  style={{
+                    width: '100%',
+                    height: '100%',
+                    borderRadius: 8,
+                    overflow: 'hidden',
+                    border: '1px solid #d0d0d0',
+                    boxShadow: 'inset 0 1px 3px rgba(0,0,0,0.12)',
+                    background: '#e8e8e8',
+                    position: 'relative',
+                  }}
+                >
+                  <img
+                    src={currentUser.avatar}
+                    style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+                    alt="Me"
+                  />
+
+                  {/* Bottom shine */}
+                  <div style={{
+                    position: 'absolute',
+                    bottom: 0, left: 0, right: 0,
+                    height: '30%',
+                    background: 'linear-gradient(180deg, transparent, rgba(255,255,255,0.12))',
+                    pointerEvents: 'none',
+                  }} />
                 </div>
               </div>
+
+              {/* Side pull tab */}
               <div
                 onClick={() => setShowProfileDialog(true)}
-                className="absolute -right-0 top-1/2 -translate-y-1/2 w-4 h-10 xl:w-6 xl:h-12 bg-[#D6D3C4] border border-[#ACA899] rounded-l-md flex items-center justify-center cursor-pointer hover:bg-[#ECE9D8] transition-colors shadow-sm"
+                style={{
+                  position: 'absolute',
+                  right: -1,
+                  top: '50%',
+                  transform: 'translateY(-50%)',
+                  width: 16,
+                  height: 44,
+                  background: 'linear-gradient(180deg, #f8f8f8 0%, #d8d8d8 100%)',
+                  border: '1px solid #b0b0b0',
+                  borderLeft: 'none',
+                  borderRadius: '0 5px 5px 0',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  cursor: 'pointer',
+                  boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.8), 1px 1px 3px rgba(0,0,0,0.1)',
+                  transition: 'all 0.1s',
+                }}
+                onMouseEnter={e => {
+                  e.currentTarget.style.background = 'linear-gradient(180deg, #ddeeff 0%, #c2d8f5 100%)';
+                  e.currentTarget.style.borderColor = '#7aaee0';
+                }}
+                onMouseLeave={e => {
+                  e.currentTarget.style.background = 'linear-gradient(180deg, #f8f8f8 0%, #d8d8d8 100%)';
+                  e.currentTarget.style.borderColor = '#b0b0b0';
+                }}
               >
-                <div className="w-1.5 h-5 xl:w-2 border-l border-r border-[#ACA899]"></div>
+                {/* Grip dots */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 3, alignItems: 'center' }}>
+                  {[0, 1, 2].map(i => (
+                    <div key={i} style={{
+                      width: 3, height: 3,
+                      borderRadius: '50%',
+                      background: 'linear-gradient(180deg, #aaa 0%, #888 100%)',
+                      boxShadow: '0 1px 0 rgba(255,255,255,0.6)',
+                    }} />
+                  ))}
+                </div>
               </div>
             </div>
 
@@ -2332,24 +2134,176 @@ export const ChatPage: React.FC<ChatPageProps> = ({ user, onLogout }) => {
         </div>
 
         {/* Footer Bar */}
-        {/*<div className="h-8 border-t border-[#ACA899] px-4 flex items-center justify-between text-[11px] select-none shrink-0" style={{ backgroundColor: theme.bgColor }}>
-          <div className="flex items-center gap-3">
-            <span className="font-bold text-[#0055E5] cursor-pointer hover:underline transition-all">Click for new Emoticons and Theme Packs from Blue Mountain</span>
+        <div
+          className="shrink-0 select-none"
+          style={{
+            background: 'linear-gradient(180deg, #f0f0f0 0%, #d8d8d8 100%)',
+            borderTop: '1px solid #b0b0b0',
+            boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.9)',
+          }}
+        >
+
+
+          {/* Bottom strip — developer credit */}
+          <div style={{
+            height: 38,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            paddingLeft: 10,
+            paddingRight: 10,
+          }}>
+            {/* Left — WLM branding dots */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+              {[
+                { color1: '#4a85d8', color2: '#2a5fb5', border: '#1e4fa0' },
+                { color1: '#5ab840', color2: '#3a9020', border: '#2a7010' },
+                { color1: '#ffe033', color2: '#d4a800', border: '#b8900a' },
+                { color1: '#e84040', color2: '#c02020', border: '#a01010' },
+              ].map((c, i) => (
+                <div key={i} style={{
+                  width: 12, height: 12,
+                  background: `linear-gradient(180deg, ${c.color1} 0%, ${c.color2} 100%)`,
+                  border: `1px solid ${c.border}`,
+                  borderRadius: 2,
+                  boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.3)',
+                }} />
+              ))}
+              <span style={{
+                fontSize: 12, fontWeight: 700, color: '#888',
+                fontFamily: 'Segoe UI, Tahoma, sans-serif',
+                marginLeft: 4, letterSpacing: '0.02em',
+              }}>
+                Dot Messenger
+              </span>
+            </div>
+
+            {/* Center — developer name */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+              <div style={{
+                width: 16, height: 16,
+                background: 'linear-gradient(180deg, #4a85d8 0%, #2a5fb5 100%)',
+                border: '1px solid #1e4fa0',
+                borderRadius: 3,
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.3)',
+                flexShrink: 0,
+              }}>
+                {/* code icon */}
+                <svg width="9" height="9" viewBox="0 0 9 9" fill="none">
+                  <path d="M2.5 2L1 4.5L2.5 7M6.5 2L8 4.5L6.5 7" stroke="white" strokeWidth="1.2" strokeLinecap="round"/>
+                </svg>
+              </div>
+              <span style={{
+                fontSize: 10, fontWeight: 700,
+                fontFamily: 'Segoe UI, Tahoma, sans-serif',
+                color: '#555',
+              }}>
+                Built by
+              </span>
+              <span style={{
+                fontSize: 11, fontWeight: 800,
+                fontFamily: 'Segoe UI, Tahoma, sans-serif',
+                color: '#2a5fb5',
+                letterSpacing: '0.01em',
+              }}>
+                Aarab Abderrahmane
+              </span>
+            </div>
+
+            {/* Right — GitHub + LinkedIn icons */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+              {/* GitHub */}
+              <a
+                href="https://github.com/aarab-abderrahmane"
+                target="_blank"
+                rel="noopener noreferrer"
+                title="GitHub"
+                style={{
+                  width: 28, height: 28,
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  background: 'linear-gradient(180deg, #f8f8f8 0%, #e4e4e4 100%)',
+                  border: '1px solid #c0c0c0',
+                  borderRadius: 3,
+                  color: '#333',
+                  textDecoration: 'none',
+                  boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.9)',
+                  transition: 'all 0.1s',
+                }}
+                onMouseEnter={e => {
+                  (e.currentTarget as HTMLAnchorElement).style.background = 'linear-gradient(180deg, #333 0%, #111 100%)';
+                  (e.currentTarget as HTMLAnchorElement).style.borderColor = '#000';
+                  (e.currentTarget as HTMLAnchorElement).style.color = '#fff';
+                }}
+                onMouseLeave={e => {
+                  (e.currentTarget as HTMLAnchorElement).style.background = 'linear-gradient(180deg, #f8f8f8 0%, #e4e4e4 100%)';
+                  (e.currentTarget as HTMLAnchorElement).style.borderColor = '#c0c0c0';
+                  (e.currentTarget as HTMLAnchorElement).style.color = '#333';
+                }}
+              >
+                {/* GitHub SVG */}
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M12 2C6.477 2 2 6.477 2 12c0 4.418 2.865 8.166 6.839 9.489.5.092.682-.217.682-.482 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0 1 12 6.844a9.59 9.59 0 0 1 2.504.337c1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.02 10.02 0 0 0 22 12c0-5.523-4.477-10-10-10z"/>
+                </svg>
+              </a>
+
+              {/* LinkedIn */}
+              <a
+                href="https://www.linkedin.com/in/aarab-abderrahmane-2b9509336"
+                target="_blank"
+                rel="noopener noreferrer"
+                title="LinkedIn"
+                style={{
+                  width: 28, height: 28,
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  background: 'linear-gradient(180deg, #f8f8f8 0%, #e4e4e4 100%)',
+                  border: '1px solid #c0c0c0',
+                  borderRadius: 3,
+                  color: '#0077b5',
+                  textDecoration: 'none',
+                  boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.9)',
+                  transition: 'all 0.1s',
+                }}
+                onMouseEnter={e => {
+                  (e.currentTarget as HTMLAnchorElement).style.background = 'linear-gradient(180deg, #0077b5 0%, #005a8e 100%)';
+                  (e.currentTarget as HTMLAnchorElement).style.borderColor = '#004a7c';
+                  (e.currentTarget as HTMLAnchorElement).style.color = '#fff';
+                }}
+                onMouseLeave={e => {
+                  (e.currentTarget as HTMLAnchorElement).style.background = 'linear-gradient(180deg, #f8f8f8 0%, #e4e4e4 100%)';
+                  (e.currentTarget as HTMLAnchorElement).style.borderColor = '#c0c0c0';
+                  (e.currentTarget as HTMLAnchorElement).style.color = '#0077b5';
+                }}
+              >
+                {/* LinkedIn SVG */}
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 0 1-2.063-2.065 2.064 2.064 0 1 1 2.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/>
+                </svg>
+              </a>
+
+              {/* Version badge */}
+              <div style={{
+                height: 28,
+                paddingLeft: 6, paddingRight: 6,
+                display: 'flex', alignItems: 'center',
+                background: 'linear-gradient(180deg, #f8f8f8 0%, #e4e4e4 100%)',
+                border: '1px solid #c0c0c0',
+                borderRadius: 3,
+                fontSize: 11,
+                fontWeight: 800,
+                fontFamily: 'Segoe UI, Tahoma, sans-serif',
+                color: '#888',
+                boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.9)',
+                letterSpacing: '0.04em',
+              }}>
+                v1.0
+              </div>
+            </div>
           </div>
-          {isTyping && (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              className="italic font-medium opacity-60"
-            >
-              Poops is typing...
-            </motion.div>
-          )}
-          <div className="flex items-center gap-2">
-            <div className="w-4 h-4 bg-[#0055E5] rounded-sm shadow-sm"></div>
-            <div className="w-4 h-4 bg-[#ACA899] rounded-sm shadow-sm"></div>
-          </div>
-        </div> */}
+        </div>
+
+
+        
       </motion.div >
       <input
         type="file"
@@ -2364,1399 +2318,20 @@ export const ChatPage: React.FC<ChatPageProps> = ({ user, onLogout }) => {
   );
 };
 
-function PendingPhotoDialog({ imageData, onClose, onSend }: { imageData: { url: string, text: string }, onClose: () => void, onSend: (url: string, text: string) => void }) {
-  return (
-    <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-[200] p-4 backdrop-blur-sm">
-      <motion.div
-        initial={{ scale: 0.9, opacity: 0, y: 20 }}
-        animate={{ scale: 1, opacity: 1, y: 0 }}
-        exit={{ scale: 0.9, opacity: 0, y: 20 }}
-        className="w-[450px] bg-white/80 backdrop-blur-xl border border-white/40 rounded-lg shadow-[0_20px_50px_rgba(0,0,0,0.3)] overflow-hidden flex flex-col"
-      >
-        <TitleBar title="Preview Photo - Windows Photo Viewer" variant="live" icon="/assets/icons/user.png" />
-        <div className="p-6 flex flex-col items-center gap-6 relative">
-          <div className="absolute inset-0 bg-gradient-to-b from-white/20 to-transparent pointer-events-none" />
-          <div className="relative group w-full flex justify-center">
-            <div className="absolute -inset-1 bg-white/20 rounded-lg blur-sm opacity-0 group-hover:opacity-100 transition-opacity" />
-            <img
-              src={imageData.url}
-              className="max-w-full max-h-[350px] object-contain rounded-md border border-white/50 shadow-lg relative z-10"
-              alt="Pending Photo"
-            />
-          </div>
 
-          <div className="flex flex-col items-center gap-1 z-10">
-            <div className="text-[15px] text-gray-800 font-semibold drop-shadow-sm">Send this photo to Dot Messenger?</div>
-            <div className="text-[12px] text-gray-500 font-medium italic">Image will be sent as a high-quality attachment</div>
-          </div>
 
-          <div className="flex gap-4 w-full z-10">
-            <button
-              onClick={() => onSend(imageData.url, imageData.text)}
-              className="flex-1 h-11 bg-gradient-to-b from-[#4BA1E8] via-[#3B8ED4] to-[#2B7BC0] text-white rounded-md text-sm font-bold shadow-[0_1px_3px_rgba(0,0,0,0.2),inset_0_1px_0_rgba(255,255,255,0.3)] hover:brightness-110 active:brightness-95 active:shadow-inner transition-all border border-[#1A5485] flex items-center justify-center gap-2"
-            >
-              <span>Send Photo</span>
-            </button>
-            <button
-              onClick={onClose}
-              className="flex-1 h-11 bg-gradient-to-b from-[#F2F2F2] via-[#E6E6E6] to-[#D9D9D9] border border-[#A6A6A6] rounded-md text-sm font-bold text-gray-700 shadow-[0_1px_2px_rgba(0,0,0,0.1),inset_0_1px_0_rgba(255,255,255,0.5)] hover:from-white hover:to-[#F0F0F0] active:brightness-95 transition-all"
-            >
-              Cancel
-            </button>
-          </div>
-        </div>
-      </motion.div>
-    </div>
-  );
-}
-
-
-import { ZoomOut, ZoomIn, RotateCcw } from "lucide-react";
-function PhotoPreviewDialog({ imageUrl, onClose }: { imageUrl: string, onClose: () => void }) {
-  const [scale, setScale] = useState(0.9);
-
-  const zoomIn = (e: React.MouseEvent) => { e.stopPropagation(); setScale(prev => Math.min(prev + 0.25, 3)); };
-  const zoomOut = (e: React.MouseEvent) => { e.stopPropagation(); setScale(prev => Math.max(prev - 0.25, 0.5)); };
-  const reset = (e: React.MouseEvent) => { e.stopPropagation(); setScale(1); };
-
-  return (
-    <div
-      className="fixed inset-0 flex items-center justify-center z-[200] p-4"
-      style={{ background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)' }}
-      onClick={onClose}
-    >
-      <motion.div
-        initial={{ scale: 0.95, opacity: 0 }}
-        animate={{ scale: 1, opacity: 1 }}
-        exit={{ scale: 0.95, opacity: 0 }}
-        onClick={e => e.stopPropagation()}
-        style={{
-          display: 'flex',
-          flexDirection: 'column',
-          width: 800,
-          maxWidth: '95vw',
-          height: '85vh',
-          maxHeight: 640,
-          background: 'linear-gradient(180deg, #f0f0f0 0%, #e0e0e0 100%)',
-          border: '1px solid #a0a0a0',
-          borderRadius: 8,
-          boxShadow: '0 8px 40px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.9)',
-          overflow: 'hidden',
-        }}
-      >
-        {/* Title bar */}
-        <TitleBar title="Windows Photo Viewer" variant="live" icon="/assets/icons/image.png" onClose={onClose} />
-
-        {/* Toolbar strip */}
-        <div style={{
-          height: 36,
-          background: 'linear-gradient(180deg, #f8f8f8 0%, #e8e8e8 100%)',
-          borderBottom: '1px solid #c0c0c0',
-          display: 'flex',
-          alignItems: 'center',
-          paddingLeft: 10,
-          paddingRight: 10,
-          gap: 4,
-          flexShrink: 0,
-          boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.95)',
-        }}>
-          {/* Zoom out toolbar btn */}
-          {[
-            { icon: <ZoomOut size={14} />, label: 'Zoom Out', action: zoomOut },
-            { icon: <ZoomIn size={14} />, label: 'Zoom In', action: zoomIn },
-            { icon: <RotateCcw size={14} />, label: 'Reset', action: reset },
-          ].map(btn => (
-            <button
-              key={btn.label}
-              onClick={btn.action}
-              title={btn.label}
-              style={{
-                height: 24,
-                paddingLeft: 8, paddingRight: 8,
-                display: 'flex', alignItems: 'center', gap: 5,
-                background: 'linear-gradient(180deg, #f8f8f8 0%, #e4e4e4 100%)',
-                border: '1px solid #c0c0c0',
-                borderRadius: 3,
-                fontSize: 11,
-                fontWeight: 700,
-                fontFamily: 'Segoe UI, Tahoma, sans-serif',
-                color: '#444',
-                cursor: 'pointer',
-                boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.9)',
-                transition: 'all 0.1s',
-              }}
-              onMouseEnter={e => {
-                e.currentTarget.style.background = 'linear-gradient(180deg, #ddeeff 0%, #c2d8f5 100%)';
-                e.currentTarget.style.borderColor = '#7aaee0';
-                e.currentTarget.style.color = '#1a4fa0';
-              }}
-              onMouseLeave={e => {
-                e.currentTarget.style.background = 'linear-gradient(180deg, #f8f8f8 0%, #e4e4e4 100%)';
-                e.currentTarget.style.borderColor = '#c0c0c0';
-                e.currentTarget.style.color = '#444';
-              }}
-            >
-              {btn.icon} {btn.label}
-            </button>
-          ))}
-
-          {/* Divider */}
-          <div style={{ width: 1, height: 16, background: 'linear-gradient(180deg, transparent, #c0c0c0, transparent)', margin: '0 4px' }} />
-
-          {/* Zoom % display */}
-          <div style={{
-            height: 24, paddingLeft: 8, paddingRight: 8,
-            display: 'flex', alignItems: 'center',
-            background: 'linear-gradient(180deg, #ffffff 0%, #f0f0f0 100%)',
-            border: '1px solid #c0c0c0',
-            borderRadius: 3,
-            fontSize: 11,
-            fontWeight: 700,
-            fontFamily: 'Segoe UI, Tahoma, sans-serif',
-            color: '#333',
-            boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.06)',
-            minWidth: 52,
-            justifyContent: 'center',
-          }}>
-            {Math.round(scale * 100)}%
-          </div>
-        </div>
-
-        {/* Image area — checkered background like a real photo viewer */}
-        <div
-          style={{
-            flex: 1,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            overflow: 'hidden',
-            position: 'relative',
-            backgroundImage: `
-              linear-gradient(45deg, #ddd 25%, transparent 25%),
-              linear-gradient(-45deg, #ddd 25%, transparent 25%),
-              linear-gradient(45deg, transparent 75%, #ddd 75%),
-              linear-gradient(-45deg, transparent 75%, #ddd 75%)
-            `,
-            backgroundSize: '16px 16px',
-            backgroundPosition: '0 0, 0 8px, 8px -8px, -8px 0px',
-            backgroundColor: '#eaeaea',
-          }}
-        >
-          <motion.img
-            src={imageUrl}
-            animate={{ scale }}
-            transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-            style={{
-              maxWidth: '90%',
-              maxHeight: '90%',
-              objectFit: 'contain',
-              transformOrigin: 'center',
-              boxShadow: '0 4px 24px rgba(0,0,0,0.3)',
-              border: '1px solid #c0c0c0',
-              borderRadius: 2,
-            }}
-            alt="Preview"
-          />
-        </div>
-
-        {/* Bottom action bar */}
-        <div
-          style={{
-            height: 62,
-            background: 'linear-gradient(180deg, #f0f0f0 0%, #d8d8d8 100%)',
-            borderTop: '1px solid #b0b0b0',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: 8,
-            flexShrink: 0,
-            boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.8)',
-            paddingLeft: 16,
-            paddingRight: 16,
-          }}
-        >
-          {/* Zoom controls pill */}
-          {/* <div style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: 6,
-            background: 'linear-gradient(180deg, #f8f8f8 0%, #ececec 100%)',
-            border: '1px solid #c0c0c0',
-            borderRadius: 20,
-            padding: '4px 10px',
-            boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.95)',
-          }}>
-            <button
-              onClick={zoomOut}
-              style={{
-                width: 22, height: 22,
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                background: 'linear-gradient(180deg, #f8f8f8 0%, #e4e4e4 100%)',
-                border: '1px solid #c0c0c0',
-                borderRadius: '50%',
-                color: '#555',
-                cursor: 'pointer',
-                boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.9)',
-                transition: 'all 0.1s',
-              }}
-              onMouseEnter={e => {
-                e.currentTarget.style.background = 'linear-gradient(180deg, #ffecec 0%, #ffd0d0 100%)';
-                e.currentTarget.style.borderColor = '#e08080';
-                e.currentTarget.style.color = '#cc2222';
-              }}
-              onMouseLeave={e => {
-                e.currentTarget.style.background = 'linear-gradient(180deg, #f8f8f8 0%, #e4e4e4 100%)';
-                e.currentTarget.style.borderColor = '#c0c0c0';
-                e.currentTarget.style.color = '#555';
-              }}
-            >
-              <MinusIcon size={12} />
-            </button>
-
-            <span style={{
-              fontSize: 12, fontWeight: 800, color: '#333',
-              fontFamily: 'Segoe UI, Tahoma, sans-serif',
-              minWidth: 40, textAlign: 'center',
-              tabularNums: 'tabular-nums',
-            }}>
-              {Math.round(scale * 100)}%
-            </span>
-
-            <button
-              onClick={zoomIn}
-              style={{
-                width: 22, height: 22,
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                background: 'linear-gradient(180deg, #f8f8f8 0%, #e4e4e4 100%)',
-                border: '1px solid #c0c0c0',
-                borderRadius: '50%',
-                color: '#555',
-                cursor: 'pointer',
-                boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.9)',
-                transition: 'all 0.1s',
-              }}
-              onMouseEnter={e => {
-                e.currentTarget.style.background = 'linear-gradient(180deg, #ddeeff 0%, #c2d8f5 100%)';
-                e.currentTarget.style.borderColor = '#7aaee0';
-                e.currentTarget.style.color = '#1a4fa0';
-              }}
-              onMouseLeave={e => {
-                e.currentTarget.style.background = 'linear-gradient(180deg, #f8f8f8 0%, #e4e4e4 100%)';
-                e.currentTarget.style.borderColor = '#c0c0c0';
-                e.currentTarget.style.color = '#555';
-              }}
-            >
-              <Plus size={12} />
-            </button>
-          </div> */}
-
-          <div style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: 6,
-            background: 'linear-gradient(180deg, #f8f8f8 0%, #ececec 100%)',
-            border: '1px solid #c0c0c0',
-            borderRadius: 20,
-            padding: '4px 6px',
-            boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.95)',
-          }}>
-
-            {/* Zoom Out */}
-            <button
-              onClick={zoomOut}
-              title="Zoom Out"
-              style={{
-                width: 32, height: 32,
-                borderRadius: '50%',
-                background: 'linear-gradient(180deg, #e05050 0%, #b83030 100%)',
-                border: '1px solid #902020',
-                color: '#fff',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                cursor: 'pointer',
-                boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.25), 0 2px 4px rgba(0,0,0,0.3)',
-                transition: 'all 0.1s',
-              }}
-              onMouseEnter={e => e.currentTarget.style.background = 'linear-gradient(180deg, #f06060 0%, #c84040 100%)'}
-              onMouseLeave={e => e.currentTarget.style.background = 'linear-gradient(180deg, #e05050 0%, #b83030 100%)'}
-            >
-              <MinusIcon size={15} />
-            </button>
-
-            {/* Zoom track */}
-            <div style={{
-              width: 80,
-              height: 4,
-              background: '#222',
-              borderRadius: 2,
-              border: '1px solid #444',
-              position: 'relative',
-              overflow: 'hidden',
-            }}>
-              <div style={{
-                position: 'absolute', left: 0, top: 0, bottom: 0,
-                width: `${((scale - 0.25) / 2.75) * 100}%`,
-                background: 'linear-gradient(90deg, #4a85d8, #7ab0f0)',
-                borderRadius: 2,
-                transition: 'width 0.2s',
-              }} />
-            </div>
-
-            {/* Zoom In */}
-            <button
-              onClick={zoomIn}
-              title="Zoom In"
-              style={{
-                width: 32, height: 32,
-                borderRadius: '50%',
-                background: 'linear-gradient(180deg, #4a85d8 0%, #2a5fb5 100%)',
-                border: '1px solid #1e4fa0',
-                color: '#fff',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                cursor: 'pointer',
-                boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.25), 0 2px 4px rgba(0,0,0,0.3)',
-                transition: 'all 0.1s',
-              }}
-              onMouseEnter={e => e.currentTarget.style.background = 'linear-gradient(180deg, #5a95e8 0%, #3a6fc5 100%)'}
-              onMouseLeave={e => e.currentTarget.style.background = 'linear-gradient(180deg, #4a85d8 0%, #2a5fb5 100%)'}
-            >
-              <Plus size={15} />
-            </button>
-          </div>
-
-          {/* Divider */}
-          <div style={{ width: 1, height: 20, background: 'linear-gradient(180deg, transparent, #b0b0b0, transparent)' }} />
-
-          {/* Download button */}
-          <a
-            href={imageUrl}
-            download="shared-photo.png"
-            style={{
-              height: 38,
-              paddingLeft: 14, paddingRight: 14,
-              display: 'flex', alignItems: 'center', gap: 6,
-              background: 'linear-gradient(180deg, #4a85d8 0%, #2a5fb5 100%)',
-              border: '1px solid #1e4fa0',
-              borderRadius: 5,
-              fontSize: 14,
-              fontWeight: 700,
-              fontFamily: 'Segoe UI, Tahoma, sans-serif',
-              color: '#fff',
-              textDecoration: 'none',
-              cursor: 'pointer',
-              boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.3), 0 1px 3px rgba(42,95,181,0.3)',
-              textShadow: '0 1px 1px rgba(0,0,0,0.2)',
-              transition: 'all 0.1s',
-            }}
-            onMouseEnter={e => {
-              (e.currentTarget as HTMLAnchorElement).style.background = 'linear-gradient(180deg, #5a95e8 0%, #3a6fc5 100%)';
-            }}
-            onMouseLeave={e => {
-              (e.currentTarget as HTMLAnchorElement).style.background = 'linear-gradient(180deg, #4a85d8 0%, #2a5fb5 100%)';
-            }}
-          >
-            <Download size={13} /> Save Photo
-          </a>
-        </div>
-      </motion.div>
-    </div>
-  );
-}
-
-
-
-
-function GiftDialog({ onClose, onSend }: { onClose: () => void, onSend: (msg: string, count: number) => void }) {
-  const [msg, setMsg] = useState('');
-  const [count, setCount] = useState(1);
-
-  return (
-    <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-[100] p-4">
-      <motion.div
-        initial={{ scale: 0.9, opacity: 0 }}
-        animate={{ scale: 1, opacity: 1 }}
-        exit={{ scale: 0.9, opacity: 0 }}
-        className="w-[400px] bg-white border border-[#ACA899] rounded-lg shadow-2xl overflow-hidden flex flex-col"
-      >
-        <div className="h-8 bg-gradient-to-b from-[#0058E6] via-[#3C96FF] to-[#0058E6] flex items-center justify-between px-2">
-          <span className="text-white font-bold text-xs">Send a Gift</span>
-          <button onClick={onClose} className="text-white hover:bg-red-500 p-1 rounded transition-colors">
-            <X size={14} />
-          </button>
-        </div>
-        <div className="p-6 flex flex-col gap-4">
-          <div className="space-y-1">
-            <label className="text-[11px] font-bold text-gray-600">Gift Message</label>
-            <input
-              type="text"
-              className="w-full h-10 px-3 border border-[#ACA899] rounded-md text-sm focus:outline-none focus:border-[#003399]"
-              placeholder="Enter your message..."
-              value={msg}
-              onChange={(e) => setMsg(e.target.value)}
-            />
-          </div>
-          <div className="space-y-1">
-            <label className="text-[11px] font-bold text-gray-600">Number of people who can open it (Max 5)</label>
-            <select
-              className="w-full h-10 px-3 border border-[#ACA899] rounded-md text-sm focus:outline-none focus:border-[#003399]"
-              value={count}
-              onChange={(e) => setCount(parseInt(e.target.value))}
-              disabled={count >= 5}
-            >
-              {[1, 2, 3, 4, 5].map(n => (
-                <option key={n} value={n}>{n} {n === 1 ? 'person' : 'people'}</option>
-              ))}
-            </select>
-            {count >= 5 && <p className="text-[10px] text-red-500 font-bold mt-1">Maximum limit reached (5). Deactivated automatically.</p>}
-          </div>
-          <div className="flex gap-3 mt-4">
-            <button
-              onClick={() => onSend(msg, count)}
-              className="flex-1 h-10 bg-gradient-to-b from-[#F8F8F8] to-[#D6D3C4] border border-[#ACA899] rounded-lg text-sm font-bold text-gray-700 shadow-sm hover:brightness-105 active:shadow-inner transition-all"
-            >
-              Send Gift
-            </button>
-            <button
-              onClick={onClose}
-              className="flex-1 h-10 bg-gradient-to-b from-[#F8F8F8] to-[#D6D3C4] border border-[#ACA899] rounded-lg text-sm font-bold text-gray-700 shadow-sm hover:brightness-105 active:shadow-inner transition-all"
-            >
-              Cancel
-            </button>
-          </div>
-        </div>
-      </motion.div>
-    </div>
-  );
-}
-
-function NewsDialog({ news, onClose }: { news: NewsItem, onClose: () => void }) {
-  return (
-    <div className="fixed inset-0 bg-black/40 backdrop-blur-md flex items-center justify-center z-[150] p-4" onClick={onClose}>
-      <motion.div
-        initial={{ scale: 0.9, opacity: 0, y: 40 }}
-        animate={{ scale: 1, opacity: 1, y: 0 }}
-        exit={{ scale: 0.9, opacity: 0, y: 40 }}
-        className="w-[650px] max-h-[90vh] bg-white border border-[#A0A0A0] rounded-xl shadow-[0_40px_100px_rgba(0,0,0,0.5)] overflow-hidden flex flex-col relative"
-        onClick={(e) => e.stopPropagation()}
-      >
-        {/* Title Bar */}
-
-
-        <TitleBar title="Dot Messenger News Reader" variant="live" icon="/assets/icons/image.png" />
-
-        <div className="flex-1 overflow-y-auto custom-scrollbar-modern bg-[#F8F9FA]">
-          {news.coverImage ? (
-            <div className="w-full h-64 relative overflow-hidden group">
-              <img src={news.coverImage} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" alt="Cover" />
-              <div className="absolute inset-0 bg-gradient-to-t from-[#1a1a1a] via-transparent to-transparent opacity-80" />
-              <div className="absolute bottom-6 left-8 right-8 flex flex-col gap-2">
-                <div className="flex items-center gap-2">
-                  <span className={`px-2 py-0.5 rounded text-[10px] font-black tracking-[0.2em] text-white uppercase border shadow-sm
-                    ${news.type === 'breaking' ? 'bg-[#FF6600] border-[#FF6600]' : 'bg-[#3169C6] border-[#3169C6]'}`}>
-                    {news.type}
-                  </span>
-                  <span className="text-[11px] font-bold text-white/80 drop-shadow-sm">
-                    {new Date(news.publicationTime).toLocaleDateString([], { month: 'long', day: 'numeric', year: 'numeric' })}
-                  </span>
-                </div>
-                <h2 className="text-3xl font-black text-white leading-tight drop-shadow-xl tracking-tight">
-                  {news.headline}
-                </h2>
-              </div>
-            </div>
-          ) : (
-            <div className="p-10 pb-6 border-b border-gray-100 bg-white">
-              <div className="flex items-center gap-2 mb-4">
-                <span className={`px-2 py-0.5 rounded text-[10px] font-black tracking-[0.2em] text-white uppercase border shadow-sm
-                    ${news.type === 'breaking' ? 'bg-[#FF6600] border-[#FF6600]' : 'bg-[#3169C6] border-[#3169C6]'}`}>
-                  {news.type}
-                </span>
-                <span className="text-[11px] font-bold text-gray-400">
-                  {new Date(news.publicationTime).toLocaleDateString([], { month: 'long', day: 'numeric', year: 'numeric' })}
-                </span>
-              </div>
-              <h2 className="text-4xl font-black text-gray-900 leading-[1.1] tracking-tighter">
-                {news.headline}
-              </h2>
-            </div>
-          )}
-
-          <div className="p-10 pt-8 flex flex-col gap-8 bg-white/50 backdrop-blur-sm">
-            <div className="text-lg text-gray-700 leading-relaxed font-serif space-y-6">
-              {news.text.split('\n').map((para, i) => (
-                <p key={i} className="first-letter:text-5xl first-letter:font-bold first-letter:mr-3 first-letter:float-left first-letter:text-[#3169C6] first-letter:mt-1">{para}</p>
-              ))}
-            </div>
-
-            {news.attachments && news.attachments.length > 0 && (
-              <div className="mt-4 p-8 bg-gradient-to-br from-[#F0F7FF] to-white border-2 border-[#3169C6]/10 rounded-2xl flex flex-col gap-4 shadow-inner">
-                <div className="flex items-center gap-2">
-                  <TrendingUp size={18} className="text-[#3169C6]" />
-                  <span className="text-sm font-black text-gray-800 uppercase tracking-widest">Discover More Content</span>
-                </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  {news.attachments.map((att, i) => (
-                    <a
-                      key={i}
-                      href={att.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex items-center justify-between px-5 py-3.5 bg-white hover:bg-[#3169C6] border border-gray-200 hover:border-[#3169C6] rounded-xl group transition-all hover:shadow-[0_10px_20px_rgba(49,105,198,0.15)]"
-                    >
-                      <div className="flex items-center gap-3">
-                        <div className="p-2 bg-blue-50 group-hover:bg-white/20 rounded-lg transition-colors">
-                          <ExternalLink size={16} className="text-[#3169C6] group-hover:text-white" />
-                        </div>
-                        <span className="text-[14px] font-bold text-gray-800 group-hover:text-white">{att.name}</span>
-                      </div>
-                      <div className="w-6 h-6 rounded-full border border-gray-100 group-hover:border-white/30 flex items-center justify-center transition-all opacity-0 group-hover:opacity-100 group-hover:translate-x-1">
-                        <Plus size={12} className="text-white" />
-                      </div>
-                    </a>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
-
-        <div className="p-5 bg-white border-t border-gray-100 flex justify-between items-center shrink-0">
-          <div className="flex items-center gap-2 text-xs font-bold text-gray-400 uppercase tracking-tighter">
-            <Clock size={14} className="text-[#3169C6]" />
-            <span>Published on {new Date(news.publicationTime).toLocaleDateString([], { month: 'long', day: 'numeric', year: 'numeric' })}</span>
-          </div>
-          <button
-            onClick={onClose}
-            className="px-10 h-11 bg-gradient-to-b from-[#3169C6] to-[#0055E5] border border-[#003399] rounded-xl text-sm font-black text-white shadow-[0_4px_12px_rgba(49,105,198,0.3)] hover:brightness-110 active:brightness-95 active:shadow-inner transition-all flex items-center gap-2"
-          >
-            <span>Close Article</span>
-          </button>
-        </div>
-      </motion.div>
-    </div>
-  );
-}
-
-function StickerDialog({ onSelect, onClose, fetchRandomGif }: { onSelect: (url: string, type: 'sticker' | 'gif') => void, onClose: () => void, fetchRandomGif: (q: string) => Promise<any> }) {
-  const [tab, setTab] = useState<'stickers' | 'gifs'>('stickers');
-  const [searchQuery, setSearchQuery] = useState('');
-
-  const [gifList, setGifList] = useState()
-
-  useEffect(() => {
-    // This timer makes sure we wait 500ms after you stop typing
-    const delayDebounceFn = setTimeout(async () => {
-      const data = await fetchRandomGif(searchQuery ? searchQuery : "funny");
-
-      if (Array.isArray(data)) {
-        setGifList(data);
-      }
-    }, 500);
-
-    return () => clearTimeout(delayDebounceFn); // Clean up the timer
-  }, [searchQuery]);
-
-
-  const filteredItems = gifList?.filter(gif => {
-
-    return gif.slug.toLowerCase().includes(searchQuery.toLowerCase());
-  });
-
-
-  return (
-    <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-[130] p-4">
-      <motion.div
-        initial={{ scale: 0.9, opacity: 0 }}
-        animate={{ scale: 1, opacity: 1 }}
-        exit={{ scale: 0.9, opacity: 0 }}
-        className="w-[450px] bg-white border border-[#ACA899] rounded-lg shadow-2xl overflow-hidden flex flex-col"
-      >
-        <TitleBar title="Select Sticker or GIF" />
-        <div className="p-4 flex flex-col gap-4">
-          <div className="flex border-b border-[#ACA899]">
-            <button
-              onClick={() => setTab('stickers')}
-              className={`px-4 py-2 text-sm font-bold transition-all ${tab === 'stickers' ? 'text-[#3169C6] border-b-2 border-[#3169C6] bg-blue-50' : 'text-gray-500 hover:bg-gray-50'}`}
-            >
-              Stickers
-            </button>
-            <button
-              onClick={() => setTab('gifs')}
-              className={`px-4 py-2 text-sm font-bold transition-all ${tab === 'gifs' ? 'text-[#3169C6] border-b-2 border-[#3169C6] bg-blue-50' : 'text-gray-500 hover:bg-gray-50'}`}
-            >
-              GIFs
-            </button>
-          </div>
-
-
-
-
-          {
-            tab === "gifs" ? (
-
-              <>
-                <div className="relative">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
-                  <input
-                    type="text"
-                    placeholder={`Search ${tab}...`}
-                    className="w-full h-10 pl-10 pr-4 bg-gray-50 border border-[#ACA899] rounded-md text-sm focus:outline-none focus:border-[#3169C6] focus:ring-1 focus:ring-[#3169C6]/20 transition-all"
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                  />
-                </div>
-
-                <div className="h-[300px] overflow-y-auto p-2 grid grid-cols-3 gap-3 bg-gray-50 rounded border border-[#ACA899]/30">
-                  {filteredItems?.length > 0 ? (
-                    filteredItems.map((gif, i) => (
-                      <div
-                        key={i}
-                        onClick={() => onSelect(gif.images.fixed_height.url, 'gif')}
-                        className="bg-white border border-[#ACA899]/70 rounded p-2 cursor-pointer hover:border-[#3169C6] hover:shadow-md transition-all flex items-center justify-center group"
-                      >
-                        <img src={gif.images.fixed_height.url} className="max-w-full max-h-full group-hover:scale-110 transition-transform" alt="Sticker/GIF" />
-                      </div>
-                    ))
-                  ) : (
-                    <div className="col-span-4 h-full flex flex-col items-center justify-center text-gray-400 gap-2">
-                      <Search size={32} className="opacity-20" />
-                      <span className="text-sm font-medium">No results found for "{searchQuery}"</span>
-                    </div>
-                  )}
-                </div>
-
-              </>
-            ) : (
-
-
-
-              <div className="h-[300px] overflow-y-auto p-2 grid grid-cols-3 gap-3 bg-gray-50 rounded border border-[#ACA899]/30">
-                {STICKERS.length > 0 ? (
-                  STICKERS.map((url, i) => (
-                    <div
-                      key={i}
-                      onClick={() => onSelect(url, 'sticker')}
-                      className="bg-white border border-[#ACA899]/70 rounded p-2 cursor-pointer hover:border-[#3169C6] hover:shadow-md transition-all flex items-center justify-center group"
-                    >
-                      <img src={url} className="max-w-full max-h-full group-hover:scale-110 transition-transform" alt="Sticker/GIF" />
-                    </div>
-                  ))
-                ) : (
-                  <div className="col-span-2 h-full flex flex-col items-center justify-center text-gray-400 gap-2">
-                    <Search size={32} className="opacity-20" />
-                    <span className="text-sm font-medium">No results found for Stickers</span>
-                  </div>
-                )}
-              </div>
-            )
-          }
-
-          <div className="flex gap-2">
-            <button
-              onClick={onClose}
-              className="flex-1 h-10 bg-gradient-to-b from-[#F8F8F8] to-[#E0E0E0] border border-[#ACA899] rounded-lg text-sm font-bold text-gray-700 shadow-sm hover:brightness-105 transition-all"
-            >
-              Cancel
-            </button>
-          </div>
-        </div>
-      </motion.div>
-    </div>
-  );
-}
-
-function UserProfileDialog({ user, IP, lastMessageObj, onClose }: { user: any, IP: string, lastMessageObj: Message | undefined, onClose: () => void }) {
-  const formatDate = (timestamp: number) => {
-    // Create the Date object here!
-    const date = new Date(timestamp);
-
-    const year = date.getFullYear();
-    const month = date.toLocaleString('default', { month: 'long' });
-    const day = date.getDate();
-    const hours = date.getHours().toString().padStart(2, '0');
-    const minutes = date.getMinutes().toString().padStart(2, '0');
-
-    return `${year} ${month} ${day} ${hours}:${minutes}`;
-  };
-
-  return (
-    <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-[110] p-4">
-      <motion.div
-        initial={{ scale: 0.9, opacity: 0 }}
-        animate={{ scale: 1, opacity: 1 }}
-        exit={{ scale: 0.9, opacity: 0 }}
-        className="w-[450px] bg-white border border-[#ACA899] rounded-lg shadow-2xl overflow-hidden flex flex-col"
-      >
-        <TitleBar title={`User Profile - ${user.username}`} />
-        <div className="p-6 flex flex-col gap-6">
-          <div className="flex items-center gap-6">
-            <div className="w-24 h-24 bg-white border-2 border-[#ACA899] rounded-xl p-1.5 shadow-md shrink-0">
-              <img src={user.avatar} className="w-full h-full object-cover rounded-lg" alt={user.username} />
-            </div>
-            <div className="flex flex-col gap-1 overflow-hidden">
-              <h2 className="text-2xl font-bold text-[#3169C6] truncate">{user.username}</h2>
-              <div className="flex items-center gap-2">
-                <div className={`w-3 h-3 rounded-full ${user.status === 'online' ? 'bg-green-500' : 'bg-red-500'}`}></div>
-                <span className="text-sm font-medium text-gray-600">{user.status}</span>
-              </div>
-              <div className="flex items-center gap-1.5 text-[13px] text-gray-500 mt-1">
-                <Mail size={12} />
-                <span className="truncate">{user.email}</span>
-              </div>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 gap-4">
-            <div className="bg-[#F8F8F8] border border-[#ACA899]/30 rounded-lg p-4 flex flex-col gap-3">
-              <div className="flex items-center gap-3 text-gray-700">
-                <Calendar size={16} className="text-[#3169C6]" />
-                <div className="flex flex-col">
-                  <span className="text-[10px] font-bold uppercase text-gray-400">Account Created</span>
-                  <span className="text-sm font-medium">{formatDate(user.creationDate)}</span>
-                </div>
-              </div>
-              <div className="flex items-center gap-3 text-gray-700">
-                <Globe size={16} className="text-[#3169C6]" />
-                <div className="flex flex-col">
-                  <span className="text-[10px] font-bold uppercase text-gray-400">IP Address</span>
-                  <span className="text-sm font-medium font-mono">{IP}</span>
-                </div>
-              </div>
-              <div className="flex flex-col gap-2 pt-2 border-t border-[#ACA899]/20">
-                <div className="flex items-center gap-3 text-gray-700">
-                  <MessageSquare size={16} className="text-[#3169C6]" />
-                  <div className="flex flex-col">
-                    <span className="text-[10px] font-bold uppercase text-gray-400">Last Message Sent</span>
-                    <span className="text-sm font-medium italic">
-
-                      {!lastMessageObj ? 'No messages yet' : lastMessageObj.type === "text" ? lastMessageObj.content : lastMessageObj.text}
-                    </span>
-                  </div>
-                </div>
-                {lastMessageObj && (
-                  <div className="flex items-center gap-3 text-gray-700 ml-7">
-                    <Clock size={12} className="text-gray-400" />
-                    <span className="text-[11px] text-gray-500">
-                      {formatDate(new Date(lastMessageObj.timestamp).getTime())}
-                    </span>
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-
-          <button
-            onClick={onClose}
-            className="w-full h-10 bg-gradient-to-b from-[#F8F8F8] to-[#E0E0E0] border border-[#ACA899] rounded-lg text-sm font-bold text-gray-700 shadow-sm hover:brightness-105 transition-all"
-          >
-            Close Profile
-          </button>
-        </div>
-      </motion.div>
-    </div>
-  );
-}
-
-function ThemeDialog({ currentTheme, onClose, onSave }: { currentTheme: any, onClose: () => void, onSave: (theme: any) => void }) {
-  const [theme, setTheme] = useState(currentTheme);
-
-  return (
-    <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-[100] p-4">
-      <motion.div
-        initial={{ scale: 0.9, opacity: 0 }}
-        animate={{ scale: 1, opacity: 1 }}
-        exit={{ scale: 0.9, opacity: 0 }}
-        className="w-[400px] bg-white border border-[#ACA899] rounded-lg shadow-2xl overflow-hidden flex flex-col"
-      >
-        <TitleBar title="Customize Theme" />
-        <div className="p-6 flex flex-col gap-4">
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-1">
-              <label className="text-[11px] font-bold text-gray-600">Background Color</label>
-              <input
-                type="color"
-                className="w-full h-10 border border-[#ACA899] rounded-md cursor-pointer"
-                value={theme.bgColor}
-                onChange={(e) => setTheme({ ...theme, bgColor: e.target.value })}
-              />
-            </div>
-            <div className="space-y-1">
-              <label className="text-[11px] font-bold text-gray-600">Text Color</label>
-              <input
-                type="color"
-                className="w-full h-10 border border-[#ACA899] rounded-md cursor-pointer"
-                value={theme.textColor}
-                onChange={(e) => setTheme({ ...theme, textColor: e.target.value })}
-              />
-            </div>
-          </div>
-
-          <div className="space-y-1">
-            <label className="text-[11px] font-bold text-gray-600">Font Family</label>
-            <select
-              className="w-full h-10 px-3 border border-[#ACA899] rounded-md text-sm focus:outline-none focus:border-[#003399] text-black"
-              value={theme.fontFamily}
-              onChange={(e) => setTheme({ ...theme, fontFamily: e.target.value })}
-            >
-              <option value="sans-serif">Sans Serif</option>
-              <option value="serif">Serif</option>
-              <option value="monospace">Monospace</option>
-              <option value="'Comic Sans MS', cursive">Comic Sans</option>
-            </select>
-          </div>
-
-          <div className="space-y-1">
-            <label className="text-[11px] font-bold text-gray-600">App Font Size ({theme.appFontSize}px)</label>
-            <input
-              type="range"
-              min="10"
-              max="24"
-              step="1"
-              className="w-full h-10"
-              value={theme.appFontSize}
-              onChange={(e) => setTheme({ ...theme, appFontSize: parseInt(e.target.value) })}
-            />
-          </div>
-
-          <div className="flex flex-col gap-2 mt-4">
-            <div className="flex gap-3">
-              <button
-                onClick={() => onSave(theme)}
-                className="flex-1 h-10 bg-gradient-to-b from-[#F8F8F8] to-[#E0E0E0] border border-[#ACA899] rounded-lg text-sm font-bold text-gray-700 shadow-sm hover:brightness-105 transition-all"
-              >
-                Apply Theme
-              </button>
-              <button
-                onClick={onClose}
-                className="flex-1 h-10 bg-gradient-to-b from-[#F8F8F8] to-[#E0E0E0] border border-[#ACA899] rounded-lg text-sm font-bold text-gray-700 shadow-sm hover:brightness-105 transition-all"
-              >
-                Cancel
-              </button>
-            </div>
-            <button
-              onClick={() => setTheme(DEFAULT_THEME)}
-              className="w-full h-10 bg-gradient-to-b from-[#F8F8F8] to-[#E0E0E0] border border-[#ACA899] rounded-lg text-sm font-bold text-[#3169C6] shadow-sm hover:brightness-105 transition-all"
-            >
-              Reset to Default
-            </button>
-          </div>
-        </div>
-      </motion.div>
-    </div>
-  );
-}
-
-function ProfileDialog({ user, onClose, onSave }: { user: UserData, onClose: () => void, onSave: (user: UserData) => void }) {
-  const [username, setUsername] = useState(user.username);
-  const [avatar, setAvatar] = useState(user.avatar);
-  const [confirmPassword, setConfirmPassword] = useState(user.password || '');
-  const [newPassword, setNewPassword] = useState('');
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [showNewPassword, setShowNewPassword] = useState(false);
-  const [showAvatars, setShowAvatars] = useState(false);
-
-  return (
-    <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-[100] p-4">
-      <motion.div
-        initial={{ scale: 0.9, opacity: 0 }}
-        animate={{ scale: 1, opacity: 1 }}
-        exit={{ scale: 0.9, opacity: 0 }}
-        className="w-[450px] bg-white border border-[#ACA899] rounded-lg shadow-2xl  flex flex-col"
-      >
-        <TitleBar title="Edit Profile" icon="/assets/icons/user.png" />
-        <div className="p-8 flex flex-col gap-6">
-          <div className="flex gap-6">
-            <div className="flex flex-col items-center gap-3 relative">
-              <div className="relative group cursor-pointer" onClick={() => setShowAvatars(!showAvatars)}>
-                <div className="w-24 h-24 bg-white border-4 border-[#88C057] rounded-xl p-1 shadow-md overflow-hidden flex items-center justify-center">
-                  <img src={avatar} className="w-full h-full object-cover rounded-lg" alt="Avatar" />
-                </div>
-                <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center rounded-lg">
-                  <span className="text-white text-[10px] font-bold">Change</span>
-                </div>
-              </div>
-
-              <AnimatePresence>
-                {showAvatars && (
-                  <motion.div
-                    initial={{ opacity: 0, scale: 0.9, y: 10 }}
-                    animate={{ opacity: 1, scale: 1, y: 0 }}
-                    exit={{ opacity: 0, scale: 0.9, y: 10 }}
-                    className="absolute top-[90px] mt-4 -left-36 bg-white border border-[#A0A0A0] rounded-xl shadow-2xl z-[110] w-96 overflow-hidden flex flex-col"
-                  >
-                    <div className="bg-[#F3F3F3] border-b border-[#E0E0E0] p-3 flex items-center justify-between">
-                      <span className="text-xs font-bold text-gray-700">Choose your dynamic picture</span>
-                      <button onClick={() => setShowAvatars(false)} className="text-gray-400 hover:text-gray-600">
-                        <X size={14} />
-                      </button>
-                    </div>
-
-                    <div className="p-3 max-h-64 overflow-y-auto custom-scrollbar">
-                      <div className="grid grid-cols-5 gap-3">
-                        {AVATARS.map((url, idx) => (
-                          <motion.img
-                            key={idx}
-                            whileHover={{ scale: 1.1 }}
-                            whileTap={{ scale: 0.95 }}
-                            src={url}
-                            className={`w-14 h-14 rounded-lg cursor-pointer border-2 transition-all object-cover ${avatar === url ? 'border-[#88C057] shadow-md' : 'border-transparent hover:border-gray-300'
-                              }`}
-                            onClick={() => {
-                              setAvatar(url); // Fixed name
-                              setShowAvatars(false); // Fixed name
-                            }}
-                            alt={`Avatar ${idx}`}
-                          />
-                        ))}
-                      </div>
-                    </div>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </div>
-            <div className="flex-1 flex flex-col gap-4">
-              <div className="space-y-1">
-                <label className="text-[11px] font-bold text-gray-600">Email</label>
-                <input
-                  type="text"
-                  className="w-full h-10 px-3 border border-[#ACA899] rounded-md text-sm focus:outline-none focus:border-[#003399]"
-                  value={user.email}
-                  // onChange={(e) => setEmail(e.target.value)}
-                  disabled
-                />
-
-              </div>
-              <div className="space-y-1">
-                <label className="text-[11px] font-bold text-gray-600">Display Name </label>
-                <input
-                  type="text"
-                  className="w-full h-10 px-3 border border-[#ACA899] rounded-md text-sm focus:outline-none focus:border-[#003399]"
-                  value={username}
-                  onChange={(e) => setUsername(e.target.value)}
-                />
-
-              </div>
-              <div className="space-y-1">
-                <label className="text-[11px] font-bold text-gray-600">New Password</label>
-                <div className="relative">
-                  <input
-                    type={showNewPassword ? 'text' : 'password'}
-                    className="w-full h-10 px-3 pr-10 border border-[#ACA899] rounded-md text-sm focus:outline-none focus:border-[#003399]"
-                    value={newPassword}
-                    onChange={(e) => setNewPassword(e.target.value)}
-                    placeholder="None set"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowNewPassword(!showNewPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
-                  >
-                    {showNewPassword ? <EyeOff size={16} /> : <Eye size={16} />}
-                  </button>
-                </div>
-              </div>
-              <div className="space-y-1">
-                <label className="text-[11px] font-bold text-gray-600">New Password</label>
-                <div className="relative">
-                  <input
-                    type={showConfirmPassword ? 'text' : 'password'}
-                    className="w-full h-10 px-3 pr-10 border border-[#ACA899] rounded-md text-sm focus:outline-none focus:border-[#003399]"
-                    value={confirmPassword}
-                    onChange={(e) => setConfirmPassword(e.target.value)}
-                    placeholder="Enter new password"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
-                  >
-                    {showConfirmPassword ? <EyeOff size={16} /> : <Eye size={16} />}
-                  </button>
-                </div>
-              </div>
-              <p className="text-[10px] text-gray-500 italic">This is how you appear to your contacts.</p>
-            </div>
-          </div>
-          <div className="flex gap-3 mt-4">
-            <button
-              onClick={() => onSave({ email: user.email, username, avatar, password: newPassword || confirmPassword, token: user.token })}
-              className="flex-1 h-10 bg-gradient-to-b from-[#F8F8F8] to-[#E0E0E0] border border-[#ACA899] rounded-lg text-sm font-bold text-gray-700 shadow-sm hover:brightness-105 transition-all"
-            >
-              Save Changes
-            </button>
-            <button
-              onClick={onClose}
-              className="flex-1 h-10 bg-gradient-to-b from-[#F8F8F8] to-[#E0E0E0] border border-[#ACA899] rounded-lg text-sm font-bold text-gray-700 shadow-sm hover:brightness-105 transition-all"
-            >
-              Cancel
-            </button>
-          </div>
-        </div>
-      </motion.div>
-    </div>
-  );
-}
-
-function PdfPreviewDialog({ pdf, onClose }: { pdf: { name: string, content: string }, onClose: () => void }) {
-  return (
-    <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-[250] p-4 backdrop-blur-sm" onClick={onClose}>
-      <motion.div
-        initial={{ scale: 0.9, opacity: 0, y: 20 }}
-        animate={{ scale: 1, opacity: 1, y: 0 }}
-        exit={{ scale: 0.9, opacity: 0, y: 20 }}
-        className="w-[90vw]   h-[90vh]  max-w-[1000px] max-h-[700px] bg-white border border-[#ACA899] rounded-lg shadow-2xl overflow-hidden flex flex-col"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <TitleBar title={`PDF Preview - ${pdf.name}`} variant="live" icon="/assets/icons/image.png" onClose={onClose} />
-        <div className="flex-1 bg-gray-100 relative">
-          <iframe
-            src={pdf.content}
-            className="w-full h-full border-none"
-            title={pdf.name}
-          />
-        </div>
-        <div className="h-14 bg-gradient-to-b from-[#f0f0f0] to-[#dcdcdc] border-t border-[#ACA899] flex items-center justify-end px-6 gap-4">
-          <a
-            href={pdf.content}
-            download={pdf.name}
-            className="h-10 px-6 bg-gradient-to-b from-[#4BA1E8] via-[#3B8ED4] to-[#2B7BC0] text-white rounded-md text-sm font-bold shadow-sm hover:brightness-105 active:brightness-95 transition-all border border-[#1A5485] flex items-center justify-center gap-2"
-          >
-            <Download size={16} /> Download
-          </a>
-          <button
-            onClick={onClose}
-            className="h-10 px-6 bg-gradient-to-b from-[#F2F2F2] to-[#D9D9D9] border border-[#A6A6A6] rounded-md text-sm font-bold text-gray-700 shadow-sm hover:from-white hover:to-[#F0F0F0] active:brightness-95 transition-all"
-          >
-            Close
-          </button>
-        </div>
-      </motion.div>
-    </div>
-  );
-}
-
-function ToolbarButton({ icon, label }: { icon: React.ReactNode, label: string }) {
-  return (
-    <motion.div
-      whileHover={{ y: -2 }}
-      whileTap={{ y: 0 }}
-      className="flex flex-col items-center gap-1.5 cursor-pointer group"
-    >
-      <div className="w-12 h-12 bg-gradient-to-b from-white to-[#E8E8E8] border border-[#ACA899] rounded-xl flex items-center justify-center shadow-md group-hover:shadow-lg group-active:shadow-inner transition-all overflow-hidden relative">
-        <div className="absolute inset-0 bg-gradient-to-b from-white/90 to-transparent h-1/2 rounded-t-xl"></div>
-        <div className="text-[#3169C6] z-10 drop-shadow-sm">{icon}</div>
-      </div>
-      <span className="text-[11px] font-bold text-gray-700 group-hover:text-[#0055E5] group-hover:underline transition-colors">{label}</span>
-    </motion.div>
-  );
-}
-
-function FormatButton({ icon, label, onClick, active }: {
-  icon: React.ReactNode,
-  label?: string,
-  onClick?: () => void,
-  active?: boolean
-}) {
-  return (
-    <div
-      onClick={onClick}
-      title={label}
-      style={{
-        height: 30,
-        paddingLeft: label && label !== 'text' && label !== 'emoji' ? 8 : 6,
-        paddingRight: label && label !== 'text' && label !== 'emoji' ? 10 : 6,
-        display: 'flex',
-        alignItems: 'center',
-        gap: 5,
-        background: active
-          ? 'linear-gradient(180deg, #ddeeff 0%, #c2d8f5 100%)'
-          : 'linear-gradient(180deg, #f8f8f8 0%, #e8e8e8 100%)',
-        border: active ? '1px solid #7aaee0' : '1px solid #c0c0c0',
-        borderRadius: 6,
-        cursor: 'pointer',
-        boxShadow: active
-          ? 'inset 0 1px 0 rgba(255,255,255,0.7), inset 0 -1px 0 rgba(49,105,198,0.1)'
-          : 'inset 0 1px 0 rgba(255,255,255,0.95), 0 1px 1px rgba(0,0,0,0.08)',
-        transition: 'all 0.1s',
-        userSelect: 'none',
-      }}
-      onMouseEnter={e => {
-        if (!active) {
-          e.currentTarget.style.background = 'linear-gradient(180deg, #ececec 0%, #dcdcdc 100%)';
-          e.currentTarget.style.borderColor = '#aaa';
-        }
-      }}
-      onMouseLeave={e => {
-        if (!active) {
-          e.currentTarget.style.background = 'linear-gradient(180deg, #f8f8f8 0%, #e8e8e8 100%)';
-          e.currentTarget.style.borderColor = '#c0c0c0';
-        }
-      }}
-    >
-      {/* Icon */}
-      <div style={{ color: active ? '#2a5fb5' : '#555', display: 'flex', alignItems: 'center' }}>
-        {icon}
-      </div>
-
-      {/* Label for Voice Clip / PDF */}
-      {(label === 'Voice Clip' || label === 'PDF') && (
-        <span style={{
-          fontSize: 12,
-          fontWeight: 700,
-          fontFamily: 'Segoe UI, Tahoma, sans-serif',
-          color: active ? '#1a4fa0' : '#444',
-          whiteSpace: 'nowrap',
-        }}>
-          {label}
-        </span>
-      )}
-
-      {/* Dropdown arrow for text / emoji */}
-      {(label === 'text' || label === 'emoji') && (
-        <div style={{
-          width: 0, height: 0,
-          borderLeft: '3px solid transparent',
-          borderRight: '3px solid transparent',
-          borderTop: `4px solid ${active ? '#2a5fb5' : '#777'}`,
-          marginLeft: 1,
-        }} />
-      )}
-    </div>
-  );
-}
-
-
-function AddNewsDialog({ onClose, onAdd }: { onClose: () => void, onAdd: (news: NewsItem) => void }) {
-  const [headline, setHeadline] = useState('');
-  const [text, setText] = useState('');
-  const [type, setType] = useState<'breaking' | 'regular'>('regular');
-  const [expirationDate, setExpirationDate] = useState('');
-  const [coverImage, setCoverImage] = useState('');
-  const [attachments, setAttachments] = useState<{ name: string, url: string }[]>([]);
-
-  const handleAddAttachment = () => {
-    if (attachments.length < 2) {
-      setAttachments([...attachments, { name: '', url: '' }]);
-    }
-  };
-
-  const handleAttachmentChange = (index: number, field: 'name' | 'url', value: string) => {
-    const newAttachments = [...attachments];
-    newAttachments[index][field] = value;
-    setAttachments(newAttachments);
-  };
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!headline || !text || !expirationDate) return;
-
-    const newNews: NewsItem = {
-      id: Date.now().toString(),
-      type,
-      headline,
-      text,
-      publicationTime: new Date(),
-      expirationDate: new Date(expirationDate),
-      coverImage: coverImage || undefined,
-      attachments: attachments.filter(a => a.name && a.url).length > 0 ? attachments.filter(a => a.name && a.url) : undefined
-    };
-
-    onAdd(newNews);
-  };
-
-  return (
-    <div className="fixed inset-0 bg-black/20 backdrop-blur-sm flex items-center justify-center z-[150] p-4">
-      <motion.div
-        initial={{ scale: 0.95, opacity: 0, y: 20 }}
-        animate={{ scale: 1, opacity: 1, y: 0 }}
-        exit={{ scale: 0.95, opacity: 0, y: 20 }}
-        className="w-[500px] bg-white/80 backdrop-blur-xl border border-white/40 rounded-xl shadow-[0_32px_64px_rgba(0,0,0,0.3)] overflow-hidden flex flex-col relative"
-      >
-        <div className="absolute inset-0 bg-gradient-to-br from-white/40 via-transparent to-black/5 pointer-events-none" />
-        <TitleBar title="Create News Item - MSN Today" variant="live" icon="/assets/icons/globe.png" />
-
-        <form onSubmit={handleSubmit} className="p-6 flex flex-col gap-4 relative z-10 overflow-y-auto custom-scrollbar max-h-[70vh]">
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-1">
-              <label className="text-[11px] font-bold text-gray-600 uppercase tracking-wider">Headline *</label>
-              <input
-                type="text"
-                required
-                className="w-full h-10 px-3 bg-white/50 border border-[#ACA899] rounded-md text-sm focus:outline-none focus:border-[#3169C6] focus:ring-1 focus:ring-[#3169C6]/20 transition-all text-black"
-                value={headline}
-                onChange={(e) => setHeadline(e.target.value)}
-                placeholder="Enter headline..."
-              />
-            </div>
-            <div className="space-y-1">
-              <label className="text-[11px] font-bold text-gray-600 uppercase tracking-wider">News Type *</label>
-              <select
-                className="w-full h-10 px-3 bg-white/50 border border-[#ACA899] rounded-md text-sm focus:outline-none focus:border-[#3169C6] text-black"
-                value={type}
-                onChange={(e) => setType(e.target.value as 'breaking' | 'regular')}
-              >
-                <option value="regular">Regular News</option>
-                <option value="breaking">Breaking News</option>
-              </select>
-            </div>
-          </div>
-
-          <div className="space-y-1">
-            <label className="text-[11px] font-bold text-gray-600 uppercase tracking-wider">Description *</label>
-            <textarea
-              required
-              className="w-full h-24 p-3 bg-white/50 border border-[#ACA899] rounded-md text-sm focus:outline-none focus:border-[#3169C6] focus:ring-1 focus:ring-[#3169C6]/20 transition-all resize-none text-black"
-              value={text}
-              onChange={(e) => setText(e.target.value)}
-              placeholder="Enter news description..."
-            />
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-1">
-              <label className="text-[11px] font-bold text-gray-600 uppercase tracking-wider">Expiration Date *</label>
-              <input
-                type="date"
-                required
-                className="w-full h-10 px-3 bg-white/50 border border-[#ACA899] rounded-md text-sm focus:outline-none focus:border-[#3169C6] text-black"
-                value={expirationDate}
-                onChange={(e) => setExpirationDate(e.target.value)}
-              />
-            </div>
-            <div className="space-y-1">
-              <label className="text-[11px] font-bold text-gray-600 uppercase tracking-wider">Cover Image URL (Optional)</label>
-              <input
-                type="text"
-                className="w-full h-10 px-3 bg-white/50 border border-[#ACA899] rounded-md text-sm focus:outline-none focus:border-[#3169C6] text-black"
-                value={coverImage}
-                onChange={(e) => setCoverImage(e.target.value)}
-                placeholder="https://..."
-              />
-            </div>
-          </div>
-
-          <div className="space-y-2">
-            <div className="flex items-center justify-between">
-              <label className="text-[11px] font-bold text-gray-600 uppercase tracking-wider">Attachments (Max 2)</label>
-              <button
-                type="button"
-                onClick={handleAddAttachment}
-                disabled={attachments.length >= 2}
-                className="text-[10px] font-bold text-[#3169C6] hover:underline disabled:opacity-50"
-              >
-                + Add Attachment
-              </button>
-            </div>
-            {attachments.map((att, i) => (
-              <div key={i} className="flex gap-2 p-3 bg-black/5 rounded-lg border border-black/5">
-                <input
-                  type="text"
-                  placeholder="Name (e.g. Read more)"
-                  className="flex-1 h-8 px-2 bg-white/80 border border-[#ACA899] rounded text-[11px] focus:outline-none focus:border-[#3169C6] text-black"
-                  value={att.name}
-                  onChange={(e) => handleAttachmentChange(i, 'name', e.target.value)}
-                />
-                <input
-                  type="text"
-                  placeholder="URL (https://...)"
-                  className="flex-1 h-8 px-2 bg-white/80 border border-[#ACA899] rounded text-[11px] focus:outline-none focus:border-[#3169C6] text-black"
-                  value={att.url}
-                  onChange={(e) => handleAttachmentChange(i, 'url', e.target.value)}
-                />
-              </div>
-            ))}
-          </div>
-
-          <div className="flex gap-3 mt-4">
-            <button
-              type="submit"
-              className="flex-1 h-11 bg-gradient-to-b from-[#4BA1E8] via-[#3B8ED4] to-[#2B7BC0] text-white rounded-lg text-sm font-bold shadow-[0_1px_3px_rgba(0,0,0,0.2),inset_0_1px_0_rgba(255,255,255,0.3)] hover:brightness-110 active:brightness-95 transition-all border border-[#1A5485]"
-            >
-              Post News
-            </button>
-            <button
-              type="button"
-              onClick={onClose}
-              className="flex-1 h-11 bg-gradient-to-b from-white via-[#F0F0F0] to-[#E0E0E0] border border-[#ACA899] rounded-lg text-sm font-bold text-gray-700 shadow-[0_1px_2px_rgba(0,0,0,0.1)] hover:brightness-105 active:shadow-inner transition-all flex items-center justify-center gap-2"
-            >
-              Cancel
-            </button>
-          </div>
-        </form>
-      </motion.div>
-    </div>
-  );
-}
-
-function PendingPdfDialog({ files, onClose, onSend }: { files: File[], onClose: () => void, onSend: (files: File[]) => void }) {
-  const [selectedFiles, setSelectedFiles] = useState<File[]>(files);
-
-  const removeFile = (index: number) => {
-    const newFiles = [...selectedFiles];
-    newFiles.splice(index, 1);
-    setSelectedFiles(newFiles);
-    if (newFiles.length === 0) {
-      onClose();
-    }
-  };
-
-  return (
-    <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-[200] p-4 backdrop-blur-sm">
-      <motion.div
-        initial={{ scale: 0.9, opacity: 0, y: 20 }}
-        animate={{ scale: 1, opacity: 1, y: 0 }}
-        exit={{ scale: 0.9, opacity: 0, y: 20 }}
-        className="w-[450px] bg-white border border-[#ACA899] rounded-lg shadow-2xl overflow-hidden flex flex-col"
-      >
-        <TitleBar title="Send PDF Files" variant="live" icon="/assets/icons/user.png" onClose={onClose} />
-        <div className="p-6 flex flex-col gap-6">
-          <div className="flex flex-col gap-1">
-            <div className="text-[15px] text-gray-800 font-semibold">Attached PDF Files</div>
-            <div className="text-[12px] text-gray-500 font-medium italic">You can select up to 3 files at once</div>
-          </div>
-
-          <div className="flex flex-col gap-3 min-h-[100px] max-h-[250px] overflow-y-auto pr-2 scrollbar-thin">
-            {selectedFiles.map((file, index) => (
-              <div
-                key={`${file.name}-${index}`}
-                className="flex items-center justify-between p-3 bg-gray-50 border border-[#ACA899]/30 rounded-lg group hover:border-[#3169C6]/50 transition-colors"
-              >
-                <div className="flex items-center gap-3 overflow-hidden">
-                  <div className="bg-red-50 p-2 rounded-md">
-                    <FileText size={20} className="text-red-500" />
-                  </div>
-                  <div className="flex flex-col overflow-hidden">
-                    <span className="text-[13px] font-bold truncate text-gray-800">{file.name}</span>
-                    <span className="text-[11px] text-gray-500">{(file.size / 1024).toFixed(1)} KB</span>
-                  </div>
-                </div>
-                <button
-                  onClick={() => removeFile(index)}
-                  className="p-1.5 hover:bg-red-50 rounded-full text-gray-400 hover:text-red-500 transition-colors"
-                  title="Remove file"
-                >
-                  <X size={16} />
-                </button>
-              </div>
-            ))}
-          </div>
-
-          <div className="flex gap-4 w-full">
-            <button
-              onClick={() => onSend(selectedFiles)}
-              className="flex-1 h-11 bg-gradient-to-b from-[#4BA1E8] via-[#3B8ED4] to-[#2B7BC0] text-white rounded-md text-sm font-bold shadow-sm hover:brightness-110 active:brightness-95 transition-all border border-[#1A5485] flex items-center justify-center gap-2"
-            >
-              <span>Send {selectedFiles.length} file{selectedFiles.length > 1 ? 's' : ''}</span>
-            </button>
-            <button
-              onClick={onClose}
-              className="flex-1 h-11 bg-gradient-to-b from-[#F2F2F2] to-[#D9D9D9] border border-[#A6A6A6] rounded-md text-sm font-bold text-gray-700 shadow-sm hover:from-white hover:to-[#F0F0F0] active:brightness-95 transition-all"
-            >
-              Cancel
-            </button>
-          </div>
-        </div>
-      </motion.div>
-    </div>
-  );
-}
-
+// function ToolbarButton({ icon, label }: { icon: React.ReactNode, label: string }) {
+//   return (
+//     <motion.div
+//       whileHover={{ y: -2 }}
+//       whileTap={{ y: 0 }}
+//       className="flex flex-col items-center gap-1.5 cursor-pointer group"
+//     >
+//       <div className="w-12 h-12 bg-gradient-to-b from-white to-[#E8E8E8] border border-[#ACA899] rounded-xl flex items-center justify-center shadow-md group-hover:shadow-lg group-active:shadow-inner transition-all overflow-hidden relative">
+//         <div className="absolute inset-0 bg-gradient-to-b from-white/90 to-transparent h-1/2 rounded-t-xl"></div>
+//         <div className="text-[#3169C6] z-10 drop-shadow-sm">{icon}</div>
+//       </div>
+//       <span className="text-[11px] font-bold text-gray-700 group-hover:text-[#0055E5] group-hover:underline transition-colors">{label}</span>
+//     </motion.div>
+//   );
+// }

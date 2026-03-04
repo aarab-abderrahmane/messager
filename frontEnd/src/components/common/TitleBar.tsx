@@ -11,15 +11,143 @@ interface TitleBarProps {
 export const TitleBar: React.FC<TitleBarProps> = ({ title, variant = 'xp', icon  , onClose}) => {
   if (variant === 'live') {
     return (
-      <div className="h-10 bg-gradient-to-b from-[#F0F0F0] to-[#D0D0D0] flex items-center justify-between px-2 border-b border-[#A0A0A0] shrink-0">
-        <div className="flex items-center gap-2">
-          <img src={icon} className="w-6 h-5" alt="MSN" />
-          <span className="text-[13px] text-black font-medium">{title}</span>
+          <div
+        style={{
+          height: 38,
+          background: 'linear-gradient(180deg, #f0f0f0 0%, #d0d0d0 100%)',
+          borderBottom: '1px solid #a0a0a0',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          paddingLeft: 8,
+          paddingRight: 4,
+          flexShrink: 0,
+          userSelect: 'none',
+          boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.95), inset 0 -1px 0 rgba(0,0,0,0.08)',
+          position: 'relative',
+          overflow: 'hidden',
+        }}
+      >
+        {/* Gloss sweep */}
+        <div style={{
+          position: 'absolute',
+          top: 0, left: 0, right: 0,
+          height: '50%',
+          background: 'linear-gradient(180deg, rgba(255,255,255,0.7) 0%, rgba(255,255,255,0.2) 100%)',
+          pointerEvents: 'none',
+        }} />
+
+        {/* Left — icon + title */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 7, overflow: 'hidden', flex: 1 }}>
+          {icon && (
+            <div style={{
+              width: 18, height: 18,
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              flexShrink: 0,
+              filter: 'drop-shadow(0 1px 1px rgba(0,0,0,0.2))',
+            }}>
+              <img src={icon} style={{ width: 18, height: 18 }} alt="" />
+            </div>
+          )}
+          <span style={{
+            fontSize: 12,
+            fontWeight: 700,
+            fontFamily: 'Segoe UI, Tahoma, sans-serif',
+            color: '#222',
+            textShadow: '0 1px 0 rgba(255,255,255,0.8)',
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            whiteSpace: 'nowrap',
+          }}>
+            {title}
+          </span>
         </div>
-        <div className="flex items-center gap-1">
-          <button className="w-6 h-6 hover:bg-gray-200 flex items-center justify-center transition-colors rounded-sm"><Minus size={12} /></button>
-          <button className="w-6 h-6 hover:bg-gray-200 flex items-center justify-center transition-colors rounded-sm"><Square size={10} /></button>
-          <button className="w-11 h-6 hover:bg-[#E81123] hover:text-white flex items-center justify-center transition-colors rounded-sm cursor-pointer" onClick={onClose}><X size={12} /></button>
+
+        {/* Right — window controls */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 2, flexShrink: 0 }}>
+
+          {/* Minimize */}
+          <button
+            style={{
+              width: 22, height: 20,
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              background: 'linear-gradient(180deg, #f8f8f8 0%, #e0e0e0 100%)',
+              border: '1px solid #b0b0b0',
+              borderRadius: 3,
+              color: '#444',
+              cursor: 'pointer',
+              boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.9)',
+              transition: 'all 0.1s',
+            }}
+            onMouseEnter={e => {
+              e.currentTarget.style.background = 'linear-gradient(180deg, #ddeeff 0%, #c2d8f5 100%)';
+              e.currentTarget.style.borderColor = '#7aaee0';
+              e.currentTarget.style.color = '#1a4fa0';
+            }}
+            onMouseLeave={e => {
+              e.currentTarget.style.background = 'linear-gradient(180deg, #f8f8f8 0%, #e0e0e0 100%)';
+              e.currentTarget.style.borderColor = '#b0b0b0';
+              e.currentTarget.style.color = '#444';
+            }}
+          >
+            <Minus size={11} />
+          </button>
+
+          {/* Maximize */}
+          <button
+            style={{
+              width: 22, height: 20,
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              background: 'linear-gradient(180deg, #f8f8f8 0%, #e0e0e0 100%)',
+              border: '1px solid #b0b0b0',
+              borderRadius: 3,
+              color: '#444',
+              cursor: 'pointer',
+              boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.9)',
+              transition: 'all 0.1s',
+            }}
+            onMouseEnter={e => {
+              e.currentTarget.style.background = 'linear-gradient(180deg, #ddeeff 0%, #c2d8f5 100%)';
+              e.currentTarget.style.borderColor = '#7aaee0';
+              e.currentTarget.style.color = '#1a4fa0';
+            }}
+            onMouseLeave={e => {
+              e.currentTarget.style.background = 'linear-gradient(180deg, #f8f8f8 0%, #e0e0e0 100%)';
+              e.currentTarget.style.borderColor = '#b0b0b0';
+              e.currentTarget.style.color = '#444';
+            }}
+          >
+            <Square size={9} />
+          </button>
+
+          {/* Close — red on hover */}
+          <button
+            onClick={onClose}
+            style={{
+              width: 32, height: 20,
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              background: 'linear-gradient(180deg, #f8f8f8 0%, #e0e0e0 100%)',
+              border: '1px solid #b0b0b0',
+              borderRadius: 3,
+              color: '#555',
+              cursor: 'pointer',
+              boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.9)',
+              transition: 'all 0.1s',
+              marginLeft: 2,
+            }}
+            onMouseEnter={e => {
+              e.currentTarget.style.background = 'linear-gradient(180deg, #e05a38 0%, #b83018 100%)';
+              e.currentTarget.style.borderColor = '#8a1a08';
+              e.currentTarget.style.color = 'white';
+            }}
+            onMouseLeave={e => {
+              e.currentTarget.style.background = 'linear-gradient(180deg, #f8f8f8 0%, #e0e0e0 100%)';
+              e.currentTarget.style.borderColor = '#b0b0b0';
+              e.currentTarget.style.color = '#555';
+            }}
+          >
+            <X size={12} />
+          </button>
         </div>
       </div>
     );
@@ -53,24 +181,138 @@ export const TitleBar: React.FC<TitleBarProps> = ({ title, variant = 'xp', icon 
   }
 
   return (
-    <div className="h-10 bg-gradient-to-b from-[#0058E6] via-[#3C96FF] to-[#0058E6] flex items-center justify-between px-2 select-none shrink-0 border-b border-[#003399]">
-      <div className="flex items-center gap-2">
-        <div className="w-6 h-5  rounded-sm flex items-center justify-center shadow-inner">
-          {icon && <img src={icon} className="w-6 h-6" alt="MSN" />}
+      <div
+        style={{
+          height: 32,
+          background: 'linear-gradient(180deg, #1a6fd4 0%, #1255b0 40%, #0d4a9e 100%)',
+          borderBottom: '1px solid #0a3a80',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          paddingLeft: 8,
+          paddingRight: 4,
+          flexShrink: 0,
+          userSelect: 'none',
+          boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.25), inset 0 -1px 0 rgba(0,0,0,0.2)',
+          position: 'relative',
+          overflow: 'hidden',
+        }}
+      >
+        {/* Subtle gloss sweep */}
+        <div style={{
+          position: 'absolute',
+          top: 0, left: 0, right: 0,
+          height: '50%',
+          background: 'linear-gradient(180deg, rgba(255,255,255,0.18) 0%, rgba(255,255,255,0.04) 100%)',
+          pointerEvents: 'none',
+        }} />
+
+        {/* Left — icon + title */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 7, overflow: 'hidden', flex: 1 }}>
+          {icon && (
+            <div style={{
+              width: 18, height: 18,
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              flexShrink: 0,
+              filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.4))',
+            }}>
+              <img src={icon} style={{ width: 18, height: 18 }} alt="" />
+            </div>
+          )}
+          <span style={{
+            fontSize: 12,
+            fontWeight: 700,
+            fontFamily: 'Segoe UI, Tahoma, sans-serif',
+            color: 'rgba(255,255,255,0.95)',
+            textShadow: '0 1px 3px rgba(0,0,0,0.5)',
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            whiteSpace: 'nowrap',
+          }}>
+            {title}
+          </span>
         </div>
-        <span className="text-white font-bold text-sm drop-shadow-md">{title}</span>
+
+        {/* Right — window controls */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 2, flexShrink: 0 }}>
+
+          {/* Minimize */}
+          <button
+            style={{
+              width: 22, height: 20,
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              background: 'linear-gradient(180deg, rgba(255,255,255,0.18) 0%, rgba(255,255,255,0.06) 100%)',
+              border: '1px solid rgba(255,255,255,0.25)',
+              borderRadius: 3,
+              color: 'white',
+              cursor: 'pointer',
+              boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.2)',
+              transition: 'all 0.1s',
+            }}
+            onMouseEnter={e => {
+              e.currentTarget.style.background = 'linear-gradient(180deg, rgba(255,255,255,0.30) 0%, rgba(255,255,255,0.14) 100%)';
+              e.currentTarget.style.borderColor = 'rgba(255,255,255,0.45)';
+            }}
+            onMouseLeave={e => {
+              e.currentTarget.style.background = 'linear-gradient(180deg, rgba(255,255,255,0.18) 0%, rgba(255,255,255,0.06) 100%)';
+              e.currentTarget.style.borderColor = 'rgba(255,255,255,0.25)';
+            }}
+          >
+            <Minus size={11} color="white" />
+          </button>
+
+          {/* Maximize */}
+          <button
+            style={{
+              width: 22, height: 20,
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              background: 'linear-gradient(180deg, rgba(255,255,255,0.18) 0%, rgba(255,255,255,0.06) 100%)',
+              border: '1px solid rgba(255,255,255,0.25)',
+              borderRadius: 3,
+              color: 'white',
+              cursor: 'pointer',
+              boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.2)',
+              transition: 'all 0.1s',
+            }}
+            onMouseEnter={e => {
+              e.currentTarget.style.background = 'linear-gradient(180deg, rgba(255,255,255,0.30) 0%, rgba(255,255,255,0.14) 100%)';
+              e.currentTarget.style.borderColor = 'rgba(255,255,255,0.45)';
+            }}
+            onMouseLeave={e => {
+              e.currentTarget.style.background = 'linear-gradient(180deg, rgba(255,255,255,0.18) 0%, rgba(255,255,255,0.06) 100%)';
+              e.currentTarget.style.borderColor = 'rgba(255,255,255,0.25)';
+            }}
+          >
+            <Square size={9} color="white" />
+          </button>
+
+          {/* Close — red */}
+          <button
+            onClick={onClose}
+            style={{
+              width: 32, height: 20,
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              background: 'linear-gradient(180deg, #e05a38 0%, #b83018 100%)',
+              border: '1px solid #8a1a08',
+              borderRadius: 3,
+              color: 'white',
+              cursor: 'pointer',
+              boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.25), 0 1px 2px rgba(0,0,0,0.3)',
+              transition: 'all 0.1s',
+              marginLeft: 2,
+            }}
+            onMouseEnter={e => {
+              e.currentTarget.style.background = 'linear-gradient(180deg, #f07050 0%, #d04020 100%)';
+              e.currentTarget.style.borderColor = '#a02010';
+            }}
+            onMouseLeave={e => {
+              e.currentTarget.style.background = 'linear-gradient(180deg, #e05a38 0%, #b83018 100%)';
+              e.currentTarget.style.borderColor = '#8a1a08';
+            }}
+          >
+            <X size={12} color="white" />
+          </button>
+        </div>
       </div>
-      <div className="flex items-center gap-1">
-        <button className="w-6 h-5 bg-[#0058E6] border border-white/30 rounded-sm flex items-center justify-center hover:bg-[#3C96FF] transition-colors shadow-sm">
-          <Minus size={14} className="text-white" />
-        </button>
-        <button className="w-6 h-5 bg-[#0058E6] border border-white/30 rounded-sm flex items-center justify-center hover:bg-[#3C96FF] transition-colors shadow-sm">
-          <Square size={10} className="text-white" />
-        </button>
-        <button className="w-11 h-5 bg-gradient-to-b from-[#E96E4C] to-[#C33E23] border border-white/30 rounded-sm flex items-center justify-center hover:from-[#ff8e6c] hover:to-[#e35e43] transition-colors shadow-sm">
-          <X size={14} className="text-white" />
-        </button>
-      </div>
-    </div>
   );
 };
