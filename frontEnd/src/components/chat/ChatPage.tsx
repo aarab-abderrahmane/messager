@@ -1,13 +1,14 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useMemo } from 'react';
 import {
   User, Mic, Type, Smile,
   Gift, ImageIcon,
   Plus, Minus as MinusIcon, X, Reply,
-  Newspaper, Eye, FileText, Download
+  Newspaper, Eye, FileText, Download,
+  Search, ChevronUp, ChevronDown
 } from 'lucide-react';
 import { motion, useAnimation, AnimatePresence } from 'motion/react';
 import { Message, UserData, NewsItem } from '../../types';
-import {  ALL_EMOJIS } from '../../constants';
+import { ALL_EMOJIS } from '../../constants';
 
 
 import { TitleBar } from '../common/TitleBar';
@@ -68,42 +69,42 @@ export const ChatPage: React.FC<ChatPageProps> = ({ user, onLogout }) => {
   const [selectedNews, setSelectedNews] = useState<NewsItem | null>(null);
   const [newsList, setNewsList] = useState<NewsItem[]>(
     [
-    {
-      "id": "1",
-      "type": "breaking",
-      "headline": "Dot hits 100M users!",
-      "text": "Dot Messenger now has 100 million users! More and more people are using Dot to talk to friends every day.",
-      "publicationTime": "2026-02-25T10:00:00",
-      "expirationDate": "2026-03-10T10:00:00",
-      "coverImage": "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=800&auto=format&fit=crop&q=60",
-      "attachments": [{ "name": "Read more at Dot.com", "url": "https://Dot.com" }]
-    },
-    {
-      "id": "2",
-      "type": "breaking",
-      "headline": "New 3D Faces!",
-      "text": "Show how you feel with our new 3D moving faces. We have dancing robots and spinning hearts to make your chats fun!",
-      "publicationTime": "2026-02-28T14:30:00",
-      "expirationDate": "2026-03-05T14:30:00"
-    },
-    {
-      "id": "3",
-      "type": "regular",
-      "headline": "Dot Desktop Beta is out",
-      "text": "The new version of Dot for your computer is ready. Try the new beautiful look and better safety features today.",
-      "publicationTime": "2026-03-01T08:00:00",
-      "expirationDate": "2026-03-15T08:00:00",
-      "attachments": [{ "name": "Download now", "url": "#" }]
-    },
-    {
-      "id": "4",
-      "type": "regular",
-      "headline": "Top 10 Music Hits",
-      "text": "Listen to the best 10 songs this week on Dot Music. We have all the popular songs and new singers for you.",
-      "publicationTime": "2026-02-27T12:00:00",
-      "expirationDate": "2026-03-06T12:00:00"
-    }
-]
+      {
+        "id": "1",
+        "type": "breaking",
+        "headline": "Dot hits 100M users!",
+        "text": "Dot Messenger now has 100 million users! More and more people are using Dot to talk to friends every day.",
+        "publicationTime": "2026-02-25T10:00:00",
+        "expirationDate": "2026-03-10T10:00:00",
+        "coverImage": "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=800&auto=format&fit=crop&q=60",
+        "attachments": [{ "name": "Read more at Dot.com", "url": "https://Dot.com" }]
+      },
+      {
+        "id": "2",
+        "type": "breaking",
+        "headline": "New 3D Faces!",
+        "text": "Show how you feel with our new 3D moving faces. We have dancing robots and spinning hearts to make your chats fun!",
+        "publicationTime": "2026-02-28T14:30:00",
+        "expirationDate": "2026-03-05T14:30:00"
+      },
+      {
+        "id": "3",
+        "type": "regular",
+        "headline": "Dot Desktop Beta is out",
+        "text": "The new version of Dot for your computer is ready. Try the new beautiful look and better safety features today.",
+        "publicationTime": "2026-03-01T08:00:00",
+        "expirationDate": "2026-03-15T08:00:00",
+        "attachments": [{ "name": "Download now", "url": "#" }]
+      },
+      {
+        "id": "4",
+        "type": "regular",
+        "headline": "Top 10 Music Hits",
+        "text": "Listen to the best 10 songs this week on Dot Music. We have all the popular songs and new singers for you.",
+        "publicationTime": "2026-02-27T12:00:00",
+        "expirationDate": "2026-03-06T12:00:00"
+      }
+    ]
 
   );
   const [selectedUser, setSelectedUser] = useState<any>(null);
@@ -121,6 +122,34 @@ export const ChatPage: React.FC<ChatPageProps> = ({ user, onLogout }) => {
 
   const [isLeftSidebarOpen, setIsLeftSidebarOpen] = useState(false);
   const [isRightSidebarOpen, setIsRightSidebarOpen] = useState(false);
+
+  // ── Chat Search ──────────────────────────────────────────────────────────
+  const [chatSearchOpen, setChatSearchOpen] = useState(false);
+  const [chatSearchQuery, setChatSearchQuery] = useState('');
+  const [chatSearchIndex, setChatSearchIndex] = useState(0);
+  const messageRefs = useRef<Record<string, HTMLDivElement | null>>({});
+
+  /** IDs of text messages that contain the search query */
+  const searchMatches = useMemo(() => {
+    if (!chatSearchQuery.trim()) return [];
+    const q = chatSearchQuery.toLowerCase();
+    return messages
+      .filter(m => m.type === 'text' && m.content?.toLowerCase().includes(q))
+      .map(m => m.id);
+  }, [chatSearchQuery, messages]);
+
+  /** Scroll to the currently focused match whenever the index / matches change */
+  useEffect(() => {
+    if (searchMatches.length === 0) return;
+    const safeIdx = ((chatSearchIndex % searchMatches.length) + searchMatches.length) % searchMatches.length;
+    const el = messageRefs.current[searchMatches[safeIdx]];
+    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }, [chatSearchIndex, searchMatches]);
+
+  const handleSearchNext = () => setChatSearchIndex(i => (i + 1) % Math.max(searchMatches.length, 1));
+  const handleSearchPrev = () => setChatSearchIndex(i => (i - 1 + Math.max(searchMatches.length, 1)) % Math.max(searchMatches.length, 1));
+  const safeSearchIndex = searchMatches.length > 0 ? ((chatSearchIndex % searchMatches.length) + searchMatches.length) % searchMatches.length : 0;
+  // ─────────────────────────────────────────────────────────────────────────
 
   const chatEndRef = useRef<HTMLDivElement>(null);
   const windowControls = useAnimation();
@@ -674,7 +703,7 @@ export const ChatPage: React.FC<ChatPageProps> = ({ user, onLogout }) => {
           </div>
         </div>
 
-        
+
         {/* Main Content Area */}
         <div className="flex-1 flex p-4 gap-4 overflow-hidden relative">
 
@@ -895,7 +924,11 @@ export const ChatPage: React.FC<ChatPageProps> = ({ user, onLogout }) => {
                     const isMe = msg.email === currentUser.email;
 
                     return (
-                      <div key={msg.id} className={`text-sm group relative my-1 ${msg.type === 'nudge' ? 'text-center my-3' : ''}`}>
+                      <div
+                        key={msg.id}
+                        ref={el => { messageRefs.current[msg.id] = el; }}
+                        className={`text-sm group relative my-1 ${msg.type === 'nudge' ? 'text-center my-3' : ''}`}
+                      >
 
                         {msg.type !== 'nudge' && (
                           <div
@@ -1190,14 +1223,59 @@ export const ChatPage: React.FC<ChatPageProps> = ({ user, onLogout }) => {
                           </div>
                         )}
 
-                        {msg.type === 'text' && (
-                          <div className="flex flex-col gap-0.5">
-                            {/* <span className={`font-bold text-[13px] ${isMe ? 'text-[#3169C6]' : 'text-black'}`}>
-                                      {msg.username}
-                                    </span> */}
-                            <span className="text-[14px] ml-3 leading-relaxed">{msg.content}</span>
-                          </div>
-                        )}
+                        {msg.type === 'text' && (() => {
+                          const content = msg.content ?? '';
+                          const isMatchedMsg = searchMatches.includes(msg.id);
+                          const isFocused = isMatchedMsg && searchMatches[safeSearchIndex] === msg.id;
+
+                          if (!isMatchedMsg || !chatSearchQuery.trim()) {
+                            return (
+                              <div className="flex flex-col gap-0.5">
+                                <span className="text-[14px] ml-3 leading-relaxed">{content}</span>
+                              </div>
+                            );
+                          }
+
+                          // Render with highlighted matches
+                          const q = chatSearchQuery.toLowerCase();
+                          const parts: React.ReactNode[] = [];
+                          let cursor = 0;
+                          let lower = content.toLowerCase();
+                          let matchCount = 0;
+                          while (cursor < content.length) {
+                            const idx = lower.indexOf(q, cursor);
+                            if (idx === -1) {
+                              parts.push(content.slice(cursor));
+                              break;
+                            }
+                            if (idx > cursor) parts.push(content.slice(cursor, idx));
+                            const isCurrentFocus = isFocused && matchCount === 0; // highlight first occurrence in focused msg more strongly
+                            parts.push(
+                              <mark
+                                key={idx}
+                                style={{
+                                  backgroundColor: isCurrentFocus ? '#FF9800' : '#FFE082',
+                                  color: isCurrentFocus ? '#fff' : '#333',
+                                  borderRadius: 2,
+                                  padding: '0 1px',
+                                  fontWeight: 700,
+                                  boxShadow: isCurrentFocus ? '0 0 0 2px rgba(255,152,0,0.5)' : 'none',
+                                  transition: 'all 0.2s',
+                                }}
+                              >
+                                {content.slice(idx, idx + q.length)}
+                              </mark>
+                            );
+                            matchCount++;
+                            cursor = idx + q.length;
+                          }
+
+                          return (
+                            <div className="flex flex-col gap-0.5">
+                              <span className="text-[14px] ml-3 leading-relaxed">{parts}</span>
+                            </div>
+                          );
+                        })()}
                         {msg.type === 'image' && (
                           <div className="flex flex-col gap-1">
                             {/* <span className={`font-bold text-[13px] ${isMe ? 'text-[#3169C6]' : 'text-black'}`}>
@@ -1813,6 +1891,146 @@ export const ChatPage: React.FC<ChatPageProps> = ({ user, onLogout }) => {
 
               <FormatButton icon={<ImageIcon size={17} />} onClick={() => fileInputRef.current?.click()} />
               <FormatButton icon={<Gift size={17} />} onClick={() => setShowGiftDialog(true)} />
+
+              {/* ── Chat Search ─────────────────────────────────────────── */}
+              {/* Spacer pushes search to the right */}
+              <div style={{ flex: 1 }} />
+
+              {/* Divider */}
+              <div style={{
+                width: 1, height: 20, margin: '0 3px',
+                background: 'linear-gradient(180deg, transparent, #b0b0b0, transparent)',
+              }} />
+
+              {/* Search toggle button */}
+              <FormatButton
+                icon={<Search size={15} />}
+                label="Search"
+                active={chatSearchOpen}
+                onClick={() => {
+                  setChatSearchOpen(o => !o);
+                  if (chatSearchOpen) {
+                    setChatSearchQuery('');
+                    setChatSearchIndex(0);
+                  }
+                }}
+              />
+
+              {/* Animated search bar */}
+              <AnimatePresence>
+                {chatSearchOpen && (
+                  <motion.div
+                    initial={{ width: 0, opacity: 0 }}
+                    animate={{ width: 'auto', opacity: 1 }}
+                    exit={{ width: 0, opacity: 0 }}
+                    transition={{ duration: 0.18, ease: 'easeInOut' }}
+                    style={{ overflow: 'hidden', display: 'flex', alignItems: 'center', gap: 3 }}
+                  >
+                    {/* Input */}
+                    <div style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      background: 'linear-gradient(180deg, #fff 0%, #f8f8f8 100%)',
+                      border: '1px solid #a0b8d8',
+                      borderRadius: 3,
+                      overflow: 'hidden',
+                      boxShadow: 'inset 0 1px 3px rgba(49,105,198,0.08)',
+                    }}>
+                      <input
+                        autoFocus
+                        value={chatSearchQuery}
+                        onChange={e => { setChatSearchQuery(e.target.value); setChatSearchIndex(0); }}
+                        onKeyDown={e => {
+                          if (e.key === 'Enter') { e.shiftKey ? handleSearchPrev() : handleSearchNext(); }
+                          if (e.key === 'Escape') { setChatSearchOpen(false); setChatSearchQuery(''); setChatSearchIndex(0); }
+                        }}
+                        placeholder="Search messages…"
+                        style={{
+                          width: 148,
+                          padding: '3px 6px',
+                          fontSize: 11,
+                          fontFamily: 'Segoe UI, Tahoma, sans-serif',
+                          fontWeight: 600,
+                          color: '#222',
+                          border: 'none',
+                          outline: 'none',
+                          background: 'transparent',
+                        }}
+                      />
+                      {chatSearchQuery && (
+                        <button
+                          onClick={() => { setChatSearchQuery(''); setChatSearchIndex(0); }}
+                          title="Clear"
+                          style={{
+                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            width: 18, height: 18, marginRight: 2,
+                            borderRadius: '50%', border: 'none',
+                            background: 'transparent', color: '#aaa',
+                            cursor: 'pointer', flexShrink: 0,
+                          }}
+                          onMouseEnter={e => { e.currentTarget.style.background = '#e8e8e8'; e.currentTarget.style.color = '#555'; }}
+                          onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#aaa'; }}
+                        >
+                          <X size={11} />
+                        </button>
+                      )}
+                    </div>
+
+                    {/* Match counter */}
+                    <span style={{
+                      fontSize: 10,
+                      fontWeight: 700,
+                      fontFamily: 'Segoe UI, Tahoma, sans-serif',
+                      color: searchMatches.length > 0 ? '#2a5fb5' : '#aaa',
+                      minWidth: 36,
+                      textAlign: 'center',
+                      whiteSpace: 'nowrap',
+                    }}>
+                      {chatSearchQuery.trim()
+                        ? searchMatches.length > 0
+                          ? `${safeSearchIndex + 1} / ${searchMatches.length}`
+                          : 'No match'
+                        : ''}
+                    </span>
+
+                    {/* Prev / Next */}
+                    {(['prev', 'next'] as const).map(dir => (
+                      <button
+                        key={dir}
+                        onClick={dir === 'prev' ? handleSearchPrev : handleSearchNext}
+                        title={dir === 'prev' ? 'Previous (Shift+Enter)' : 'Next (Enter)'}
+                        disabled={searchMatches.length === 0}
+                        style={{
+                          display: 'flex', alignItems: 'center', justifyContent: 'center',
+                          width: 22, height: 22,
+                          border: '1px solid #c0c0c0',
+                          borderRadius: 3,
+                          background: 'linear-gradient(180deg, #f8f8f8 0%, #e4e4e4 100%)',
+                          color: searchMatches.length === 0 ? '#ccc' : '#555',
+                          cursor: searchMatches.length === 0 ? 'default' : 'pointer',
+                          boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.9)',
+                          transition: 'all 0.1s',
+                        }}
+                        onMouseEnter={e => {
+                          if (searchMatches.length > 0) {
+                            e.currentTarget.style.background = 'linear-gradient(180deg, #ddeeff 0%, #c2d8f5 100%)';
+                            e.currentTarget.style.borderColor = '#7aaee0';
+                            e.currentTarget.style.color = '#1a3e7a';
+                          }
+                        }}
+                        onMouseLeave={e => {
+                          e.currentTarget.style.background = 'linear-gradient(180deg, #f8f8f8 0%, #e4e4e4 100%)';
+                          e.currentTarget.style.borderColor = '#c0c0c0';
+                          e.currentTarget.style.color = searchMatches.length === 0 ? '#ccc' : '#555';
+                        }}
+                      >
+                        {dir === 'prev' ? <ChevronUp size={13} /> : <ChevronDown size={13} />}
+                      </button>
+                    ))}
+                  </motion.div>
+                )}
+              </AnimatePresence>
+              {/* ──────────────────────────────────────────────────────────── */}
             </div>
 
             {/* Input Section */}
@@ -2191,7 +2409,7 @@ export const ChatPage: React.FC<ChatPageProps> = ({ user, onLogout }) => {
               }}>
                 {/* code icon */}
                 <svg width="9" height="9" viewBox="0 0 9 9" fill="none">
-                  <path d="M2.5 2L1 4.5L2.5 7M6.5 2L8 4.5L6.5 7" stroke="white" strokeWidth="1.2" strokeLinecap="round"/>
+                  <path d="M2.5 2L1 4.5L2.5 7M6.5 2L8 4.5L6.5 7" stroke="white" strokeWidth="1.2" strokeLinecap="round" />
                 </svg>
               </div>
               <span style={{
@@ -2243,7 +2461,7 @@ export const ChatPage: React.FC<ChatPageProps> = ({ user, onLogout }) => {
               >
                 {/* GitHub SVG */}
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M12 2C6.477 2 2 6.477 2 12c0 4.418 2.865 8.166 6.839 9.489.5.092.682-.217.682-.482 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0 1 12 6.844a9.59 9.59 0 0 1 2.504.337c1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.02 10.02 0 0 0 22 12c0-5.523-4.477-10-10-10z"/>
+                  <path d="M12 2C6.477 2 2 6.477 2 12c0 4.418 2.865 8.166 6.839 9.489.5.092.682-.217.682-.482 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0 1 12 6.844a9.59 9.59 0 0 1 2.504.337c1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.02 10.02 0 0 0 22 12c0-5.523-4.477-10-10-10z" />
                 </svg>
               </a>
 
@@ -2277,7 +2495,7 @@ export const ChatPage: React.FC<ChatPageProps> = ({ user, onLogout }) => {
               >
                 {/* LinkedIn SVG */}
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 0 1-2.063-2.065 2.064 2.064 0 1 1 2.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/>
+                  <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 0 1-2.063-2.065 2.064 2.064 0 1 1 2.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z" />
                 </svg>
               </a>
 
@@ -2303,7 +2521,7 @@ export const ChatPage: React.FC<ChatPageProps> = ({ user, onLogout }) => {
         </div>
 
 
-        
+
       </motion.div >
       <input
         type="file"
