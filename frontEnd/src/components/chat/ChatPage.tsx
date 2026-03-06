@@ -12,7 +12,7 @@ import { ALL_EMOJIS } from '../../constants';
 
 
 import { TitleBar } from '../common/TitleBar';
-
+import { Toast } from '../common/Toast';
 
 import PeopleOnlineContent from "./peopleOnlineContent"
 import PendingPhotoDialog from "./PendingPhotoDialog"
@@ -37,11 +37,14 @@ const DEFAULT_THEME = {
 };
 
 
+type ToastType = { message: string; type: 'success' | 'error' } | null;
 interface ChatPageProps {
   user: UserData;
+  toast : ToastType ; 
+  setToast : (value : ToastType) => void ; 
 }
 
-export const ChatPage: React.FC<ChatPageProps> = ({ user, onLogout }) => {
+export const ChatPage: React.FC<ChatPageProps> = ({ user, onLogout , toast , setToast }) => {
   const [currentUser, setCurrentUser] = useState<UserData>(user);
   const [onlineUsers, setOnlineUsers] = useState([])
   const [offlineUsers, setOfflineUsers] = useState([])
@@ -202,7 +205,7 @@ export const ChatPage: React.FC<ChatPageProps> = ({ user, onLogout }) => {
       }
 
       if (data.type === "error") {
-        alert(data.message);
+        setToast({ message: data.message, type: 'error' });
 
       }
 
@@ -423,6 +426,13 @@ export const ChatPage: React.FC<ChatPageProps> = ({ user, onLogout }) => {
         accept="audio/*"
         onChange={handleVoiceUpload}
       />
+
+
+      {/* toast  */}
+      <AnimatePresence>
+          {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
+
+      </AnimatePresence>
 
       <AnimatePresence>
         {showGiftDialog && (

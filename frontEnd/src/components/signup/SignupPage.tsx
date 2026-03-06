@@ -7,18 +7,20 @@ import { Toast } from '../common/Toast';
 import { TitleBar } from '../common/TitleBar';
 
 
+type ToastType = { message: string; type: 'success' | 'error' } | null;
 interface SignupPageProps {
-  onSignup: (data: UserData) => void;
+  onSignup: (data: UserData) => void; 
+  toast : ToastType ;
+  setToast : (value : ToastType) => void ; 
 }
 
-export const SignupPage: React.FC<SignupPageProps> = ({ onSignup }) => {
+export const SignupPage: React.FC<SignupPageProps> = ({ onSignup , toast  , setToast }) => {
   const [email, setEmail] = useState('');
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [selectedAvatar, setSelectedAvatar] = useState(AVATARS[0]);
   const [showAvatarList, setShowAvatarList] = useState(false);
-  const [toast, setToast] = useState<{ message: string, type: 'success' | 'error' } | null>(null);
   const [isSignIn, setIsSignIn] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [serverLink, setServerLink] = useState(() => localStorage.getItem('server_link') || 'http://localhost');

@@ -2,8 +2,9 @@ const http = require('http');
 const express = require("express");
 // const WebSocket = require('ws');
 const cors = require("cors");
+require("dotenv").config();
 
-const { PORT } = require('./configff');
+const  PORT = process.env.PORT
 
 
 const chatRoutes = require('./routes/chatRoutes')

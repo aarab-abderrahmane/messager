@@ -1,7 +1,9 @@
 // config/socket.js
 const WebSocket = require("ws");
-const { MAX_TOKENS } = require("../configff");
+require("dotenv").config();
 const { canSend } = require("../middleware/rateLimiter");
+
+const  MAX_TOKENS  = process.env.MAX_TOKENS
 
 const {
   addClient,
@@ -33,12 +35,12 @@ function setupSocket(server) {
 
         if (data.type !== "AUTH") {
           if (!canSend(ws)) {
-            const now = Date.now();
-            const secondsLeft = Math.ceil((ws.lockUntil - now) / 1000);
+            // const now = Date.now();
+            // const secondsLeft = Math.ceil((ws.lockUntil - now) / 1000);
 
             return ws.send(JSON.stringify({
               type: "error",
-              message: `Limit reached! Please wait ${secondsLeft} seconds.`
+              message: `Limit reached! Please wait ${ws.retryAfter} seconds.`
             }));
           }
         }
