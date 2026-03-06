@@ -2,7 +2,7 @@ require("dotenv").config();
 
 async function getGifs (req, res)  {
   const limit = req.query.limit || 'funny';
-  const apiKey = "TgZ5diIcSJNyckOOrv8jwVFdFRKeVL4D";
+  const apiKey = process.env.GIPHY_API_KEY;
   const query = req.query.q || 'funny';
 
   try {

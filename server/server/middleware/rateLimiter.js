@@ -1,6 +1,7 @@
-// const { MAX_TOKENS, TOKEN_REFILL_RATE } = require("../configff");
-const MAX_TOKENS = 5 ; 
-const TOKEN_REFILL_RATE = 2 ; 
+require("dotenv").config();
+
+const MAX_TOKENS = process.env.MAX_TOKENS ; 
+const TOKEN_REFILL_RATE = process.env.TOKEN_REFILL_RATE ; 
 
 const REFILL_INTERVAL_MS = TOKEN_REFILL_RATE * 60 * 1000;
 
