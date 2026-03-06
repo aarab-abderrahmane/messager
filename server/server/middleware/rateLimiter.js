@@ -1,4 +1,4 @@
-const { MAX_TOKENS } = require('./config');
+const { MAX_TOKENS } = require('../configff');
 
 function canSend(client) {
   const now = Date.now();

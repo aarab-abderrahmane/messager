@@ -1,0 +1,585 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>MSN Chat — Windows Live Messenger Reimagined</title>
+<meta name="description" content="MSN Chat is a modern web app built with React that faithfully recreates the Windows Live Messenger 7 experience."/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Segoe+UI:wght@400;600;700&family=Tahoma:wght@400;700&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/vs.min.css"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --blue1:#4a85d8;--blue2:#2a5fb5;--silver1:#f8f8f8;--silver2:#e8e8e8;--silver3:#d0d0d0;
+  --border:#c0c0c0;--text:#1a1a1a;--text2:#555;--title-bg:linear-gradient(180deg,#4a85d8 0%,#2a5fb5 100%);
+  --card-bg:linear-gradient(180deg,#f8f8f8 0%,#e8e8e8 100%);--radius:6px;
+}
+html{scroll-behavior:smooth;font-family:'Segoe UI',Tahoma,sans-serif;color:var(--text);background:#d4d0c8}
+body{background:linear-gradient(135deg,#d4d0c8 0%,#b8b4ac 100%);min-height:100vh}
+
+/* NAV */
+nav{position:sticky;top:0;z-index:100;background:linear-gradient(180deg,#f0f0f0,#d8d8d8);border-bottom:1px solid var(--border);box-shadow:0 1px 4px rgba(0,0,0,.2)}
+.nav-inner{max-width:1100px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;padding:6px 20px}
+.nav-logo{display:flex;align-items:center;gap:8px;font-weight:700;font-size:15px;color:var(--blue2)}
+.nav-logo svg{width:24px;height:24px}
+.nav-links{display:flex;gap:4px}
+.nav-links a{padding:4px 10px;font-size:13px;color:var(--text);text-decoration:none;border:1px solid transparent;border-radius:3px;transition:.15s}
+.nav-links a:hover{background:linear-gradient(180deg,#e8f0ff,#d0e4ff);border-color:#a0b8e8;color:var(--blue2)}
+.mobile-menu-btn{display:none;background:none;border:1px solid var(--border);border-radius:3px;padding:4px 8px;cursor:pointer;font-size:18px}
+
+/* HERO */
+.hero{position:relative;overflow:hidden;padding:80px 20px 60px;text-align:center;background:linear-gradient(180deg,#1a3a6a 0%,#2a5fb5 60%,#4a85d8 100%)}
+.hero::before{content:'';position:absolute;inset:0;background:url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.03'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")}
+.hero-window{position:absolute;top:30px;right:60px;width:220px;border-radius:6px;border:1px solid rgba(255,255,255,.3);box-shadow:0 8px 32px rgba(0,0,0,.4);animation:float 4s ease-in-out infinite;display:none}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-12px)}}
+.hero-window-bar{background:var(--title-bg);padding:5px 8px;border-radius:6px 6px 0 0;display:flex;align-items:center;gap:6px;font-size:12px;color:#fff}
+.hero-window-body{background:rgba(240,245,255,.92);padding:12px;border-radius:0 0 6px 6px;font-size:12px}
+.hero-msg{background:#fff;border-radius:4px;padding:6px 10px;margin-bottom:6px;border:1px solid #dde;text-align:left;font-size:11px}
+.hero-msg.me{background:#ddeeff;text-align:right}
+.hero-content{position:relative;z-index:1}
+.hero-icon{width:80px;height:80px;margin:0 auto 20px;background:linear-gradient(135deg,#7ec8ff,#4a85d8);border-radius:50%;border:3px solid rgba(255,255,255,.5);display:flex;align-items:center;justify-content:center;box-shadow:0 4px 20px rgba(0,0,0,.3)}
+.hero-icon svg{width:44px;height:44px;fill:#fff}
+h1{font-size:clamp(24px,4vw,42px);font-weight:700;color:#fff;text-shadow:0 2px 8px rgba(0,0,0,.4);margin-bottom:12px}
+.hero-sub{font-size:clamp(14px,2vw,18px);color:rgba(255,255,255,.85);margin-bottom:32px;max-width:560px;margin-left:auto;margin-right:auto}
+.typing-row{display:flex;align-items:center;justify-content:center;gap:6px;margin-bottom:32px;font-size:13px;color:rgba(255,255,255,.7)}
+.typing-dots span{display:inline-block;width:6px;height:6px;border-radius:50%;background:rgba(255,255,255,.7);margin:0 2px;animation:bounce .9s infinite}
+.typing-dots span:nth-child(2){animation-delay:.2s}
+.typing-dots span:nth-child(3){animation-delay:.4s}
+@keyframes bounce{0%,60%,100%{transform:translateY(0)}30%{transform:translateY(-6px)}}
+.hero-btns{display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
+.btn-primary{padding:10px 24px;background:linear-gradient(180deg,#5c9aff,#2a5fb5);color:#fff;border:1px solid #1a4a95;border-radius:4px;font-size:14px;font-weight:600;text-decoration:none;cursor:pointer;box-shadow:inset 0 1px rgba(255,255,255,.25),0 2px 6px rgba(0,0,0,.3);transition:.15s}
+.btn-primary:hover{background:linear-gradient(180deg,#6aabff,#3a6fc5);box-shadow:inset 0 1px rgba(255,255,255,.35),0 3px 10px rgba(0,0,0,.3)}
+.btn-silver{padding:10px 24px;background:linear-gradient(180deg,#f8f8f8,#d8d8d8);color:var(--text);border:1px solid var(--border);border-radius:4px;font-size:14px;font-weight:600;text-decoration:none;cursor:pointer;box-shadow:inset 0 1px rgba(255,255,255,.8),0 2px 4px rgba(0,0,0,.15);transition:.15s}
+.btn-silver:hover{background:linear-gradient(180deg,#fff,#e8e8e8);box-shadow:inset 0 1px rgba(255,255,255,.9),0 3px 8px rgba(0,0,0,.15)}
+
+/* SECTIONS */
+section{max-width:1100px;margin:0 auto;padding:50px 20px}
+.section-title-bar{background:var(--title-bg);color:#fff;padding:6px 14px;border-radius:6px 6px 0 0;font-size:13px;font-weight:600;display:flex;align-items:center;gap:8px;border:1px solid var(--blue2);border-bottom:none}
+.section-title-bar .dot{width:11px;height:11px;border-radius:50%;border:1px solid rgba(255,255,255,.4)}
+.dot-close{background:#d84a4a}
+.dot-min{background:#d8a44a}
+.dot-max{background:#4ab84a}
+.section-body{background:var(--card-bg);border:1px solid var(--border);border-radius:0 0 6px 6px;padding:30px;box-shadow:inset 0 1px rgba(255,255,255,.9),2px 2px 8px rgba(0,0,0,.15)}
+.section-heading{font-size:20px;font-weight:700;color:var(--blue2);margin-bottom:8px}
+.section-sub{font-size:14px;color:var(--text2);margin-bottom:24px}
+
+/* FEATURES */
+.features-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:16px}
+.feature-card{border-radius:var(--radius);border:1px solid var(--border);overflow:hidden;box-shadow:2px 2px 6px rgba(0,0,0,.15);transition:.2s}
+.feature-card:hover{transform:translateY(-2px);box-shadow:3px 4px 12px rgba(42,95,181,.2)}
+.feature-card-bar{background:var(--title-bg);padding:5px 10px;font-size:12px;font-weight:600;color:#fff;display:flex;align-items:center;justify-content:space-between}
+.feature-card-bar .wc{display:flex;gap:3px}
+.feature-card-bar .wc span{width:10px;height:10px;border-radius:50%;background:rgba(255,255,255,.3)}
+.feature-card-body{background:var(--card-bg);padding:14px}
+.feature-icon{font-size:28px;margin-bottom:8px}
+.feature-title{font-size:13px;font-weight:700;color:var(--blue2);margin-bottom:4px}
+.feature-desc{font-size:12px;color:var(--text2);line-height:1.5}
+
+/* TECH STACK */
+.tech-pills{display:flex;flex-wrap:wrap;gap:10px;margin-top:16px}
+.pill{padding:6px 16px;background:linear-gradient(180deg,#f0f0f0,#d8d8d8);border:1px solid var(--border);border-radius:3px;font-size:13px;font-weight:600;color:var(--text);box-shadow:inset 0 1px rgba(255,255,255,.8);cursor:default;transition:.15s}
+.pill:hover{background:linear-gradient(180deg,#e8f0ff,#c8d8f8);border-color:#8aabdf;color:var(--blue2)}
+
+/* CODE BLOCKS */
+.code-block{border-radius:4px;overflow:hidden;margin:12px 0;border:1px solid #444;box-shadow:2px 2px 8px rgba(0,0,0,.3)}
+.code-header{background:#2a2a3a;padding:6px 12px;display:flex;align-items:center;justify-content:space-between;font-size:12px;color:#aaa}
+.code-dots{display:flex;gap:5px}
+.code-dots span{width:10px;height:10px;border-radius:50%}
+.cd-r{background:#d84a4a}.cd-y{background:#d8a44a}.cd-g{background:#4ab84a}
+.code-block pre{margin:0}
+.code-block code{font-size:12px;line-height:1.6;display:block;padding:14px 16px}
+.code-comment{color:#608b4e}
+
+/* COMPONENT TABLE */
+.comp-table{width:100%;border-collapse:collapse;font-size:13px;margin-top:16px}
+.comp-table th{background:linear-gradient(180deg,#4a85d8,#2a5fb5);color:#fff;padding:8px 12px;text-align:left;font-weight:600}
+.comp-table th:first-child{border-radius:4px 0 0 0}
+.comp-table th:last-child{border-radius:0 4px 0 0}
+.comp-table td{padding:8px 12px;border-bottom:1px solid #e0e4f0;vertical-align:top}
+.comp-table tr:nth-child(even) td{background:#f0f4ff}
+.comp-table tr:hover td{background:#e8f0ff}
+.prop-name{font-family:monospace;color:#2a5fb5;font-weight:600;font-size:12px}
+.prop-type{font-family:monospace;color:#7b4f00;font-size:11px}
+
+/* SCREENSHOTS */
+.screenshots-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:20px}
+.screenshot-frame{border-radius:var(--radius);border:1px solid var(--border);overflow:hidden;box-shadow:4px 4px 14px rgba(0,0,0,.2)}
+.screenshot-bar{background:var(--title-bg);padding:5px 10px;display:flex;align-items:center;gap:8px;font-size:12px;color:#fff}
+.screenshot-body{background:linear-gradient(180deg,#e8eef8,#d0d8ec);height:160px;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:8px;font-size:12px;color:#667;padding:10px}
+.screenshot-body .preview-icon{font-size:36px;opacity:.6}
+
+/* FOOTER */
+footer{background:linear-gradient(180deg,#2a2a3a,#1a1a2a);padding:0;border-top:1px solid var(--blue2)}
+.footer-statusbar{background:linear-gradient(180deg,#d8d8d8,#c0c0c0);padding:6px 20px;display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.status-dots{display:flex;gap:6px;align-items:center}
+.status-dot{width:12px;height:12px;border-radius:50%;border:1px solid rgba(0,0,0,.2);animation:pulse-dot 2.5s ease-in-out infinite}
+.status-dot:nth-child(2){animation-delay:.4s}.status-dot:nth-child(3){animation-delay:.8s}.status-dot:nth-child(4){animation-delay:1.2s}
+@keyframes pulse-dot{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.6;transform:scale(.85)}}
+.sd-blue{background:#4a85d8}.sd-green{background:#4ab84a}.sd-yellow{background:#d8c44a}.sd-red{background:#d84a4a}
+.footer-body{display:flex;align-items:center;justify-content:center;flex-direction:column;gap:16px;padding:32px 20px}
+.footer-logo{display:flex;align-items:center;gap:10px;color:#fff;font-size:18px;font-weight:700}
+.footer-tagline{color:#aab;font-size:13px;text-align:center}
+.footer-links{display:flex;gap:10px}
+.footer-btn{padding:7px 18px;border-radius:3px;font-size:13px;border:1px solid var(--blue2);color:#aac8ff;background:rgba(74,133,216,.15);text-decoration:none;transition:.15s}
+.footer-btn:hover{background:rgba(74,133,216,.3);color:#fff}
+.footer-copy{font-size:11px;color:#667;text-align:center}
+
+/* ONLINE DOT */
+.online-dot{display:inline-block;width:10px;height:10px;border-radius:50%;background:#4ab84a;margin-right:4px;box-shadow:0 0 5px #4ab84a;animation:online-pulse 2s ease-in-out infinite}
+@keyframes online-pulse{0%,100%{box-shadow:0 0 5px #4ab84a}50%{box-shadow:0 0 12px #4ab84a,0 0 20px rgba(74,184,74,.4)}}
+
+/* MOBILE NAV */
+.mobile-nav{display:none;flex-direction:column;background:linear-gradient(180deg,#f0f0f0,#d8d8d8);border-top:1px solid var(--border);padding:8px}
+.mobile-nav a{padding:8px 12px;font-size:13px;color:var(--text);text-decoration:none;border-radius:3px}
+.mobile-nav a:hover{background:rgba(74,133,216,.15);color:var(--blue2)}
+.mobile-nav.open{display:flex}
+
+@media(max-width:680px){
+  .nav-links{display:none}
+  .mobile-menu-btn{display:block}
+  .hero-window{display:none!important}
+  .section-body{padding:16px}
+  .comp-table{font-size:11px}
+  .comp-table td,.comp-table th{padding:6px 8px}
+}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-inner">
+    <div class="nav-logo">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#4a85d8" stroke-width="2"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+      MSN Chat
+    </div>
+    <div class="nav-links">
+      <a href="#features">Features</a>
+      <a href="#tech">Tech Stack</a>
+      <a href="#getting-started">Getting Started</a>
+      <a href="#components">Components</a>
+      <a href="#screenshots">Preview</a>
+    </div>
+    <button class="mobile-menu-btn" onclick="toggleNav()" aria-label="Menu">☰</button>
+  </div>
+  <div class="mobile-nav" id="mobileNav">
+    <a href="#features" onclick="toggleNav()">Features</a>
+    <a href="#tech" onclick="toggleNav()">Tech Stack</a>
+    <a href="#getting-started" onclick="toggleNav()">Getting Started</a>
+    <a href="#components" onclick="toggleNav()">Components</a>
+    <a href="#screenshots" onclick="toggleNav()">Preview</a>
+  </div>
+</nav>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-window" id="heroWindow">
+    <div class="hero-window-bar">
+      <svg width="12" height="12" fill="#fff" viewBox="0 0 24 24"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+      MSN Chat — Conversation
+    </div>
+    <div class="hero-window-body">
+      <div class="hero-msg">Hey! You there? 👋</div>
+      <div class="hero-msg me">Yeah! What's up? 😄</div>
+      <div class="hero-msg">Check out MSN Chat!</div>
+    </div>
+  </div>
+  <div class="hero-content">
+    <div class="hero-icon">
+      <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+    </div>
+    <h1>MSN Chat</h1>
+    <p class="hero-sub">The classic messenger. Reimagined for the web.</p>
+    <div class="typing-row">
+      <span class="online-dot"></span>
+      <span>Abderrahmane is typing</span>
+      <span class="typing-dots"><span></span><span></span><span></span></span>
+    </div>
+    <div class="hero-btns">
+      <a href="#" class="btn-primary">🚀 Launch App</a>
+      <a href="https://github.com/aarab-abderrahmane" target="_blank" class="btn-silver">⭐ View on GitHub</a>
+    </div>
+  </div>
+</div>
+
+<!-- FEATURES -->
+<section id="features">
+  <div class="section-title-bar">
+    <div style="display:flex;align-items:center;gap:6px">
+      <div class="dot dot-close"></div><div class="dot dot-min"></div><div class="dot dot-max"></div>
+    </div>
+    Features — MSN Chat
+  </div>
+  <div class="section-body">
+    <div class="section-heading">Everything You Loved, And More</div>
+    <p class="section-sub">All the nostalgic WLM features, rebuilt with modern technology.</p>
+    <div class="features-grid">
+      <div class="feature-card">
+        <div class="feature-card-bar">Real-time Messaging <div class="wc"><span></span><span></span><span></span></div></div>
+        <div class="feature-card-body">
+          <div class="feature-icon">💬</div>
+          <div class="feature-title">Real-time Messaging</div>
+          <div class="feature-desc">Instant message delivery with Socket.io. Typing indicators, read receipts, and message history preserved.</div>
+        </div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-card-bar">GIF & Sticker Picker <div class="wc"><span></span><span></span><span></span></div></div>
+        <div class="feature-card-body">
+          <div class="feature-icon">🎭</div>
+          <div class="feature-title">GIFs & Stickers</div>
+          <div class="feature-desc">Full Giphy API integration with a searchable sticker drawer — just like the old Winks & Emoticons.</div>
+        </div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-card-bar">Voice Messages <div class="wc"><span></span><span></span><span></span></div></div>
+        <div class="feature-card-body">
+          <div class="feature-icon">🎙️</div>
+          <div class="feature-title">Voice Messages</div>
+          <div class="feature-desc">Record and send voice clips via the Web Audio API with a waveform visualizer and playback controls.</div>
+        </div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-card-bar">PDF Sharing <div class="wc"><span></span><span></span><span></span></div></div>
+        <div class="feature-card-body">
+          <div class="feature-icon">📄</div>
+          <div class="feature-title">PDF Sharing</div>
+          <div class="feature-desc">Send up to 3 PDFs at once with inline preview thumbnails and a confirmation dialog before sending.</div>
+        </div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-card-bar">Reactions & Replies <div class="wc"><span></span><span></span><span></span></div></div>
+        <div class="feature-card-body">
+          <div class="feature-icon">😍</div>
+          <div class="feature-title">Reactions & Replies</div>
+          <div class="feature-desc">Hover any message to react with emoji or thread a quick reply, keeping conversations organised.</div>
+        </div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-card-bar">Themes <div class="wc"><span></span><span></span><span></span></div></div>
+        <div class="feature-card-body">
+          <div class="feature-icon">🎨</div>
+          <div class="feature-title">Themes</div>
+          <div class="feature-desc">Switch between multiple WLM-inspired colour themes. Theme settings apply globally across all pages.</div>
+        </div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-card-bar">Online Contacts Panel <div class="wc"><span></span><span></span><span></span></div></div>
+        <div class="feature-card-body">
+          <div class="feature-icon">👥</div>
+          <div class="feature-title">Online Contacts</div>
+          <div class="feature-desc">Sidebar showing who's online with live status dots (Online, Away, Busy) — faithful to the original WLM 7 layout.</div>
+        </div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-card-bar">Breaking News Panel <div class="wc"><span></span><span></span><span></span></div></div>
+        <div class="feature-card-body">
+          <div class="feature-icon">📰</div>
+          <div class="feature-title">Breaking News</div>
+          <div class="feature-desc">Live news ticker in the sidebar, with expandable article cards and custom scrollbar styling.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- TECH STACK -->
+<section id="tech">
+  <div class="section-title-bar">
+    <div style="display:flex;align-items:center;gap:6px">
+      <div class="dot dot-close"></div><div class="dot dot-min"></div><div class="dot dot-max"></div>
+    </div>
+    Tech Stack
+  </div>
+  <div class="section-body">
+    <div class="section-heading">Built With</div>
+    <p class="section-sub">A modern stack powering a classic experience.</p>
+    <div class="tech-pills">
+      <span class="pill">⚛️ React 18</span>
+      <span class="pill">🔷 TypeScript</span>
+      <span class="pill">🎨 Tailwind CSS</span>
+      <span class="pill">🎞 Framer Motion</span>
+      <span class="pill">🔌 Socket.io</span>
+      <span class="pill">😂 Giphy API</span>
+      <span class="pill">🎙 Web Audio API</span>
+      <span class="pill">📡 Axios</span>
+      <span class="pill">🗂 React Router</span>
+      <span class="pill">🧠 Zustand</span>
+    </div>
+  </div>
+</section>
+
+<!-- GETTING STARTED -->
+<section id="getting-started">
+  <div class="section-title-bar">
+    <div style="display:flex;align-items:center;gap:6px">
+      <div class="dot dot-close"></div><div class="dot dot-min"></div><div class="dot dot-max"></div>
+    </div>
+    Getting Started — Developer Setup
+  </div>
+  <div class="section-body">
+    <div class="section-heading">Developer Setup</div>
+    <p class="section-sub">Get MSN Chat running locally in under 2 minutes.</p>
+
+    <p style="font-size:13px;font-weight:600;color:var(--text2);margin-bottom:4px">1. Clone the repository</p>
+    <div class="code-block">
+      <div class="code-header">
+        <div class="code-dots"><span class="cd-r"></span><span class="cd-y"></span><span class="cd-g"></span></div>
+        <span>bash</span>
+      </div>
+      <pre><code class="language-bash"># Clone the front-end
+git clone https://github.com/aarab-abderrahmane/messager.git
+cd messager/frontEnd</code></pre>
+    </div>
+
+    <p style="font-size:13px;font-weight:600;color:var(--text2);margin:16px 0 4px">2. Install dependencies</p>
+    <div class="code-block">
+      <div class="code-header">
+        <div class="code-dots"><span class="cd-r"></span><span class="cd-y"></span><span class="cd-g"></span></div>
+        <span>bash</span>
+      </div>
+      <pre><code class="language-bash">npm install   # installs React, Tailwind, Framer Motion, etc.</code></pre>
+    </div>
+
+    <p style="font-size:13px;font-weight:600;color:var(--text2);margin:16px 0 4px">3. Configure environment</p>
+    <div class="code-block">
+      <div class="code-header">
+        <div class="code-dots"><span class="cd-r"></span><span class="cd-y"></span><span class="cd-g"></span></div>
+        <span>.env</span>
+      </div>
+      <pre><code class="language-bash">VITE_API_URL=http://localhost:3000      # back-end base URL
+VITE_GIPHY_API_KEY=your_giphy_key      # Giphy API key for GIF picker
+VITE_SOCKET_URL=http://localhost:3000  # Socket.io server URL</code></pre>
+    </div>
+
+    <p style="font-size:13px;font-weight:600;color:var(--text2);margin:16px 0 4px">4. Run the dev server</p>
+    <div class="code-block">
+      <div class="code-header">
+        <div class="code-dots"><span class="cd-r"></span><span class="cd-y"></span><span class="cd-g"></span></div>
+        <span>bash</span>
+      </div>
+      <pre><code class="language-bash">npm run dev   # starts Vite on http://localhost:5173</code></pre>
+    </div>
+
+    <p style="font-size:13px;font-weight:600;color:var(--text2);margin:20px 0 8px">📁 Key files &amp; folders</p>
+    <div class="code-block">
+      <div class="code-header">
+        <div class="code-dots"><span class="cd-r"></span><span class="cd-y"></span><span class="cd-g"></span></div>
+        <span>Project Structure</span>
+      </div>
+      <pre><code class="language-bash">src/
+├── components/
+│   ├── common/       <span class="code-comment"># TitleBar, MessageBubble, InputArea</span>
+│   ├── chat/         <span class="code-comment"># ChatPage, StickerPicker, VoiceMessage</span>
+│   ├── dialogs/      <span class="code-comment"># ThemeDialog, ServerConfig, PdfConfirm</span>
+│   └── news/         <span class="code-comment"># BreakingNews card + details dialog</span>
+├── hooks/            <span class="code-comment"># useSocket, useTheme, useAudio</span>
+├── store/            <span class="code-comment"># Zustand global state</span>
+├── types/            <span class="code-comment"># TypeScript interfaces</span>
+└── App.tsx           <span class="code-comment"># Router + theme provider</span></code></pre>
+    </div>
+  </div>
+</section>
+
+<!-- COMPONENT REFERENCE -->
+<section id="components">
+  <div class="section-title-bar">
+    <div style="display:flex;align-items:center;gap:6px">
+      <div class="dot dot-close"></div><div class="dot dot-min"></div><div class="dot dot-max"></div>
+    </div>
+    UI Component Reference — Help
+  </div>
+  <div class="section-body">
+    <div class="section-heading">Component Reference</div>
+    <p class="section-sub">Key props for the main reusable UI components.</p>
+
+    <p style="font-size:13px;font-weight:700;color:var(--blue2);margin:18px 0 6px">TitleBar</p>
+    <table class="comp-table">
+      <thead><tr><th>Prop</th><th>Type</th><th>Default</th><th>Description</th></tr></thead>
+      <tbody>
+        <tr><td><span class="prop-name">title</span></td><td><span class="prop-type">string</span></td><td>—</td><td>Window title text displayed in the blue bar</td></tr>
+        <tr><td><span class="prop-name">icon</span></td><td><span class="prop-type">ReactNode</span></td><td>—</td><td>Optional icon before the title</td></tr>
+        <tr><td><span class="prop-name">onClose</span></td><td><span class="prop-type">() => void</span></td><td>—</td><td>Callback for the ✕ close button</td></tr>
+        <tr><td><span class="prop-name">showControls</span></td><td><span class="prop-type">boolean</span></td><td>true</td><td>Show min/max/close window controls</td></tr>
+      </tbody>
+    </table>
+
+    <p style="font-size:13px;font-weight:700;color:var(--blue2);margin:18px 0 6px">MessageBubble</p>
+    <table class="comp-table">
+      <thead><tr><th>Prop</th><th>Type</th><th>Default</th><th>Description</th></tr></thead>
+      <tbody>
+        <tr><td><span class="prop-name">message</span></td><td><span class="prop-type">Message</span></td><td>—</td><td>Full message object (text, sender, timestamp, type)</td></tr>
+        <tr><td><span class="prop-name">isOwn</span></td><td><span class="prop-type">boolean</span></td><td>false</td><td>Right-align and use accent colour for own messages</td></tr>
+        <tr><td><span class="prop-name">onReact</span></td><td><span class="prop-type">(emoji) => void</span></td><td>—</td><td>Triggered when user picks an emoji reaction</td></tr>
+        <tr><td><span class="prop-name">onReply</span></td><td><span class="prop-type">(msg) => void</span></td><td>—</td><td>Triggered when user clicks "Reply"</td></tr>
+      </tbody>
+    </table>
+
+    <p style="font-size:13px;font-weight:700;color:var(--blue2);margin:18px 0 6px">InputArea</p>
+    <table class="comp-table">
+      <thead><tr><th>Prop</th><th>Type</th><th>Default</th><th>Description</th></tr></thead>
+      <tbody>
+        <tr><td><span class="prop-name">onSend</span></td><td><span class="prop-type">(content) => void</span></td><td>—</td><td>Fires with message payload on submit</td></tr>
+        <tr><td><span class="prop-name">onTyping</span></td><td><span class="prop-type">() => void</span></td><td>—</td><td>Debounced callback to broadcast typing event</td></tr>
+        <tr><td><span class="prop-name">disabled</span></td><td><span class="prop-type">boolean</span></td><td>false</td><td>Disables input & send button when not connected</td></tr>
+      </tbody>
+    </table>
+
+    <p style="font-size:13px;font-weight:700;color:var(--blue2);margin:18px 0 6px">StickerPicker</p>
+    <table class="comp-table">
+      <thead><tr><th>Prop</th><th>Type</th><th>Default</th><th>Description</th></tr></thead>
+      <tbody>
+        <tr><td><span class="prop-name">onSelect</span></td><td><span class="prop-type">(gif: GiphyResult) => void</span></td><td>—</td><td>Returns selected GIF/sticker object</td></tr>
+        <tr><td><span class="prop-name">apiKey</span></td><td><span class="prop-type">string</span></td><td>env var</span></td><td>Giphy API Key (falls back to VITE_GIPHY_API_KEY)</td></tr>
+        <tr><td><span class="prop-name">defaultTab</span></td><td><span class="prop-type">"gifs" | "stickers"</span></td><td>"gifs"</td><td>Which tab is active on open</td></tr>
+      </tbody>
+    </table>
+
+    <p style="font-size:13px;font-weight:700;color:var(--blue2);margin:18px 0 6px">VoiceMessage</p>
+    <table class="comp-table">
+      <thead><tr><th>Prop</th><th>Type</th><th>Default</th><th>Description</th></tr></thead>
+      <tbody>
+        <tr><td><span class="prop-name">src</span></td><td><span class="prop-type">string</span></td><td>—</td><td>Blob URL or remote URL of the audio clip</td></tr>
+        <tr><td><span class="prop-name">duration</span></td><td><span class="prop-type">number</span></td><td>—</td><td>Duration in seconds for the progress bar</td></tr>
+        <tr><td><span class="prop-name">waveform</span></td><td><span class="prop-type">number[]</span></td><td>—</td><td>Array of amplitude values for visualiser bars</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- SCREENSHOTS -->
+<section id="screenshots">
+  <div class="section-title-bar">
+    <div style="display:flex;align-items:center;gap:6px">
+      <div class="dot dot-close"></div><div class="dot dot-min"></div><div class="dot dot-max"></div>
+    </div>
+    Preview — MSN Chat Windows
+  </div>
+  <div class="section-body">
+    <div class="section-heading">App Preview</div>
+    <p class="section-sub">MSN Chat windows — faithful to the original WLM 7 layout.</p>
+    <div class="screenshots-grid">
+      <div class="screenshot-frame">
+        <div class="screenshot-bar">💬 MSN Chat — Conversation</div>
+        <div class="screenshot-body">
+          <div class="preview-icon">💬</div>
+          <span>Chat Window</span>
+          <span style="font-size:11px;opacity:.7">Real-time messaging with reactions</span>
+        </div>
+      </div>
+      <div class="screenshot-frame">
+        <div class="screenshot-bar">👥 People Online</div>
+        <div class="screenshot-body">
+          <div class="preview-icon">👥</div>
+          <span>Contacts Panel</span>
+          <span style="font-size:11px;opacity:.7">Live status dots &amp; avatars</span>
+        </div>
+      </div>
+      <div class="screenshot-frame">
+        <div class="screenshot-bar">🎭 GIF &amp; Sticker Picker</div>
+        <div class="screenshot-body">
+          <div class="preview-icon">🎭</div>
+          <span>Sticker Picker</span>
+          <span style="font-size:11px;opacity:.7">Giphy-powered GIF search</span>
+        </div>
+      </div>
+      <div class="screenshot-frame">
+        <div class="screenshot-bar">📰 Breaking News</div>
+        <div class="screenshot-body">
+          <div class="preview-icon">📰</div>
+          <span>News Panel</span>
+          <span style="font-size:11px;opacity:.7">Live news ticker with article cards</span>
+        </div>
+      </div>
+      <div class="screenshot-frame">
+        <div class="screenshot-bar">🎙 Voice Message Recorder</div>
+        <div class="screenshot-body">
+          <div class="preview-icon">🎙️</div>
+          <span>Voice Recorder</span>
+          <span style="font-size:11px;opacity:.7">Waveform visualiser &amp; playback</span>
+        </div>
+      </div>
+      <div class="screenshot-frame">
+        <div class="screenshot-bar">🎨 Theme Settings</div>
+        <div class="screenshot-body">
+          <div class="preview-icon">🎨</div>
+          <span>Theme Dialog</span>
+          <span style="font-size:11px;opacity:.7">Full theme customization panel</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-statusbar">
+    <div style="display:flex;align-items:center;gap:10px;font-size:12px;color:#444">
+      <div class="status-dots">
+        <div class="status-dot sd-blue"></div>
+        <div class="status-dot sd-green"></div>
+        <div class="status-dot sd-yellow"></div>
+        <div class="status-dot sd-red"></div>
+      </div>
+      <span class="online-dot" style="width:8px;height:8px"></span>
+      Online — MSN Chat v1.0
+    </div>
+    <span style="font-size:11px;color:#666">Built with ❤️ using React &amp; TypeScript</span>
+  </div>
+  <div class="footer-body">
+    <div class="footer-logo">
+      <svg width="28" height="28" fill="none" stroke="#4a85d8" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+      MSN Chat
+    </div>
+    <p class="footer-tagline">The classic messenger. Reimagined for the web.<br/>Built by <strong style="color:#aac8ff">Aarab Abderrahmane</strong></p>
+    <div class="footer-links">
+      <a href="https://github.com/aarab-abderrahmane" target="_blank" class="footer-btn">⭐ GitHub</a>
+      <a href="https://linkedin.com/in/aarab-abderrahmane" target="_blank" class="footer-btn">💼 LinkedIn</a>
+    </div>
+    <p class="footer-copy">© 2026 Aarab Abderrahmane · MSN Chat is a fan project, not affiliated with Microsoft.</p>
+  </div>
+</footer>
+
+<script>
+function toggleNav(){
+  var n=document.getElementById('mobileNav');
+  n.classList.toggle('open');
+}
+
+// Show floating hero window on desktop
+(function(){
+  var w=document.getElementById('heroWindow');
+  if(window.innerWidth>900) w.style.display='block';
+  window.addEventListener('resize',function(){
+    w.style.display=window.innerWidth>900?'block':'none';
+  });
+})();
+
+// Highlight.js
+document.addEventListener('DOMContentLoaded',function(){
+  document.querySelectorAll('pre code').forEach(function(el){
+    hljs.highlightElement(el);
+  });
+});
+
+// Smooth active nav highlight on scroll
+(function(){
+  var links=document.querySelectorAll('.nav-links a');
+  var sections=Array.from(links).map(function(a){
+    return document.querySelector(a.getAttribute('href'));
+  });
+  window.addEventListener('scroll',function(){
+    var pos=window.scrollY+120;
+    var active=-1;
+    sections.forEach(function(s,i){if(s&&s.offsetTop<=pos)active=i;});
+    links.forEach(function(l,i){
+      l.style.background=i===active?'linear-gradient(180deg,#e8f0ff,#d0e4ff)':'';
+      l.style.borderColor=i===active?'#a0b8e8':'transparent';
+      l.style.color=i===active?'#2a5fb5':'';
+    });
+  });
+})();
+</script>
+</body>
+</html>

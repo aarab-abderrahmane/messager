@@ -385,7 +385,7 @@ export const ChatPage: React.FC<ChatPageProps> = ({ user, onLogout }) => {
   const fetchRandomGif = async (query) => {
     try {
       // Call your own server
-      const response = await fetch(`http://localhost:5000/get-gif?q=${query}&limit=10`);
+      const response = await fetch(`http://localhost:5000/Dot/get-gif?q=${query}&limit=10`);
       const data = await response.json();
 
       console.log("Here is your GIF:", data);

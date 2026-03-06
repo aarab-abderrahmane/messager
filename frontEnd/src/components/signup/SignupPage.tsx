@@ -21,7 +21,7 @@ export const SignupPage: React.FC<SignupPageProps> = ({ onSignup }) => {
   const [toast, setToast] = useState<{ message: string, type: 'success' | 'error' } | null>(null);
   const [isSignIn, setIsSignIn] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
-  const [serverLink, setServerLink] = useState(() => localStorage.getItem('server_link') || 'http://192.168.101.12');
+  const [serverLink, setServerLink] = useState(() => localStorage.getItem('server_link') || 'http://localhost');
   const [serverPort, setServerPort] = useState(() => localStorage.getItem('server_port') || '5000');
   const [isTestingConnection, setIsTestingConnection] = useState(false);
   const [connectionStatus, setConnectionStatus] = useState<'idle' | 'success' | 'error'>('idle');
@@ -33,7 +33,7 @@ export const SignupPage: React.FC<SignupPageProps> = ({ onSignup }) => {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 5000);
 
-      const response = await fetch(`${serverLink}:${serverPort}/`, {
+      const response = await fetch(`${serverLink}:${serverPort}/Dot/`, {
         method: 'GET',
         signal: controller.signal
       });
@@ -88,7 +88,7 @@ export const SignupPage: React.FC<SignupPageProps> = ({ onSignup }) => {
 
       console.log(selectedAvatar)
 
-      const res = await fetch(`${serverLink}:${serverPort}/signup`, {
+      const res = await fetch(`${serverLink}:${serverPort}/Dot/signup`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json"
