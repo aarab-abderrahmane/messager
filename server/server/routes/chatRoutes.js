@@ -1,10 +1,13 @@
 const express  = require("express") ; 
 const router = express.Router() ; 
 const {signUp} = require('../controllers/sigupController')
+const {signIn} = require('../controllers/signinController')
 const {getGifs} = require('../controllers/getgifController')
 
 const authMiddleware = require('../middleware/authMiddleware')
 
+
+router.post('/signin',signIn)
 
 router.post('/signup' ,authMiddleware, signUp );
 

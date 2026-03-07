@@ -103,9 +103,36 @@ function validatePdfMessage(data) {
 
 
 
+const allowedStickers = [
+  '/assets/stickers/STK-20250901-WA0000.png',
+  '/assets/stickers/STK-20250916-WA0009.png',
+  '/assets/stickers/STK-20250918-WA0002.png',
+  '/assets/stickers/STK-20250923-WA0004.png',
+  '/assets/stickers/STK-20250923-WA0005.png',
+  '/assets/stickers/STK-20250923-WA0008.png',
+  '/assets/stickers/STK-20250923-WA0009.png',
+  '/assets/stickers/STK-20250923-WA0012.png',
+  '/assets/stickers/STK-20250925-WA0008.png',
+  '/assets/stickers/STK-20250925-WA0021.png',
+  '/assets/stickers/STK-20251011-WA0003.png',
+];
+
+function validateStickerMessage(data){
+
+    if (allowedStickers.includes(data.content)){
+      return true
+    }
+
+    return false 
+
+}
+
+
+
 module.exports = {
   validateTextMessage,
   validateImageMessage,
   validateVoiceMessage ,
-  validatePdfMessage
+  validatePdfMessage,
+  validateStickerMessage
 };

@@ -3,7 +3,8 @@ const {
   validateTextMessage,
   validateImageMessage,
   validateVoiceMessage,
-  validatePdfMessage
+  validatePdfMessage,
+  validateStickerMessage
 } = require("../middleware/validateMessage");
 
 const { getUserByToken } = require("../memory/userStore");
@@ -24,6 +25,15 @@ function handleChatMessage(ws, data) {
       replyTo: data.replyTo
     });
 
+   if(!message){
+
+      return ws.send(JSON.stringify({
+            type: "error",
+            message: "invalid text"
+      }));
+
+    }
+
     addMessage(message);
     broadcast(message);
     return;
@@ -37,6 +47,15 @@ function handleChatMessage(ws, data) {
       content: data.content,
       replyTo: data.replyTo
     });
+
+   if(!message){
+
+      return ws.send(JSON.stringify({
+            type: "error",
+            message: "invalide image"
+      }));
+
+    }
 
     addMessage(message);
     broadcast(message);
@@ -52,6 +71,15 @@ function handleChatMessage(ws, data) {
       replyTo: data.replyTo
     });
 
+   if(!message){
+
+      return ws.send(JSON.stringify({
+            type: "error",
+            message: "invalide voice"
+      }));
+
+    }
+
     addMessage(message);
     broadcast(message);
     return;
@@ -66,16 +94,39 @@ function handleChatMessage(ws, data) {
       replyTo: data.replyTo
     });
 
+
+   if(!message){
+
+      return ws.send(JSON.stringify({
+            type: "error",
+            message: "invalide pdf"
+      }));
+
+    }
+
     addMessage(message);
     broadcast(message);
     return;
   }
 
   if (data.type === "sticker" || data.type === "gif") {
+
+    if(data.type==="sticker" && !validateStickerMessage(data)) return  ; 
+    
     const message = createBaseMessage(user, data.type, {
       content: data.content,
       replyTo: data.replyTo
     });
+
+
+   if(!message){
+
+      return ws.send(JSON.stringify({
+            type: "error",
+            message: "message.error"
+      }));
+
+    }
 
     addMessage(message);
     broadcast(message);

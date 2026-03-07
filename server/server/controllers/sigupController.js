@@ -33,12 +33,12 @@ function signUp (req, res) {
 
   const response = addUser(email, ip , avatar  ,password , username);
 
-  if (!response.error) {
-    brodcastUserStates()
-    return res.json(response); // contains token, email
-  }
+  // if (!response.error) {
+  //   brodcastUserStates()
+  //   return res.json(response); // contains token, email
+  // }
 
-  return res.status(400).json(response);
+  return res.json(response);
 }
 
 module.exports = {signUp}

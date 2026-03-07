@@ -1,8 +1,0 @@
-module.exports = {
-  PORT: 5000,
-  MAX_MESSAGE_LENGTH: 500,
-  MAX_TOKENS: 10,
-  TOKEN_REFILL_RATE: 2, // per second
-  HEARTBEAT_INTERVAL: 10000, // 10 sec ping
-  HEARTBEAT_TIMEOUT: 30000,  // 30 sec
-};

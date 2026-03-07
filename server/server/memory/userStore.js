@@ -5,12 +5,14 @@ const userIps = new Set();    // track unique userIps
 const { v4: uuidv4 } = require('uuid');
 
 function addUser(email, ip, avatar, password, username) {
+        
+    
+    
 
     let token;
     do {
         token = uuidv4();
-    } while (usersByToken.has(token)); // ensure token unique
-
+    } while (usersByToken.has(token)); 
     // Create user object
     const newUser = { email, ip, token, avatar, password, username, creationDate: Date.now() };
 
@@ -43,6 +45,11 @@ function getRegistredUsers() {
 }
 
 
+function getUserByEmail(email){
+    return usersByEmail.get(email)
+}
+
+
 
 
 
@@ -53,5 +60,6 @@ module.exports = {
     getRegistredUsers,
     getUserByToken,
     removeUser,
+    getUserByEmail,
     addUser
 }
