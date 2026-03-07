@@ -8,13 +8,18 @@ import { TitleBar } from '../common/TitleBar';
 
 
 type ToastType = { message: string; type: 'success' | 'error' } | null;
+
 interface SignupPageProps {
   onSignup: (data: UserData) => void; 
   toast : ToastType ;
   setToast : (value : ToastType) => void ; 
+  serverLink : string ; 
+  setServerLink : (value : string) => void ;
+  serverPort : string ; 
+  setServerPort : (value : string) => void ;
 }
 
-export const SignupPage: React.FC<SignupPageProps> = ({ onSignup , toast  , setToast }) => {
+export const SignupPage: React.FC<SignupPageProps> = ({ onSignup , toast  , setToast ,serverLink , setServerLink , serverPort , setServerPort }) => {
   const [email, setEmail] = useState('');
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
@@ -23,8 +28,7 @@ export const SignupPage: React.FC<SignupPageProps> = ({ onSignup , toast  , setT
   const [showAvatarList, setShowAvatarList] = useState(false);
   const [isSignIn, setIsSignIn] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
-  const [serverLink, setServerLink] = useState(() => localStorage.getItem('server_link') || 'http://localhost');
-  const [serverPort, setServerPort] = useState(() => localStorage.getItem('server_port') || '5000');
+
   const [isTestingConnection, setIsTestingConnection] = useState(false);
   const [connectionStatus, setConnectionStatus] = useState<'idle' | 'success' | 'error'>('idle');
 
@@ -75,8 +79,32 @@ export const SignupPage: React.FC<SignupPageProps> = ({ onSignup , toast  , setT
     }
 
     if (isSignIn) {
-      // In a real app we'd verify credentials here.
-      onSignup({ email, avatar: selectedAvatar });
+      // onSignup({ email, avatar: selectedAvatar });
+      const res = await fetch(`${serverLink}:${serverPort}/Dot/signin`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ email, password })
+      });
+
+      const data = await res.json()
+
+      if (!res.ok || data.error) {
+        setToast({ message: data.error, type: 'error' });
+        return;
+      }
+
+
+      localStorage.setItem("chat_token", data.token);
+      localStorage.setItem("chat_email", data.email);
+      localStorage.setItem("chat_username", data.username);
+      localStorage.setItem("chat_avatar", data.avatar);
+
+      onSignup(data);
+
+
+
     } else {
       if (!username) {
         setToast({ message: 'Please enter your name!', type: 'error' });
@@ -88,7 +116,6 @@ export const SignupPage: React.FC<SignupPageProps> = ({ onSignup , toast  , setT
         return;
       }
 
-      console.log(selectedAvatar)
 
       const res = await fetch(`${serverLink}:${serverPort}/Dot/signup`, {
         method: "POST",
@@ -100,7 +127,7 @@ export const SignupPage: React.FC<SignupPageProps> = ({ onSignup , toast  , setT
 
       const data = await res.json();
 
-      if (!res.ok) {
+      if (!res.ok || data.error) {
         setToast({ message: data.error, type: 'error' });
         return;
       }

@@ -16,7 +16,9 @@ import { ChatPage } from './components/chat/ChatPage';
 export default function App() {
   const [user, setUser] = useState<UserData | null>(null);
   const [toast, setToast] = useState<{ message: string, type: 'success' | 'error' } | null>(null);
-  
+
+  const [serverLink, setServerLink] = useState(() => localStorage.getItem('server_link') || 'http://localhost');
+  const [serverPort, setServerPort] = useState(() => localStorage.getItem('server_port') || '5000');
 
    useEffect(() => {
     const token = localStorage.getItem("chat_token");
@@ -38,13 +40,23 @@ export default function App() {
 
 
   if (!user) {
-    return <SignupPage onSignup={setUser} toast={toast} setToast={setToast}/>;
+    return <SignupPage 
+    onSignup={setUser} 
+    toast={toast} 
+    setToast={setToast}
+    serverLink={serverLink}
+    setServerLink={setServerLink}
+    serverPort={serverPort}
+    setServerPort={setServerPort}
+    />;
   }
 
   return <ChatPage 
     user={user} 
     toast = {toast}
     setToast={setToast}
+    serverLink={serverLink}
+    serverPort={serverPort}
     onLogout={() => {
     localStorage.clear();
     setUser(null);

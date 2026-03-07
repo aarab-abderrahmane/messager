@@ -42,9 +42,11 @@ interface ChatPageProps {
   user: UserData;
   toast : ToastType ; 
   setToast : (value : ToastType) => void ; 
+  serverLink : string ; 
+  serverPort : string ; 
 }
 
-export const ChatPage: React.FC<ChatPageProps> = ({ user, onLogout , toast , setToast }) => {
+export const ChatPage: React.FC<ChatPageProps> = ({ user, onLogout , toast , setToast , serverLink , serverPort }) => {
   const [currentUser, setCurrentUser] = useState<UserData>(user);
   const [onlineUsers, setOnlineUsers] = useState([])
   const [offlineUsers, setOfflineUsers] = useState([])
@@ -160,20 +162,16 @@ export const ChatPage: React.FC<ChatPageProps> = ({ user, onLogout , toast , set
   const voiceInputRef = useRef<HTMLInputElement>(null);
   const pdfInputRef = useRef<HTMLInputElement>(null);
 
-  console.log(replyingTo)
 
   useEffect(() => {
 
 
     if (!currentUser?.token) return
 
-
-    const storedLink = localStorage.getItem('server_link') || 'http://localhost';
-    const storedPort = localStorage.getItem('server_port') || '5000';
     // Convert http/https to ws/wss and use the host:port
-    const wsProtocol = storedLink.startsWith('https') ? 'wss' : 'ws';
-    const host = storedLink.replace(/^https?:\/\//, '');
-    const socket = new WebSocket(`${wsProtocol}://${host}:${storedPort}`);
+    const wsProtocol = serverLink.startsWith('https') ? 'wss' : 'ws';
+    const host = serverLink.replace(/^https?:\/\//, '');
+    const socket = new WebSocket(`${wsProtocol}://${host}:${serverPort}`);
     ws.current = socket;
 
 
@@ -256,7 +254,6 @@ export const ChatPage: React.FC<ChatPageProps> = ({ user, onLogout , toast , set
     return ip;
   }
 
-  console.log(messages)
 
   const scrollToBottom = () => {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -273,6 +270,7 @@ export const ChatPage: React.FC<ChatPageProps> = ({ user, onLogout , toast , set
       email: currentUser.email,
       replyTo: replyingTo ? replyingTo : null
     } as Message;
+
 
 
     ws.current.send(JSON.stringify(newMessage));
@@ -388,10 +386,10 @@ export const ChatPage: React.FC<ChatPageProps> = ({ user, onLogout , toast , set
   const fetchRandomGif = async (query) => {
     try {
       // Call your own server
-      const response = await fetch(`http://localhost:5000/Dot/get-gif?q=${query}&limit=10`);
+      const response = await fetch(`${serverLink}:${serverPort}/Dot/get-gif?q=${query}&limit=10`);
       const data = await response.json();
 
-      console.log("Here is your GIF:", data);
+     
 
       return data
     } catch (error) {
