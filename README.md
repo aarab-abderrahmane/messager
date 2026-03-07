@@ -40,6 +40,13 @@
 | 📰 **Breaking News** | Live news panel with expandable cards, cover images & attachments |
 
 ---
+<img width="1366" height="768" alt="Screenshot_2026-03-07_21_14_40" src="https://github.com/user-attachments/assets/aeeeaeec-ae1d-4502-b9df-198254119dbf" />
+<img width="1366" height="768" alt="Screenshot_2026-03-07_21_16_32" src="https://github.com/user-attachments/assets/2276b417-71ef-488b-94a1-e29b9c735b2b" />
+<img width="1366" height="768" alt="Screenshot_2026-03-07_21_17_14" src="https://github.com/user-attachments/assets/19a19869-f92e-4082-9a37-7e7a2829ca18" />
+<img width="1366" height="768" alt="Screenshot_2026-03-07_21_17_28" src="https://github.com/user-attachments/assets/d3b6f069-9ca8-4e87-836c-711650971134" />
+
+
+---
 
 ## 🛠️ Tech Stack
 
