@@ -8,6 +8,21 @@
   <strong>The classic messenger. Reimagined as a full-stack web application.</strong>
 </p>
 
+
+<p align="center">
+  <img src="https://img.shields.io/badge/React-19-blue?logo=react" alt="React 19"/>
+  <img src="https://img.shields.io/badge/TypeScript-5.8-blue?logo=typescript" alt="TypeScript"/>
+  <img src="https://img.shields.io/badge/Node.js-Express_5-green?logo=node.js" alt="Node.js"/>
+  <img src="https://img.shields.io/badge/WebSocket-Native-orange?logo=websocket" alt="WebSocket"/>
+  <img src="https://img.shields.io/badge/License-Proprietary-red" alt="License"/>
+</p>
+
+<p align="center">
+  A modern full-stack web app that faithfully recreates the Windows Live Messenger 7 experience with real-time WebSocket communication, built with React 19, TypeScript, and Node.js.
+</p>
+
+---
+
 ## 🎯 Project Goal
 
 This project was created to solve a real problem at school.
@@ -41,19 +56,6 @@ This means the platform **does not require an internet connection**. It only nee
 
 The project is still under active development and more features will be added in future versions.
 
-<p align="center">
-  <img src="https://img.shields.io/badge/React-19-blue?logo=react" alt="React 19"/>
-  <img src="https://img.shields.io/badge/TypeScript-5.8-blue?logo=typescript" alt="TypeScript"/>
-  <img src="https://img.shields.io/badge/Node.js-Express_5-green?logo=node.js" alt="Node.js"/>
-  <img src="https://img.shields.io/badge/WebSocket-Native-orange?logo=websocket" alt="WebSocket"/>
-  <img src="https://img.shields.io/badge/License-Proprietary-red" alt="License"/>
-</p>
-
-<p align="center">
-  A modern full-stack web app that faithfully recreates the Windows Live Messenger 7 experience with real-time WebSocket communication, built with React 19, TypeScript, and Node.js.
-</p>
-
----
 
 ## ✨ Features
 
