@@ -8,6 +8,39 @@
   <strong>The classic messenger. Reimagined as a full-stack web application.</strong>
 </p>
 
+## 🎯 Project Goal
+
+This project was created to solve a real problem at school.
+
+During computer science classes, the internet connection is often unstable or completely unavailable for long periods. Because of this, it becomes difficult for students to share exercises, summaries, or files with each other.
+
+**DOT Messenger** is designed to work inside a **local network (LAN)**. As long as all users are connected to the same local network (for example the school's network), they can:
+
+- Share exercises and summaries
+- Send images or files
+- Communicate in real time
+- Receive announcements from the class
+
+This means the platform **does not require an internet connection**. It only needs a local server running on the same network.
+
+### Additional Features for School Usage
+
+- **News / Announcements Panel (in development)**  
+  Teachers or students can post important information such as:
+  - Upcoming exams
+  - Assignment deadlines
+  - Class announcements
+
+- **Account Registration**
+  - Each email can only be registered once
+  - Each IP address can only create one account
+  - This helps prevent spam or multiple fake accounts
+
+- **Basic Server Protection**
+  The server includes validation, rate limiting, and other protections to prevent common attacks.
+
+The project is still under active development and more features will be added in future versions.
+
 <p align="center">
   <img src="https://img.shields.io/badge/React-19-blue?logo=react" alt="React 19"/>
   <img src="https://img.shields.io/badge/TypeScript-5.8-blue?logo=typescript" alt="TypeScript"/>
