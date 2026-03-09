@@ -1,8 +1,8 @@
 <p align="center">
-  <img src="https://upload.wikimedia.org/wikipedia/en/thumb/3/30/MSN_Messenger_logo.svg/1200px-MSN_Messenger_logo.svg.png" width="80" alt="DOT Messanger Logo"/>
+  <img src="https://upload.wikimedia.org/wikipedia/en/thumb/3/30/MSN_Messenger_logo.svg/1200px-MSN_Messenger_logo.svg.png" width="80" alt="DOT Messenger Logo"/>
 </p>
 
-<h1 align="center">DOT Messanger</h1>
+<h1 align="center">DOT Messenger</h1>
 
 <p align="center">
   <strong>The classic messenger. Reimagined as a full-stack web application.</strong>
